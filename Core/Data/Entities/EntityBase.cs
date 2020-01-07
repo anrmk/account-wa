@@ -1,0 +1,36 @@
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Core.Data.Entities {
+    public interface IEntityBase<T> {
+        T Id { get; set; }
+    }
+
+    public abstract class EntityBase<T>: IEntityBase<T> {
+        [Key]
+        public virtual T Id { get; set; }
+    }
+
+    public interface IAuditableEntity {
+        DateTime CreatedDate { get; set; }
+        string CreatedBy { get; set; }
+        DateTime UpdatedDate { get; set; }
+        string UpdatedBy { get; set; }
+    }
+
+    public abstract class AuditableEntity<T>: EntityBase<T>, IAuditableEntity {
+        [ScaffoldColumn(false)]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        [MaxLength(256)]
+        [ScaffoldColumn(false)]
+        public string CreatedBy { get; set; } = "system";
+
+        [ScaffoldColumn(false)]
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+
+        [MaxLength(256)]
+        [ScaffoldColumn(false)]
+        public string UpdatedBy { get; set; } = "system";
+    }
+}
