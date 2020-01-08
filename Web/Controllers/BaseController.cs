@@ -9,10 +9,10 @@ using Microsoft.Extensions.Logging;
 namespace Web.Controllers {
     public class BaseController<IController>: Controller {
         protected IController _controller;
-       // private readonly IStringLocalizer<IController> _localizer;
-        private readonly ILogger<IController> _logger;
-        private readonly IMapper _mapper;
-        private readonly ApplicationContext _context;
+        // private readonly IStringLocalizer<IController> _localizer;
+        protected readonly ILogger<IController> _logger;
+        protected readonly IMapper _mapper;
+        protected readonly ApplicationContext _context;
 
         public string CurrentLanguage => "en";
 

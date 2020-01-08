@@ -9,9 +9,5 @@ namespace Core.Data.Entities {
         public string State { get; set; }
         public string ZipCode { get; set; }
         public string Country { get; set; }
-
-        public override string ToString() {
-            return $"{Address}, {City}, {State}, {ZipCode}, {Country}".Trim(',').Trim();
-        }
     }
 }

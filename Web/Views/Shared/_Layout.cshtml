@@ -10,15 +10,19 @@
 <body>
     <partial name="_HeaderPartial" />
     <div class="container">
-        
+
         <main role="main" class="pb-3">
             <div class="row">
                 <div class="col-lg-3 col-md-4">
                     <partial name="_MenuPartial" />
                 </div>
-                <div class="col-lg-9 col-md-8">@RenderBody()</div>
+                <div class="col-lg-9 col-md-8">
+                    <h2 class="mb-0">@ViewData["Title"]</h2>
+                    <p class="lead">@ViewData["SubTitle"]</p>
+                    @RenderBody()
+                </div>
             </div>
-            
+
         </main>
     </div>
 
