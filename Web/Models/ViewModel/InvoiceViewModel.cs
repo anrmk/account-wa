@@ -2,6 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
+    public class InvoiceViewModelList {
+        public long Id { get; set; }
+    }
+
     public class InvoiceViewModel {
         public long Id { get; set; }
         public double Amount { get; set; }

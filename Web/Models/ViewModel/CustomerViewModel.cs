@@ -2,6 +2,12 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
+    public class CustomerViewModelList {
+        public long Id { get; set; }
+        public string AccountNumber { get; set; }
+
+    }
+
     public class CustomerViewModel {
         public long Id { get; set; }
         [Required]

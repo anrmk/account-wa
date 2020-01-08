@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+
 using Core.Data.Dto;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using Web.ViewModels;
@@ -41,9 +43,8 @@ namespace Web {
             //    .ForMember(d => d.InvoiceId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.Id : 0));
 
             CreateMap<CompanyViewModel, CompanyDto>().ReverseMap();
-            CreateMap<CompanyViewModelList, CompanyDto>()
-                .ReverseMap()
-                .ForMember(d => d.Address, o => o.MapFrom(s => s.Address != null ? s.Address.ToString() : "No Address"));
+            CreateMap<CompanyViewModelList, CompanyDtoList>().ReverseMap();
+
         }
     }
 

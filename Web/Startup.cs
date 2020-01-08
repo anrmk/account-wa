@@ -1,3 +1,4 @@
+using Core.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,9 @@ namespace Web {
 
             });
 
+            ServicesConfig.Configuration(services);
             MapperConfig.Register(services);
+
             services.AddDbContext<Core.Context.ApplicationContext>();
 
             services.AddControllersWithViews();
