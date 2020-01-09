@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Core.Context;
+﻿using Core.Context;
 using Core.Services.Business;
 using Core.Services.Managers;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Core.Services {

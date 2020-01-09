@@ -55,6 +55,22 @@ namespace Web {
 
             CreateMap<CompanyViewModelList, CompanyDto>()
                 .ReverseMap()
+                .ForMember(d => d.TotalCustomers, o => o.MapFrom(s => (s.Customers != null) ? s.Customers.Count : 0))
+                .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
+
+            CreateMap<CustomerViewModel, CustomerDto>()
+               .ForMember(d => d.Address, o => o.MapFrom(s => new CustomerAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
+               .ReverseMap()
+               .ForMember(d => d.AddressId, o => o.MapFrom(s => (s.Address != null) ? s.Address.Id : (long?)null))
+               .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address : ""))
+               .ForMember(d => d.Address2, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address2 : ""))
+               .ForMember(d => d.City, o => o.MapFrom(s => (s.Address != null) ? s.Address.City : ""))
+               .ForMember(d => d.State, o => o.MapFrom(s => (s.Address != null) ? s.Address.State : ""))
+               .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
+               .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
+
+            CreateMap<CustomerViewModelList, CustomerDto>()
+                .ReverseMap()
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
         }

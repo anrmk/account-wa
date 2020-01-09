@@ -1,5 +1,5 @@
 ﻿namespace Core.Data.Dto {
-    public class CompanyAddressDto {
+    public class CustomerAddressDto {
         public long? Id { get; set; }
         public string Address { get; set; }
         public string Address2 { get; set; }

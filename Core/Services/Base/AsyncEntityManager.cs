@@ -5,11 +5,12 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using Core.Context;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Base {
     public abstract class AsyncEntityManager<T>: IEntityManager<T> where T : class {
-        
+
         protected IApplicationContext _context;
         public bool ShareContext { get; set; } = false;
 
@@ -135,6 +136,6 @@ namespace Core.Services.Base {
         public async Task<Tuple<List<T>, int>> Pager<Key>(Expression<Func<T, bool>> where, Expression<Func<T, string>> order, int offset, int limit, params string[] properties) {
             return await Pager<Key>(where, order, false, offset, limit, properties);
         }
-       
+
     }
 }

@@ -1,21 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using AutoMapper;
 
 using Core.Context;
+using Core.Data.Dto;
 using Core.Services.Business;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 using Web.ViewModels;
 
 namespace Web.Controllers {
     public class CustomerController: BaseController<CustomerController> {
-        public CustomerController(ILogger<CustomerController> logger, IMapper mapper, ApplicationContext context) : base(logger, mapper, context) {
+        public ICompanyBusinessManager _businessManager;
+        public CustomerController(ILogger<CustomerController> logger, IMapper mapper, ApplicationContext context,
+             ICompanyBusinessManager businessManager) : base(logger, mapper, context) {
+            _businessManager = businessManager;
         }
 
         // GET: Customer
@@ -24,61 +28,80 @@ namespace Web.Controllers {
         }
 
         // GET: Customer/Details/5
-        public ActionResult Details(int id) {
+        public ActionResult Details(long id) {
             return View();
         }
 
         // GET: Customer/Create
         public ActionResult Create() {
-            return View();
+            var item = new CustomerViewModel();
+
+            return View(item);
         }
 
         // POST: Customer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection) {
+        public async Task<ActionResult> Create(CustomerViewModel model) {
             try {
-                // TODO: Add insert logic here
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCustomer(_mapper.Map<CustomerDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
 
-                return RedirectToAction(nameof(Index));
-            } catch {
-                return View();
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
             }
+            return View(model);
         }
 
         // GET: Customer/Edit/5
-        public ActionResult Edit(int id) {
-            return View();
+        public async Task<ActionResult> Edit(long id) {
+            var item = await _businessManager.GetCustomer(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            return View(_mapper.Map<CustomerViewModel>(item));
         }
 
         // POST: Customer/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection) {
+        public async Task<ActionResult> Edit(long id, CustomerViewModel model) {
             try {
-                // TODO: Add update logic here
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateCustomer(id, _mapper.Map<CustomerDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
 
-                return RedirectToAction(nameof(Index));
-            } catch {
-                return View();
+                    return RedirectToAction(nameof(Index));
+                }
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
             }
-        }
-
-        // GET: Customer/Delete/5
-        public ActionResult Delete(int id) {
-            return View();
+            return View(model);
         }
 
         // POST: Customer/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection) {
+        public async Task<ActionResult> Delete(long id) {
             try {
-                // TODO: Add delete logic here
-
+                var item = await _businessManager.DeleteCustomer(id);
+                if(item == false) {
+                    return NotFound();
+                }
                 return RedirectToAction(nameof(Index));
-            } catch {
-                return View();
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
             }
         }
     }
@@ -97,8 +120,8 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<List<CustomerViewModelList>> GetCompanies() {
-            var result = await _businessManager.GetCompanies();
+        public async Task<List<CustomerViewModelList>> GetCustomers() {
+            var result = await _businessManager.GetCustomers();
             return _mapper.Map<List<CustomerViewModelList>>(result);
         }
     }

@@ -2,10 +2,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Data.Entities {
-    /// <summary>
-    /// Счета
-    /// </summary>
-    public class InvoiceEntity: EntityBase<long> {
+    [Table(name: "Invoices")]
+    public class InvoiceEntity: AuditableEntity<long> {
         public double Amount { get; set; }
         public DateTime Date { get; set; }
         public DateTime DueDate { get; set; }

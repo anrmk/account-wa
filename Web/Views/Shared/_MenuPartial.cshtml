@@ -1,5 +1,8 @@
-﻿<div class="list-group mb-5">
-    <a class="list-group-item list-group-item-action active" asp-controller="Company" asp-action="Index">
+﻿@{
+    var url = Context.Request.Path.ToString().ToLower();
+}
+<div class="list-group mb-5">
+    <a class="list-group-item list-group-item-action @(url.Contains("/company") ? "active" : "")" asp-controller="Company" asp-action="Index">
         <div class="d-flex w-100 justify-content-between">
             <span><i class="fas fa-building mr-1"></i> Companies</span>
             <small></small>
@@ -10,14 +13,14 @@
                 <label><i class="fas fa-building"></i> Periods</label>
                 <small></small>
             </div>
-        </a>
-        <a class="list-group-item list-group-item-action" asp-controller="Customer" asp-action="Index">
-            <div class="d-flex w-100 justify-content-between">
-                <span><i class="fas fa-building mr-1"></i> Customers</span>
-                <small></small>
-            </div>
         </a>*@
-    <a class="list-group-item list-group-item-action" asp-controller="Invoice" asp-action="Index">
+    <a class="list-group-item list-group-item-action @(url.Contains("/customer") ? "active" : "")" asp-controller="Customer" asp-action="Index">
+        <div class="d-flex w-100 justify-content-between">
+            <span><i class="fas fa-user-friends mr-1"></i> Customers</span>
+            <small></small>
+        </div>
+    </a>
+    <a class="list-group-item list-group-item-action @(url.Contains("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
         <div class="d-flex w-100 justify-content-between">
             <span><i class="fas fa-file-invoice mr-1"></i> Invoices</span>
             <small></small>

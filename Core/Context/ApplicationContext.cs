@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Core.Data.Entities;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Core.Context {
@@ -17,10 +19,7 @@ namespace Core.Context {
     }
 
     public class ApplicationContext: DbContext, IApplicationContext {
-        //public DbSet<Period> Periods { get; set; }
-        //public DbSet<Payment> Payments { get; set; }
         public DbSet<InvoiceEntity> Invoices { get; set; }
-        //public DbSet<Customer> Customers { get; set; }
         public DbSet<CompanyEntity> Companies { get; set; }
 
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
@@ -58,10 +57,12 @@ namespace Core.Context {
                 saveFailed = false;
                 try {
                     return await base.SaveChangesAsync();
-                } catch(DbUpdateConcurrencyException) {
+                } catch(DbUpdateConcurrencyException e) {
                     saveFailed = true;
+                    Console.WriteLine(e.Message);
                     return -1001;
-                } catch(DbUpdateException) {
+                } catch(DbUpdateException e) {
+                    Console.WriteLine(e.Message);
                     saveFailed = true;
                     return -1002;
                 } catch(Exception e) {

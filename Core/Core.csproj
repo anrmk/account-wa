@@ -5,6 +5,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200108235212_init.cs" />
+    <Compile Remove="Migrations\20200108235212_init.Designer.cs" />
+    <Compile Remove="Migrations\20200109055744_init.cs" />
+    <Compile Remove="Migrations\20200109055744_init.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">

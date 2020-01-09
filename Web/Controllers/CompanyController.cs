@@ -7,10 +7,8 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Services.Business;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 using Web.ViewModels;
@@ -35,10 +33,11 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Company/Create
-        public ActionResult Create() {
-            var item = new CompanyViewModel();
+        public async Task<ActionResult> Create() {
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
 
-            return View(item);
+            return View(new CompanyViewModel());
         }
 
         // POST: Company/Create
@@ -54,11 +53,12 @@ namespace Web.Controllers.Mvc {
 
                     return RedirectToAction(nameof(Index));
                 }
-
-                return RedirectToAction(nameof(Index));
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
+
             return View(model);
         }
 
@@ -69,7 +69,10 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            return View(_mapper.Map<CompanyViewModel>(item));
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
+            var model = _mapper.Map<CompanyViewModel>(item);
+            return View(model);
         }
 
         // POST: Company/Edit/5
@@ -90,11 +93,6 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
             return View(model);
-        }
-
-        // GET: Company/Delete/5
-        public ActionResult Delete(int id) {
-            return View();
         }
 
         // POST: Company/Delete/5

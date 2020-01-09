@@ -1,10 +1,15 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Data.Entities {
-    public class PaymentEntity: EntityBase<long> {
+    [Table(name: "Payments")]
+    public class PaymentEntity: AuditableEntity<long> {
         public int Amount { get; set; }
         public DateTime Date { get; set; }
 
-        public InvoiceEntity Invoice { get; set; }
+        [ForeignKey("Invoice")]
+        [Column("Invoice_Id")]
+        public long? InvoiceId { get; set; }
+        public virtual InvoiceEntity Invoice { get; set; }
     }
 }

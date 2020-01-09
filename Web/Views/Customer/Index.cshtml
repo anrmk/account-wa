@@ -1,18 +1,20 @@
-﻿@{
-    ViewData["Title"] = "Companies List";
+﻿
+@{
+    ViewData["Title"] = "Customer List";
 }
 
 <div>
     <div id="toolbar" role="toolbar">
-        <a asp-controller="Company" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
+        <a asp-controller="Customer" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
     </div>
-    <table id="datatable" class="table" data-toggle="table" data-url="/api/company" data-search="true" data-toolbar="#toolbar"
+    <table id="datatable" class="table" data-toggle="table" data-url="/api/customer" data-search="true" data-toolbar="#toolbar"
            data-thead-classes="thead-light">
         <thead>
             <tr>
                 <th data-field="accountNumber">Account Number</th>
                 <th data-field="name">Name</th>
-                <th data-field="totalCustomers">Total Customers</th>
+                <th data-field="terms">Terms</th>
+                <th data-field="phoneNumber">Phone</th>
                 <th data-field="address">Address</th>
                 <th data-formatter="actionFormatter"></th>
             </tr>
@@ -23,7 +25,7 @@
 @section Scripts {
     <script type="text/javascript">
         function actionFormatter(value, row) {
-            return `<a href='/company/edit/${row.id}'><i class='fa fa-edit'></i></a>`
+            return `<a href='/customer/edit/${row.id}'><i class='fa fa-edit'></i></a>`
         }
     </script>
 }

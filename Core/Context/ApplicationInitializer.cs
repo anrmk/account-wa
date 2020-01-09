@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
 using Core.Data.Entities;
+
 using Newtonsoft.Json;
 
 namespace Core.Context {
@@ -16,7 +16,8 @@ namespace Core.Context {
         public ApplicationInitializer(ApplicationContext context) {
             _context = context;
 
-            CompanyInitializer();
+           // CompanyInitializer();
+            CustomerInitializer();
             _context.SaveChanges();
         }
 
@@ -26,10 +27,22 @@ namespace Core.Context {
             }
 
             string rootPath = System.IO.Directory.GetCurrentDirectory();
-            
+
             var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\companies.json");
             var companyList = JsonConvert.DeserializeObject<List<CompanyEntity>>(JSON);
             _context.Companies.AddRange(companyList);
+        }
+
+        private void CustomerInitializer() {
+            if(_context.Customers.Any()) {
+                return;
+            }
+
+            string rootPath = System.IO.Directory.GetCurrentDirectory();
+
+            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\customers.json");
+            var customerList = JsonConvert.DeserializeObject<List<CustomerEntity>>(JSON);
+            _context.Customers.AddRange(customerList);
         }
     }
 }

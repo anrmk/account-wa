@@ -8,8 +8,8 @@ using Core.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {

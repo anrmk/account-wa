@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
@@ -6,11 +7,13 @@ namespace Web.ViewModels {
         public long Id { get; set; }
         public string AccountNumber { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
         public string PhoneNumber { get; set; }
+
         public string Address { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; }
+
+        public int TotalCustomers { get; set; }
     }
 
     public class CompanyViewModel {
@@ -23,8 +26,9 @@ namespace Web.ViewModels {
         [Required]
         [MaxLength(256)]
         public string Name { get; set; }
-        public string Description { get; set; }
         public string PhoneNumber { get; set; }
+
+        public IList<int> Customers { get; set; }
 
         #region Address
         public long? AddressId { get; set; }

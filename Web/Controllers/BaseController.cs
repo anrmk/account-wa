@@ -3,7 +3,6 @@
 using Core.Context;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace Web.Controllers {
@@ -17,7 +16,7 @@ namespace Web.Controllers {
         public string CurrentLanguage => "en";
 
         public BaseController(/*IStringLocalizer<IController> localizer,*/ ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
-      //      _localizer = localizer;
+            //      _localizer = localizer;
             _logger = logger;
             _mapper = mapper;
             _context = context;
