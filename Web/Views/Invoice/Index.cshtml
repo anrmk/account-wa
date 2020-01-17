@@ -1,0 +1,47 @@
+﻿
+@{
+    ViewData["Title"] = "Invoice List";
+}
+
+<div>
+    <div id="toolbar" role="toolbar">
+        <a asp-controller="Invoice" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
+    </div>
+    <table id="datatable" class="table table-striped" data-toggle="table" data-url="/api/invoice" data-search="true" data-toolbar="#toolbar"
+           data-thead-classes="thead-dark" data-unique-id="id">
+        <thead>
+            <tr>
+                <th data-field="no" rowspan="2" scope="col">No</th>
+                <th data-field="customerName" rowspan="2" scope="col">Customer</th>
+                <th data-field="companyName" rowspan="2" scope="col">Company</th>
+                <th colspan="3" scope="col">Invoice</th>
+                <th colspan="2" scope="col">Payment</th>
+                <th rowspan="2" data-formatter="actionFormatter" class="text-nowrap"></th>
+            </tr>
+            <tr>
+                <th data-field="date" data-formatter="dateFormat" scope="col">Date</th>
+                <th data-field="dueDate" data-formatter="dateFormat" scope="col">Due Date</th>
+                <th data-field="amount" scope="col">Amount</th>
+                <th data-field="paymentAmount" scope="col">Payment</th>
+                <th data-field="paymentDate" data-formatter="dateFormat" scope="col">Payment Date</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function actionFormatter(value, row) {
+            return `<a class='mr-1' href='/invoice/edit/${row.id}'><i class='fa fa-edit'></i></a>
+                    <a class='' href='/invoice/details/${row.id}'><i class='fa fa-eye'></i></a>`
+        }
+
+        function dateFormat(value, row, index) {
+            return value == null ? "" : moment(value).format('MMM/DD/YYYY');
+        }
+
+        //$('#datatable').on('click-row.bs.table', function (event, row, field) {
+        //    window.location.href = `/invoice/details/${row.id}`;
+        //});
+    </script>
+}

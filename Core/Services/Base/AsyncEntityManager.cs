@@ -50,6 +50,18 @@ namespace Core.Services.Base {
             return await DbSet.FirstOrDefaultAsync(predicate);
         }
 
+        public virtual async Task<IEnumerable<T>> Create(IEnumerable<T> l) {
+            foreach(var t in l) {
+                var entry = _context.Entry(t);
+                DbSet.Attach(t);
+                entry.State = EntityState.Added;
+            }
+
+            if(!ShareContext)
+                await _context.SaveChangesAsync();
+            return l;
+        }
+
         public virtual async Task<T> Create(T t) {
             try {
                 var entry = DbSet.Add(t);
@@ -68,6 +80,16 @@ namespace Core.Services.Base {
                 return await _context.SaveChangesAsync();
             return 0;
         }
+
+        public virtual async Task<int> Delete(IEnumerable<T> l) {
+            DbSet.RemoveRange(l);
+
+            if(!ShareContext)
+                return await _context.SaveChangesAsync();
+            return 0;
+        }
+
+
 
         public virtual async Task<int> Update(T t) {
             var entry = _context.Entry(t);

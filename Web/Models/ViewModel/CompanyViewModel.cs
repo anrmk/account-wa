@@ -5,9 +5,10 @@ using System.ComponentModel.DataAnnotations;
 namespace Web.ViewModels {
     public class CompanyViewModelList {
         public long Id { get; set; }
-        public string AccountNumber { get; set; }
+        public string No { get; set; }
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
+        public double TaxRate { get; set; }
 
         public string Address { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -21,22 +22,40 @@ namespace Web.ViewModels {
 
         [Required]
         [MaxLength(6)]
-        public string AccountNumber { get; set; }
+        public string No { get; set; }
 
         [Required]
         [MaxLength(256)]
         public string Name { get; set; }
+
+        [Display(Name = "Phone Number")]
+        [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
 
-        public IList<int> Customers { get; set; }
+        [Display(Name = "Tax Rate")]
+        [Range(0, 100)]
+        public double TaxRate { get; set; }
+
+        public IList<long> Customers { get; set; }
 
         #region Address
         public long? AddressId { get; set; }
+        [MaxLength(60)]
         public string Address { get; set; }
+
+        [MaxLength(60)]
         public string Address2 { get; set; }
+
+        [MaxLength(60)]
         public string City { get; set; }
+
+        [MaxLength(60)]
         public string State { get; set; }
+
+        [MaxLength(10)]
         public string ZipCode { get; set; }
+
+        [MaxLength(60)]
         public string Country { get; set; }
         #endregion
     }

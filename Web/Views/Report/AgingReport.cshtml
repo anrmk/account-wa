@@ -1,0 +1,78 @@
+﻿@model Web.ViewModels.ReportViewModel
+
+@{
+    ViewData["Title"] = "A/R Aging Summary Report";
+}
+
+<form asp-action="RunAgingReport" target="_blank">
+    <fieldset>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-row mb-3">
+            <div class="col-8">
+                <label asp-for="CompanyId"></label>
+                <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
+                        required
+                        data-live-search="true">
+                    <option>Chose a company</option>
+                </select>
+                <span asp-validation-for="CompanyId" class="text-danger"></span>
+            </div>
+            <div class="col-4">
+                <label asp-for="Date"></label>
+                <div class="input-group date" data-provide="datepicker">
+                    <input asp-for="Date" type="text" class="form-control" readonly required>
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <label asp-for="DaysPerPeriod"></label>
+                <input asp-for="DaysPerPeriod" type="number" step="1" class="form-control" min="30" required>
+                <span asp-validation-for="DaysPerPeriod" class="form-text text-danger"></span>
+            </div>
+            <div class="col-4">
+                <label asp-for="NumberOfPeriod"></label>
+                <input asp-for="NumberOfPeriod" type="number" step="1" class="form-control" min="0" required>
+                <span asp-validation-for="NumberOfPeriod" class="form-text text-danger"></span>
+            </div>
+        </div>
+        <hr />
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-primary">Run report</button>
+        </div>
+    </fieldset>
+</form>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(() => {
+            //временно отключить
+            $('forma').submit((e) => {
+                var form = $(e.target);
+                var fieldset = form.find('fieldset');
+                var data = JSON.stringify(form.serializeJSON({parseNumbers: true}));
+
+                var options = {
+                    'url': form.attr('action'),
+                    'type': form.attr('method'),
+                    'data': data,
+                    'processData': false,
+                    'contentType': 'application/json; charset=utf-8'
+                };
+                fieldset.attr('disabled', 'disabled');
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    fieldset.removeAttr('disabled');
+                    alert(status)
+                }).fail((jqXHR, status) => {
+                    fieldset.removeAttr('disabled');
+                    alert(status)
+                });
+                e.preventDefault();
+            })
+        });
+    </script>
+}

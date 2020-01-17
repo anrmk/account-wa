@@ -1,0 +1,33 @@
+﻿@model Web.ViewModels.CompanyViewModel
+
+@{
+    ViewData["Title"] = $"Detail: {Model.Name}";
+    ViewData["SubTitle"] = "";
+}
+
+<div>
+    <table class="table table-bordered table-hover">
+        <thead class="thead-light">
+            <tr>
+                <th>Account Number</th>
+                <th>Name</th>
+                <th>Terms</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Invoice</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in ViewBag.Customers) {
+            <tr>
+                <td>@item.AccountNumber</td>
+                <td>@item.Name</td>
+                <td>@item.Terms</td>
+                <td>@item.PhoneNumber</td>
+                <td>@item.Address</td>
+                <td><a asp-action="Create" asp-controller="Invoice" asp-route-companyId="@Model.Id" asp-route-customerId="@item.Id">create</a></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>

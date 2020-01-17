@@ -29,14 +29,6 @@ namespace Web {
             //CreateMap<CustomerViewModel, Customer>()
             //    .ReverseMap();
 
-            //CreateMap<InvoiceViewModel, Invoice>()
-            //    .ReverseMap()
-            //    .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.CustomerId))
-            //    .ForMember(d => d.CustomerAccountNumber, o => o.MapFrom(s => s.Customer != null ? s.Customer.AccountNumber : ""))
-            //    .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.BusinessName : ""))
-            //    .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payment != null ? s.Payment.Amount : 0))
-            //    .ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payment != null ? s.Payment.Date : (DateTime?)null))
-            //    ;
 
             //CreateMap<PaymentViewModel, Payment>()
             //    .ReverseMap()
@@ -73,8 +65,28 @@ namespace Web {
                 .ReverseMap()
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
+            CreateMap<InvoiceViewModel, InvoiceDto>()
+                .ForMember(d => d.Customer, o => o.Ignore())
+                .ForMember(d => d.Company, o => o.Ignore())
+                .ForMember(d => d.Payment, o => o.Ignore())
+                .ReverseMap()
+                //.ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""))
+                //.ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payment != null ? s.Payment.Amount : 0))
+                //.ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payment != null ? s.Payment.Date : (DateTime?)null))
+                ;
+            CreateMap<InvoiceViewModelList, InvoiceDto>()
+                .ReverseMap()
+                .ForMember(d => d.CompanyName, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
+                .ForMember(d => d.CustomerName, o => o.MapFrom(s => (s.Customer != null) ? s.Customer.Name : ""));
+
+            CreateMap<PaymentViewModel, PaymentDto>()
+                .ReverseMap();
+
+            CreateMap<PaymentViewModelList, PaymentDto>()
+                .ReverseMap();
+
+            //CreateMap<ReportViewModel, ReportDto>().ReverseMap();
+            //CreateMap<ReportDataViewModel, ReportDataDto>().ReverseMap();
         }
     }
-
-
 }

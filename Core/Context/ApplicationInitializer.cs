@@ -16,7 +16,7 @@ namespace Core.Context {
         public ApplicationInitializer(ApplicationContext context) {
             _context = context;
 
-           // CompanyInitializer();
+            // CompanyInitializer();
             CustomerInitializer();
             _context.SaveChanges();
         }

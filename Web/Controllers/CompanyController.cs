@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -9,15 +10,16 @@ using Core.Data.Dto;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class CompanyController: BaseController<CompanyController> {
-        public ICompanyBusinessManager _businessManager;
+        public ICrudBusinessManager _businessManager;
         public CompanyController(ILogger<CompanyController> logger, IMapper mapper, ApplicationContext context,
-            ICompanyBusinessManager businessManager) : base(logger, mapper, context) {
+            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
         }
 
@@ -28,14 +30,22 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Company/Details/5
-        public ActionResult Details(long id) {
-            return View();
+        public async Task<ActionResult> Details(long id) {
+            var item = await _businessManager.GetCompany(id);
+
+            if(item == null) {
+                return NotFound();
+            }
+            var customers = await _businessManager.GetCustomers(item.Customers.ToArray());
+            ViewBag.Customers = customers;
+
+            return View(_mapper.Map<CompanyViewModel>(item));
         }
 
         // GET: Company/Create
         public async Task<ActionResult> Create() {
             var customers = await _businessManager.GetCustomers();
-            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new CompanyViewModel());
         }
@@ -57,7 +67,7 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
             var customers = await _businessManager.GetCustomers();
-            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(model);
         }
@@ -70,7 +80,7 @@ namespace Web.Controllers.Mvc {
             }
 
             var customers = await _businessManager.GetCustomers();
-            ViewBag.Customers = _mapper.Map<List<CustomerViewModelList>>(customers);
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
             var model = _mapper.Map<CompanyViewModel>(item);
             return View(model);
         }
@@ -85,13 +95,14 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-
                     return RedirectToAction(nameof(Index));
                 }
-
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
+
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
             return View(model);
         }
 
@@ -119,9 +130,9 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class CompanyController: ControllerBase {
         private readonly IMapper _mapper;
-        private readonly ICompanyBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _businessManager;
 
-        public CompanyController(IMapper mapper, ICompanyBusinessManager businessManager) {
+        public CompanyController(IMapper mapper, ICrudBusinessManager businessManager) {
             _mapper = mapper;
             _businessManager = businessManager;
         }
@@ -130,6 +141,13 @@ namespace Web.Controllers.Api {
         public async Task<List<CompanyViewModelList>> GetCompanies() {
             var result = await _businessManager.GetCompanies();
             return _mapper.Map<List<CompanyViewModelList>>(result);
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<CompanyViewModel> GetCompany(long id) {
+            var result = await _businessManager.GetCompany(id);
+            return _mapper.Map<CompanyViewModel>(result);
         }
     }
 }

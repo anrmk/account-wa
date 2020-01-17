@@ -8,17 +8,16 @@ using Core.Context;
 using Core.Data.Dto;
 using Core.Services.Business;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using Web.ViewModels;
 
-namespace Web.Controllers {
-    public class CustomerController: BaseController<CustomerController> {
-        public ICompanyBusinessManager _businessManager;
-        public CustomerController(ILogger<CustomerController> logger, IMapper mapper, ApplicationContext context,
-             ICompanyBusinessManager businessManager) : base(logger, mapper, context) {
+namespace Web.Controllers.Mvc {
+    public class CustomerController: BaseController<ReportController> {
+        public ICrudBusinessManager _businessManager;
+        public CustomerController(ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
+             ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
         }
 
@@ -112,9 +111,9 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class CustomerController: ControllerBase {
         private readonly IMapper _mapper;
-        private readonly ICompanyBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _businessManager;
 
-        public CustomerController(IMapper mapper, ICompanyBusinessManager businessManager) {
+        public CustomerController(IMapper mapper, ICrudBusinessManager businessManager) {
             _mapper = mapper;
             _businessManager = businessManager;
         }

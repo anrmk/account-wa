@@ -19,15 +19,32 @@ namespace Core.Context {
     }
 
     public class ApplicationContext: DbContext, IApplicationContext {
-        public DbSet<InvoiceEntity> Invoices { get; set; }
+        #region DbSet
         public DbSet<CompanyEntity> Companies { get; set; }
-
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
+
         public DbSet<CustomerEntity> Customers { get; set; }
+        public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
+
+        public DbSet<CompanyCustomerEntity> CompanyCustomers { get; set; }
+
+        public DbSet<InvoiceEntity> Invoices { get; set; }
+        public DbSet<PaymentEntity> Payments { get; set; }
+
+
+        // public DbSet<AgingEntity> Agings { get; set; }
+        #endregion
 
         public Database ApplicationDatabase { get; private set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite("Data Source=application.db");
+        // protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite("Data Source=application.db");
+        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer("Data Source=(LocalDb)\\MSSQLLocalDB;Initial Catalog=accountWa;Integrated Security=SSPI;");
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder) {
+            modelBuilder.Entity<CompanyCustomerEntity>().HasKey(sc => new { sc.CompanyId, sc.CustomerId });
+
+            base.OnModelCreating(modelBuilder);
+        }
 
         public async Task<int> SaveChangesAsync() {
             var modifiedEntries = ChangeTracker.Entries()

@@ -1,0 +1,113 @@
+﻿@model Web.ViewModels.InvoiceViewModel
+@{
+    ViewData["Title"] = "Create Invoice";
+    ViewData["SubTitle"] = "Please provide all required details to create invoice";
+}
+
+<form method="POST" asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="card">
+        <div class="card-body">
+            <div class="form-row mb-3">
+                <div class="col-4">
+                    <label asp-for="CompanyId"></label>
+                    <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
+                            required
+                            data-live-search="true">
+                        <option>Chose a company</option>
+                    </select>
+                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="CustomerId"></label>
+                    <select id="customers" asp-for="CustomerId" asp-items="@ViewBag.Customers" class="form-control selectpicker"
+                            required
+                            data-live-search="true">
+                        <option>Chose a customer</option>
+                    </select>
+                    <span asp-validation-for="CustomerId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-row mb-3">
+                <div class="col-4">
+                    <label asp-for="No"></label>
+                    <input asp-for="No" type="text" class="form-control" required>
+                    <span asp-validation-for="No" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="Date"></label>
+                    <div class="input-group date" data-provide="datepicker">
+                        <input asp-for="Date" type="text" class="form-control" readonly required>
+                        <div class="input-group-append">
+                            <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <label asp-for="DueDate"></label>
+                    <div class="input-group date" data-provide="datepicker">
+                        <input asp-for="DueDate" type="text" class="form-control" readonly required>
+                        <div class="input-group-append">
+                            <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*<div class="form-row mb-3">
+                    <div class="col">
+                        <label asp-for="Terms">Terms</label>
+                        <input asp-for="Terms" type="text" class="form-control">
+                        <span asp-validation-for="Terms" class="text-danger"></span>
+                    </div>
+                </div>*@
+
+            <h4 class="mb-3">Billing</h4>
+            <div class="form-row mb-3">
+                <div class="col-4">
+                    <label asp-for="Subtotal"></label>
+                    <input id="subtotal" asp-for="Subtotal" type="number" step="0.01" class="form-control" min="0" required>
+                    <span asp-validation-for="Subtotal" class="form-text text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="TaxRate"></label>
+                    <input id="taxRate" asp-for="TaxRate" type="number" step="0.01" class="form-control" min="0" required>
+                    <span asp-validation-for="TaxRate" class="form-text text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="Amount"></label>
+                    <input id="amount" asp-for="Amount" type="text" class="form-control" placeholder="Appartment or suite" readonly>
+                    <span asp-validation-for="Amount" class="form-text text-danger"></span>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="index" class="btn btn-link">Cancel</a>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#companies').on('change', (e) => {
+                var id = $(e.currentTarget).val();
+                $.when($.ajax(`/api/company/${id}`), $.ajax(`/api/invoice/${id}/customers`)).then((company, customers) => {
+                    $('#taxRate').val(company[0].taxRate);
+
+                    var opt = $.map(customers[0], function (val, i) {
+                        return `<option value='${val.id}' data-subtext='#${val.accountNumber}'>${val.name}</option>`
+                    });
+                    $("#customers").html(opt).selectpicker('refresh');
+                });
+            });
+            $('#subtotal, #taxRate').on('change', (e) => {
+                var subtotal = $('#subtotal').val();
+                var taxRate = $('#taxRate').val();
+                var amount = subtotal * (1 + taxRate / 100)
+                $('#amount').val(amount.toFixed(2));
+            });
+        });
+    </script>
+}

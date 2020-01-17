@@ -1,10 +1,20 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Data.Entities {
     [Table(name: "Payments")]
     public class PaymentEntity: AuditableEntity<long> {
-        public int Amount { get; set; }
+        [StringLength(8)]
+        [Required]
+        public string Ref { get; set; }
+
+        [Range(1, 100)]
+        [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal Amount { get; set; }
+
+        [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
         [ForeignKey("Invoice")]

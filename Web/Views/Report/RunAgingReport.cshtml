@@ -1,0 +1,48 @@
+﻿@model Web.ViewModels.AgingReportViewModel<Web.ViewModels.AgingReportDataViewModel>
+
+@{
+    ViewData["Title"] = "A/R Aging Summary Report";
+}
+
+<div class="card">
+
+    <div class="card-body">
+        <h1 class="display-4 text-center">
+            @Model.CompanyName
+
+        </h1>
+        <p class="lead text-center">A/R AGING SUMMARY</p>
+        <p class="lead text-center">As of @Model.Date.ToString("MMMM dd, yyyy")</p>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Account Number</th>
+                    <th scope="col">Business Name</th>
+                    <th scope="col">Current</th>
+                    @foreach(var header in Model.NamesOfPeriod) {
+                        <th scope="col">@header</th>
+                    }
+                    <th scope="col">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var data in Model.DataForm) {
+                    <tr>
+                        <td scope="row">@data.Value.AccountNumber</td>
+                        <td scope="row">@data.Value.CustomerName</td>
+                        <td>@data.Value.Aging["Current"]</td>
+                        @foreach(var header in Model.NamesOfPeriod) {
+
+                            @if(data.Value.Aging.ContainsKey(header)) {
+                                <td>@(data.Value.Aging[header] == 0 ? "" : data.Value.Aging[header].ToString())</td>
+                            }
+                        }
+
+                        <td>@data.Value.Aging["Total"]</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

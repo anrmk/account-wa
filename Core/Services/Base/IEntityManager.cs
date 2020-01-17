@@ -11,7 +11,9 @@ namespace Core.Services.Base {
         Task<T> Find(params object[] keys);
         Task<T> Find(Expression<Func<T, bool>> where);
         Task<T> Create(T t);
+        Task<IEnumerable<T>> Create(IEnumerable<T> l);
         Task<int> Delete(T t);
+        Task<int> Delete(IEnumerable<T> l);
         Task<int> Delete(Expression<Func<T, bool>> where);
         Task<int> Update(T t);
         Task<T> UpdateType(T t);

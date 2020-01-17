@@ -20,7 +20,7 @@ namespace Core.Services.Managers {
 
         public async Task<CompanyEntity> FindInclude(long id) {
             return await DbSet.Include(x => x.Address)
-                .Include(x => x.Customers)
+                .Include(x => x.CompanyCustomers)
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
         }
@@ -28,7 +28,7 @@ namespace Core.Services.Managers {
         public async Task<List<CompanyEntity>> AllInclude() {
             return await DbSet
                 .Include(x => x.Address)
-                .Include(x => x.Customers)
+                .Include(x => x.CompanyCustomers)
                 .ToListAsync();
         }
     }

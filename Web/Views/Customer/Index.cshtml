@@ -7,16 +7,19 @@
     <div id="toolbar" role="toolbar">
         <a asp-controller="Customer" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
     </div>
-    <table id="datatable" class="table" data-toggle="table" data-url="/api/customer" data-search="true" data-toolbar="#toolbar"
-           data-thead-classes="thead-light">
+    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer" data-search="true" data-toolbar="#toolbar"
+           data-thead-classes="thead-dark">
         <thead>
             <tr>
-                <th data-field="accountNumber">Account Number</th>
-                <th data-field="name">Name</th>
-                <th data-field="terms">Terms</th>
-                <th data-field="phoneNumber">Phone</th>
-                <th data-field="address">Address</th>
-                <th data-formatter="actionFormatter"></th>
+                <th data-field="accountNumber" rowspan="2" scope="col">Account Number</th>
+                <th data-field="name" rowspan="2" scope="col">Name</th>
+                <th data-field="terms" rowspan="2" scope="col">Terms</th>
+                <th scope="col" colspan="2">Contacts</th>
+                <th rowspan="2" data-formatter="actionFormatter" class="text-nowrap"></th>
+            </tr>
+            <tr>
+                <th data-field="phoneNumber" scope="col">Phone</th>
+                <th data-field="address" scope="col">Address</th>
             </tr>
         </thead>
     </table>
@@ -25,7 +28,8 @@
 @section Scripts {
     <script type="text/javascript">
         function actionFormatter(value, row) {
-            return `<a href='/customer/edit/${row.id}'><i class='fa fa-edit'></i></a>`
+            return `<a href='/customer/edit/${row.id}' class='mr-1'><i class='fa fa-edit'></i></a>
+                    <a href='/customer/details/${row.id}' class='mr-1'><i class='fa fa-file-invoice'></i></a>`;
         }
     </script>
 }

@@ -3,12 +3,14 @@ using System.Collections.Generic;
 
 namespace Core.Data.Dto {
     public class CompanyDto {
-        public long? Id { get; set; }
-        public string AccountNumber { get; set; }
+        public long Id { get; set; }
+        public string No { get; set; }
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
+        public double TaxRate { get; set; }
 
-        public IList<int?> Customers { get; set; }
+        public IList<long> Customers;
+
         public CompanyAddressDto Address { get; set; }
 
         public DateTime CreatedDate { get; set; }
