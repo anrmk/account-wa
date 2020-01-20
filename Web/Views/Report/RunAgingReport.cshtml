@@ -31,9 +31,8 @@
                     <tr>
                         <td scope="row">@data.Value.AccountNumber</td>
                         <td scope="row">@data.Value.CustomerName</td>
-                        <td>@data.Value.Aging["Current"]</td>
+                        <td>@(data.Value.Aging["Current"] == 0 ? "" : data.Value.Aging["Current"].ToString()) </td>
                         @foreach(var header in Model.NamesOfPeriod) {
-
                             @if(data.Value.Aging.ContainsKey(header)) {
                                 <td>@(data.Value.Aging[header] == 0 ? "" : data.Value.Aging[header].ToString())</td>
                             }

@@ -12,6 +12,8 @@ namespace Core.Data.Dto {
         public double CreditLimit { get; set; }
         public double CreditUtilized { get; set; }
 
+        public bool IsActive { get; set; }
+
         public CustomerAddressDto Address { get; set; }
 
         public DateTime CreatedDate { get; set; }

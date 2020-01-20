@@ -2,6 +2,7 @@ using Core.Services;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,6 +22,10 @@ namespace Web {
                 options.CheckConsentNeeded = context => true;
                 //       options.MinimumSameSitePolicy = SameSiteMode.None;
 
+            });
+
+            services.Configure<FormOptions>(options => {
+                options.ValueCountLimit = int.MaxValue;
             });
 
             ServicesConfig.Configuration(services);

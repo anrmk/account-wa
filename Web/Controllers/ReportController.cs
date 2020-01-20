@@ -132,10 +132,12 @@ namespace Web.Controllers.Api {
     public class ReportController: ControllerBase {
         private readonly IMapper _mapper;
         private readonly IReportBusinessManager _businessManager;
+        public ICrudBusinessManager _crudBusinessManager;
 
-        public ReportController(IMapper mapper, IReportBusinessManager businessManager) {
+        public ReportController(IMapper mapper, ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager) {
             _mapper = mapper;
             _businessManager = businessManager;
+            _crudBusinessManager = crudBusinessManager;
         }
 
         [HttpGet]
@@ -143,11 +145,85 @@ namespace Web.Controllers.Api {
             return await Task.Run(() => { return $"HelLLO {id}"; });
         }
 
-        [HttpPost("aging")]
+        [HttpPost("aging", Name="Aging")]
         public async Task<IActionResult> PostRunAgingReport(ReportViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, new DateTime(2020, 1, 9), model.DaysPerPeriod, model.NumberOfPeriod);
+                    var company = await _crudBusinessManager.GetCompany(model.CompanyId ?? 0);
+                    if(company == null) {
+                        return BadRequest();
+                    }
+                    var result = await _businessManager.GetAgingReport(company.Id, model.Date, model.DaysPerPeriod, model.NumberOfPeriod);
+
+                    var report = new AgingReportViewModel<AgingReportDataViewModel>() {
+                        CompanyId = result.CompanyId,
+                        CompanyName = company.Name,
+                        DaysPerPeriod = result.DaysPerAgingPeriod,
+                        NumberOfPeriod = result.NumberOfPeriod,
+                        DataForm = new Dictionary<long, AgingReportDataViewModel>(),
+                        NamesOfPeriod = new List<string>() { },
+                        Date = model.Date
+                    };
+
+                    for(int i = 0; i < model.NumberOfPeriod; i++) {
+                        int from = 1 + i * model.DaysPerPeriod;
+                        int to = (i + 1) * model.DaysPerPeriod;
+                        string key = $"{from}-{to}";
+                        report.NamesOfPeriod.Add(key);
+                    }
+
+                    var summaryTable = new Dictionary<string, string[]>();
+
+                    foreach(var d in result.Datas) {
+                        AgingReportDataViewModel record;
+                        if(report.DataForm.ContainsKey(d.CustomerId)) {
+                            record = report.DataForm[d.CustomerId];
+                        } else {
+                            record = new AgingReportDataViewModel() {
+                                CustomerId = d.CustomerId,
+                                CustomerName = d.CustomerName,
+                                AccountNumber = d.AccountNumber,
+                                Aging = new Dictionary<string, decimal>()
+                            };
+                            report.DataForm.Add(d.CustomerId, record);
+                        }
+
+                        #region Headers
+                        if(!record.Aging.ContainsKey("Current"))
+                            record.Aging.Add("Current", 0);
+
+                        for(int i = 0; i < model.NumberOfPeriod; i++) {
+                            int from = 1 + i * model.DaysPerPeriod;
+                            int to = (i + 1) * model.DaysPerPeriod;
+                            string key = $"{from}-{to}";
+                            if(!record.Aging.ContainsKey(key))
+                                record.Aging.Add(key, 0);
+                        }
+
+                        #endregion
+
+                        var DiffPay = d.Amount - (d.PayAmount ?? 0);
+                        var DateDiff = d.DiffDate;
+                        if(DiffPay > 0) {
+                            if(DateDiff <= 0) {
+                                record.Aging["Current"] += DiffPay;
+                            } else {
+                                for(int i = 0; i < model.NumberOfPeriod; i++) {
+                                    int from = 1 + i * model.DaysPerPeriod;
+                                    int to = (i + 1) * model.DaysPerPeriod;
+                                    string key = $"{from}-{to}";
+
+                                    if(DateDiff >= from && DateDiff < to) {
+                                        record.Aging[key] += DiffPay;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    foreach(var d in report.DataForm) {
+                        d.Value.Aging.Add("Total", d.Value.Aging.Sum(x => x.Value));
+                    }
+                    return Ok(report);
                 }
             } catch(Exception er) {
                 Console.Write(er.Message);

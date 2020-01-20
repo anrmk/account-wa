@@ -20,23 +20,28 @@ namespace Core.Services.Managers {
         }
 
         public async Task<ReportDto<AgingReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod) {
-            var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, DATEDIFF(DAY, INV.[DueDate], CURRENT_TIMESTAMP ) AS DiffDate " +
+            var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, DATEDIFF(DAY, INV.[DueDate], @PERIOD ) AS DiffDate " +
                         "FROM[accountWa].[dbo].[Invoices] AS INV " +
                         "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY " +
                         "ON PAY.[Invoice_Id] = INV.[Id] " +
                         "LEFT JOIN [accountWa].[dbo].Customers as CUS " +
                         "ON CUS.[Id] = INV.[Customer_Id] " +
-                        "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIOD " +
+                        //"WHERE INV.[Company_Id] = @COMPANY_ID AND [DiffDate] <= " +
+                        "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIODFROM " +
                         "ORDER BY [CustomerId], [Date]";
 
             try {
                 using(var connection = _context.Database.GetDbConnection()) {
                     using(var command = connection.CreateCommand()) {
+                        var from = period.AddDays(daysPerPeriod * numberOfPeriod * -1);
+
                         command.CommandText = query;
                         command.Parameters.Add(new SqlParameter("@COMPANY_ID", System.Data.SqlDbType.BigInt));
                         command.Parameters.Add(new SqlParameter("@PERIOD", System.Data.SqlDbType.Date));
+                        command.Parameters.Add(new SqlParameter("@PERIODFROM", System.Data.SqlDbType.Date));
                         command.Parameters["@COMPANY_ID"].Value = companyId;
-                        command.Parameters["@PERIOD"].Value = period.AddDays(daysPerPeriod * numberOfPeriod * -1);
+                        command.Parameters["@PERIOD"].Value = period;
+                        command.Parameters["@PERIODFROM"].Value = from;
 
                         if(connection.State == System.Data.ConnectionState.Closed) {
                             await connection.OpenAsync();

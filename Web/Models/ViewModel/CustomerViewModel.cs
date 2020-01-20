@@ -19,7 +19,7 @@ namespace Web.ViewModels {
         public long Id { get; set; }
 
         [Required]
-        [MaxLength(8)]
+        [MaxLength(16)]
         public string AccountNumber { get; set; }
 
         [Required]
@@ -29,6 +29,7 @@ namespace Web.ViewModels {
         [MaxLength(2048)]
         public string Description { get; set; }
 
+        [Display(Name= "Phone Number")]
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
 
@@ -39,6 +40,9 @@ namespace Web.ViewModels {
 
         [Column(TypeName = "decimal(18, 2)")]
         public double CreditUtilized { get; set; }
+
+        [Display(Name = "Activity")]
+        public bool IsActive { get; set; }
 
         #region Address
         public long? AddressId { get; set; }

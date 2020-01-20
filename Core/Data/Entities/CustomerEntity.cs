@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,7 +7,7 @@ namespace Core.Data.Entities {
     [Table(name: "Customers")]
     public class CustomerEntity: EntityBase<long> {
         [Required]
-        [MaxLength(8)]
+        [MaxLength(16)]
         public string AccountNumber { get; set; }
 
         [Required]
@@ -37,5 +38,21 @@ namespace Core.Data.Entities {
         public virtual ICollection<CompanyCustomerEntity> CompanyCustomers { get; set; }
 
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
+
+        public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
+    }
+
+    [Table(name: "CustomerActivities")]
+    public class CustomerActivityEntity: EntityBase<long> {
+        [ForeignKey("Customer")]
+        [Column("Customer_Id")]
+        public long? CustomerId { get; set; }
+        public virtual CustomerEntity Customer { get; set; }
+
+        [ScaffoldColumn(false)]
+        [DataType(DataType.DateTime)]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public bool IsActive { get; set; }
     }
 }

@@ -41,16 +41,18 @@ namespace Core.Services.Business {
         public readonly IMapper _mapper;
         public readonly ICompanyManager _companyManager;
         public readonly ICustomerManager _customerManager;
+        public readonly ICustomerActivityManager _customerActivityManager;
         public readonly ICompanyCustomerManager _companyCustomersManager;
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
-            ICustomerManager customerManager, ICompanyCustomerManager companyCustomersManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICompanyCustomerManager companyCustomersManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _customerManager = customerManager;
+            _customerActivityManager = customerActivityManager;
             _companyCustomersManager = companyCustomersManager;
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
@@ -151,6 +153,13 @@ namespace Core.Services.Business {
         public async Task<CustomerDto> CreateCustomer(CustomerDto dto) {
             var entity = _mapper.Map<CustomerEntity>(dto);
             entity = await _customerManager.Create(entity);
+
+            //Make activity
+            var activity = await _customerActivityManager.Create(new CustomerActivityEntity() {
+                CustomerId = entity.Id,
+                IsActive = dto.IsActive
+            });
+
             return _mapper.Map<CustomerDto>(entity);
         }
 
@@ -162,6 +171,12 @@ namespace Core.Services.Business {
             if(entity == null) {
                 return null;
             }
+
+            //Make activity
+            var activity = await _customerActivityManager.Create(new CustomerActivityEntity() {
+                CustomerId = entity.Id,
+                IsActive = dto.IsActive
+            });
 
             entity = await _customerManager.UpdateType(_mapper.Map(dto, entity));
             return _mapper.Map<CustomerDto>(entity);

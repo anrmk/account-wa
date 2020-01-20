@@ -16,7 +16,12 @@ namespace Core.Services.Business {
 
         public async Task<ReportDto<AgingReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod) {
             var result = await _reportManager.GetAgingReport(companyId, period, daysPerPeriod, numberOfPeriod);
+
+
+
             return result;
         }
+
+       // private class string[] PeriodName ()
     }
 }

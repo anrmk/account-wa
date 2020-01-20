@@ -29,4 +29,10 @@ namespace Core.Data.Dto {
         public DateTime? PayDate { get; set; }
         public int? DiffDate { get; set; }
     }
+
+    public class SummaryAgingReportData {
+        public string Name { get; set; }
+        public int CountOfReports { get; set; }
+        public decimal TotalAmount { get; set; }
+    }
 }

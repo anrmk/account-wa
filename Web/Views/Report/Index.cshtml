@@ -1,7 +1,60 @@
 ﻿
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Reports";
 }
 
+<div class="row">
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Accounts receivable aging summary</h5>
+                <p class="card-text">Unpaid balances for each customer, grouped by days past due.</p>
+                <a asp-action="AgingReport" class="btn btn-primary"><i class="fa fa-file-contract"></i> Go</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Special Report</h5>
+                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<a asp-action="AgingReport">Agign Report</a>
+<hr />
+<table id="table" data-toggle="table" data-height="460">
+</table>
+
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(() => {
+            $('#table').bootstrapTable({
+                undefinedText: 'N/A',
+                data: [{
+                    "id": 0,
+                    "name": "Item 0",
+                    "price": "$0"
+                }, {
+                    "id": 1,
+                    "name": "Item 1",
+                    "price": "$1"
+                }],
+                columns: [{
+                    title: 'ID',
+                    field: 'id'
+                }, {
+                    title: 'Item Name',
+                    field: 'name'
+                }, {
+                    title: 'Item Price',
+                    field: 'price'
+                }]
+            });
+        })
+    </script>
+
+}

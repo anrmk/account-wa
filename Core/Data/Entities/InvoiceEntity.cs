@@ -35,6 +35,9 @@ namespace Core.Data.Entities {
         public long? CustomerId { get; set; }
         public virtual CustomerEntity Customer { get; set; }
 
+        [NotMapped]
+        public string CustomerAccountNumber { get; set; }
+
         public virtual ICollection<PaymentEntity> Payment { get; set; }
     }
 }
