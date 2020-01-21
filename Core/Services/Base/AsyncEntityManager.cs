@@ -91,17 +91,6 @@ namespace Core.Services.Base {
             return 0;
         }
 
-        //public virtual async Task<int> Update(T t) {
-        //    var entry = _context.Entry(t);
-        //    DbSet.Attach(t);
-        //    entry.State = EntityState.Modified;
-        //    if(!ShareContext)
-        //        return await _context.SaveChangesAsync();
-        //    return 0;
-
-
-        //}
-
         public virtual async Task<IEnumerable<T>> Update(IEnumerable<T> l) {
             foreach(var t in l) {
                 var entry = _context.Entry(t);
@@ -122,17 +111,6 @@ namespace Core.Services.Base {
                 await _context.SaveChangesAsync();
             return t;
         }
-
-        //public virtual async Task<IEnumerable<T>> Update(IEnumerable<T> l) {
-        //    foreach(var t in l) {
-        //        var entry = _context.Entry(t);
-        //        DbSet.Attach(t);
-        //        entry.State = EntityState.Modified;
-        //        if(!ShareContext)
-        //            await _context.SaveChangesAsync();
-        //    }
-        //    return l;
-        //}
 
         public virtual async Task<int> Delete(Expression<Func<T, bool>> predicate) {
             var objects = await Filter(predicate);

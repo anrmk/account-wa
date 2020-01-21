@@ -11,6 +11,7 @@ namespace Web.ViewModels {
         public string Terms { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
+        public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; }
     }

@@ -23,7 +23,10 @@ namespace Core.Services.Managers {
         public CustomerManager(IApplicationContext context) : base(context) { }
 
         public async Task<List<CustomerEntity>> AllInclude() {
-            return await DbSet.Include(x => x.Address).ToListAsync();
+            return await DbSet
+                .Include(x => x.Address)
+                .Include(x => x.Activities)
+                .ToListAsync();
         }
 
         public async Task<List<CustomerEntity>> AllUntied(long? companyId) {
@@ -32,6 +35,7 @@ namespace Core.Services.Managers {
 
         public async Task<List<CustomerEntity>> FindByIds(long[] ids) {
             return await DbSet.Include(x => x.Address)
+                .Include(x => x.Activities)
                 .Where(x => ids.Contains(x.Id))
                 .ToListAsync();
         }
@@ -43,6 +47,7 @@ namespace Core.Services.Managers {
         public async Task<CustomerEntity> FindInclude(long id) {
             return await DbSet
                 .Include(x => x.Address)
+                .Include(x => x.Activities)
                .Where(x => x.Id == id)
                .FirstOrDefaultAsync();
         }

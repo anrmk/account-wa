@@ -11,7 +11,7 @@
            data-thead-classes="thead-dark">
         <thead>
             <tr>
-                <th data-field="accountNumber" rowspan="2" scope="col">Account Number</th>
+                <th data-field="accountNumber" rowspan="2" scope="col" data-formatter="accountNumberFormatter">Account Number</th>
                 <th data-field="name" rowspan="2" scope="col">Name</th>
                 <th data-field="terms" rowspan="2" scope="col">Terms</th>
                 <th scope="col" colspan="2">Contacts</th>
@@ -27,6 +27,10 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function accountNumberFormatter(value, row) {
+            return `<i class='fa fa-circle mr-1 ${row['isActive'] ? 'text-success' : 'text-danger'}'></i> ${value}`;
+        }
+
         function actionFormatter(value, row) {
             return `<a href='/customer/edit/${row.id}' class='mr-1'><i class='fa fa-edit'></i></a>
                     <a href='/customer/details/${row.id}' class='mr-1'><i class='fa fa-file-invoice'></i></a>`;

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -40,24 +39,8 @@ namespace Core.Data.Entities {
         public long? CompanyId { get; set; }
         public virtual CompanyEntity Company { get; set; }
 
-        //public virtual ICollection<CompanyCustomerEntity> CompanyCustomers { get; set; }
-
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
-    }
-
-    [Table(name: "CustomerActivities")]
-    public class CustomerActivityEntity: EntityBase<long> {
-        [ForeignKey("Customer")]
-        [Column("Customer_Id")]
-        public long? CustomerId { get; set; }
-        public virtual CustomerEntity Customer { get; set; }
-
-        [ScaffoldColumn(false)]
-        [DataType(DataType.DateTime)]
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        public bool IsActive { get; set; }
     }
 }

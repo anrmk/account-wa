@@ -14,8 +14,8 @@ namespace Core.Data.Dto {
         public DateTime DueDate { get; set; }
 
         public List<PaymentDto> Payment { get; set; }
-        public decimal PaymentAmount => PaymentExtension.TotalAmount(Payment);
-        public DateTime? PaymentDate => PaymentExtension.LastPaymentDate(Payment);
+        public decimal PaymentAmount => Payment.TotalAmount();
+        public DateTime? PaymentDate => Payment.LastPaymentDate();
 
         public long? CompanyId { get; set; }
         public CompanyDto Company { get; set; }

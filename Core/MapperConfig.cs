@@ -4,6 +4,7 @@ using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Entities;
+using Core.Extension;
 
 namespace Core {
     public class MapperConfig: Profile {
@@ -15,7 +16,10 @@ namespace Core {
 
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
 
-            CreateMap<CustomerDto, CustomerEntity>().ReverseMap();
+            CreateMap<CustomerDto, CustomerEntity>()
+                .ForMember(d => d.Activities, o => o.Ignore())
+                .ReverseMap()
+                .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
 
             //CreateMap<CompanyCustomerDto, CompanyCustomerEntity>()
