@@ -18,6 +18,7 @@ namespace Core.Services.Business {
 
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
+        Task<List<CustomerDto>> GetUndiedCustomers(long? companyId = null);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
@@ -72,13 +73,11 @@ namespace Core.Services.Business {
 
         public async Task<CompanyDto> CreateCompany(CompanyDto dto) {
             var entity = await _companyManager.Create(_mapper.Map<CompanyEntity>(dto));
-            var addedCustomers = dto.Customers.Select(x => new CompanyCustomerEntity() {
-                CompanyId = entity.Id,
-                CustomerId = x
-            }).ToList();
 
-            await _companyCustomersManager.Create(addedCustomers);
-            entity.CompanyCustomers = addedCustomers;
+            var customers = await _customerManager.FindByIds(dto.Customers.ToArray());
+            customers.ForEach(x => x.CompanyId = entity.Id);
+            await _customerManager.Update(customers);
+            entity.Customers = customers;
 
             return _mapper.Map<CompanyDto>(entity);
         }
@@ -91,25 +90,23 @@ namespace Core.Services.Business {
             if(entity == null) {
                 return null;
             }
-            entity = await _companyManager.UpdateType(_mapper.Map(dto, entity));
+            entity = await _companyManager.Update(_mapper.Map(dto, entity));
 
-            var ccitems = await _companyCustomersManager.FindAll(entity.Id);
-            var ccIds = ccitems.Select(x => x.CustomerId).ToList();
+            #region UPDATE CUSTOMER LIST
+            var customers = await _customerManager.FindByCompanyId(entity.Id);
 
-            //Удалить тех, с кого убрали отметку
-            var delteCustomers = ccitems.Where(x => !dto.Customers.Contains(x.CustomerId)).ToList();
-            if(delteCustomers.Count() > 0)
-                await _companyCustomersManager.Delete(delteCustomers);
+            //list of customers to delete
+            var customersForDelete = customers.Where(x => !dto.Customers.Contains(x.Id)).ToList();
+            customersForDelete.ForEach(x => x.CompanyId = null);
 
-            //Исключить выбранных в процессе добавления
-            var addedCustomers = dto.Customers.Where(x => !ccIds.Contains(x)).Select(x => new CompanyCustomerEntity() {
-                CompanyId = entity.Id,
-                CustomerId = x
-            }).ToList();
+            //list of customres to insert
+            var selectedCustomersIds = dto.Customers.Where(x => customers.Where(p => p.Id == x).FirstOrDefault() == null).ToList();
+            var customersForInsert = await _customerManager.FindByIds(selectedCustomersIds.ToArray());
+            customersForInsert.ForEach(x => x.CompanyId = entity.Id);
 
-
-            await _companyCustomersManager.Create(addedCustomers);
-            entity.CompanyCustomers = addedCustomers;
+            var customersUpdate = customersForDelete.Union(customersForInsert);
+            await _customerManager.Update(customersUpdate);
+            #endregion
 
             return _mapper.Map<CompanyDto>(entity);
         }
@@ -135,18 +132,23 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
+        public async Task<List<CustomerDto>> GetUndiedCustomers(long? companyId) {
+            var result = await _customerManager.AllUntied(companyId);
+            return _mapper.Map<List<CustomerDto>>(result);
+        }
+
         public async Task<List<CustomerDto>> GetCustomers(long companyId) {
             var ccitems = await _companyCustomersManager.FindAll(companyId);
             if(ccitems.Count() > 0) {
                 var ids = ccitems.Select(x => x.CustomerId).ToArray();
-                var result = await _customerManager.FindAllInclude(ids);
+                var result = await _customerManager.FindByIds(ids);
                 return _mapper.Map<List<CustomerDto>>(result);
             }
             return null;
         }
 
         public async Task<List<CustomerDto>> GetCustomers(long[] ids) {
-            var result = await _customerManager.FindAllInclude(ids);
+            var result = await _customerManager.FindByIds(ids);
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
@@ -178,7 +180,7 @@ namespace Core.Services.Business {
                 IsActive = dto.IsActive
             });
 
-            entity = await _customerManager.UpdateType(_mapper.Map(dto, entity));
+            entity = await _customerManager.Update(_mapper.Map(dto, entity));
             return _mapper.Map<CustomerDto>(entity);
         }
 
@@ -232,7 +234,7 @@ namespace Core.Services.Business {
                 return null;
             }
 
-            entity = await _invoiceManager.UpdateType(_mapper.Map(dto, entity));
+            entity = await _invoiceManager.Update(_mapper.Map(dto, entity));
             return _mapper.Map<InvoiceDto>(entity);
         }
         #endregion

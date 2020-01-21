@@ -61,7 +61,7 @@ namespace Core.Context {
                 if(customer != null) {
                     i.CustomerId = customer.Id;
                     _context.Invoices.Add(i);
-                    
+
                 } else {
                     Console.WriteLine("NOT FOUND: " + i.CustomerAccountNumber);
                 }

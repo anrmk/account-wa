@@ -25,6 +25,6 @@ namespace Core.Data.Entities {
         public long? AddressId { get; set; }
         public virtual CompanyAddressEntity Address { get; set; }
 
-        public virtual ICollection<CompanyCustomerEntity> CompanyCustomers { get; set; }
+        public virtual ICollection<CustomerEntity> Customers { get; set; }
     }
 }

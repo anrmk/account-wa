@@ -35,7 +35,12 @@ namespace Core.Data.Entities {
         public long? AddressId { get; set; }
         public virtual CustomerAddressEntity Address { get; set; }
 
-        public virtual ICollection<CompanyCustomerEntity> CompanyCustomers { get; set; }
+        [ForeignKey("Company")]
+        [Column("Company_Id", Order = 0)]
+        public long? CompanyId { get; set; }
+        public virtual CompanyEntity Company { get; set; }
+
+        //public virtual ICollection<CompanyCustomerEntity> CompanyCustomers { get; set; }
 
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
 

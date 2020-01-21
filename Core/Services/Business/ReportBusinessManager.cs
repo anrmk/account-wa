@@ -22,6 +22,6 @@ namespace Core.Services.Business {
             return result;
         }
 
-       // private class string[] PeriodName ()
+        // private class string[] PeriodName ()
     }
 }

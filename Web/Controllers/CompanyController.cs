@@ -44,7 +44,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Company/Create
         public async Task<ActionResult> Create() {
-            var customers = await _businessManager.GetCustomers();
+            var customers = await _businessManager.GetUndiedCustomers();
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new CompanyViewModel());
@@ -79,7 +79,8 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var customers = await _businessManager.GetCustomers();
+            var customers = await _businessManager.GetUndiedCustomers(item.Id);
+
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
             var model = _mapper.Map<CompanyViewModel>(item);
             return View(model);

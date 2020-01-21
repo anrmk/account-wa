@@ -66,6 +66,8 @@
     <Compile Remove="Migrations\20200115002558_init1.Designer.cs" />
     <Compile Remove="Migrations\20200117204807_init2.cs" />
     <Compile Remove="Migrations\20200117204807_init2.Designer.cs" />
+    <Compile Remove="Migrations\20200120223243_update-company-customers.cs" />
+    <Compile Remove="Migrations\20200120223243_update-company-customers.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

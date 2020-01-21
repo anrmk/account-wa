@@ -145,7 +145,7 @@ namespace Web.Controllers.Api {
             return await Task.Run(() => { return $"HelLLO {id}"; });
         }
 
-        [HttpPost("aging", Name="Aging")]
+        [HttpPost("aging", Name = "Aging")]
         public async Task<IActionResult> PostRunAgingReport(ReportViewModel model) {
             try {
                 if(ModelState.IsValid) {

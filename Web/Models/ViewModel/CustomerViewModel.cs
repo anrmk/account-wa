@@ -29,7 +29,7 @@ namespace Web.ViewModels {
         [MaxLength(2048)]
         public string Description { get; set; }
 
-        [Display(Name= "Phone Number")]
+        [Display(Name = "Phone Number")]
         [DataType(DataType.PhoneNumber)]
         public string PhoneNumber { get; set; }
 

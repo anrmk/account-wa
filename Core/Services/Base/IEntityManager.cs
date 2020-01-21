@@ -15,9 +15,10 @@ namespace Core.Services.Base {
         Task<int> Delete(T t);
         Task<int> Delete(IEnumerable<T> l);
         Task<int> Delete(Expression<Func<T, bool>> where);
-        Task<int> Update(T t);
-        Task<T> UpdateType(T t);
-        Task<IEnumerable<T>> UpdateType(IEnumerable<T> l);
+        //Task<int> Update(T t);
+        Task<T> Update(T t);
+        Task<IEnumerable<T>> Update(IEnumerable<T> l);
+
         Task<int> Count { get; }
         Task<IQueryable<T>> Filter(Expression<Func<T, bool>> where);
         Task<IQueryable<T>> Filter<Key>(Expression<Func<T, bool>> where, int index, int limit);

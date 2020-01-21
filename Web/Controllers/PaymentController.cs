@@ -29,7 +29,7 @@ namespace Web.Controllers.Mvc {
 
         public async Task<IActionResult> Details(long id) {
             var item = await _businessManager.GetPayment(id);
-            if(item ==null) {
+            if(item == null) {
                 return NotFound();
             }
 

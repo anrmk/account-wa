@@ -26,7 +26,7 @@ namespace Core.Context {
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
 
-        public DbSet<CompanyCustomerEntity> CompanyCustomers { get; set; }
+        //public DbSet<CompanyCustomerEntity> CompanyCustomers { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
@@ -41,7 +41,7 @@ namespace Core.Context {
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer("Data Source=(LocalDb)\\MSSQLLocalDB;Initial Catalog=accountWa;Integrated Security=SSPI;");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            modelBuilder.Entity<CompanyCustomerEntity>().HasKey(sc => new { sc.CompanyId, sc.CustomerId });
+            //modelBuilder.Entity<CompanyCustomerEntity>().HasKey(sc => new { sc.CompanyId, sc.CustomerId });
 
             base.OnModelCreating(modelBuilder);
         }
