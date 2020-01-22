@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace Core.Services.Managers {
         Task<CustomerEntity> FindInclude(long id);
         Task<List<CustomerEntity>> FindByIds(long[] ids);
         Task<List<CustomerEntity>> FindByCompanyId(long id);
+        Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till);
 
 
         Task<List<CustomerEntity>> AllInclude();
@@ -42,6 +44,16 @@ namespace Core.Services.Managers {
 
         public async Task<List<CustomerEntity>> FindByCompanyId(long id) {
             return await DbSet.Where(x => x.CompanyId == id).ToListAsync();
+        }
+
+        public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {
+            var result = await DbSet
+                .Where(x => x.CompanyId == id)
+                .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till).DefaultIfEmpty(),
+                (customer, activity) => new { Customer = customer })
+                .Select(p => p.Customer).ToListAsync();
+
+            return result;
         }
 
         public async Task<CustomerEntity> FindInclude(long id) {

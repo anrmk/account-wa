@@ -1,60 +1,86 @@
-﻿
+﻿@model Web.ViewModels.ReportViewModel
+
 @{
-    ViewData["Title"] = "Reports";
+    ViewData["Title"] = "A/R Aging Summary Report";
 }
 
 <div class="row">
-    <div class="col-sm-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Accounts receivable aging summary</h5>
-                <p class="card-text">Unpaid balances for each customer, grouped by days past due.</p>
-                <a asp-action="AgingReport" class="btn btn-primary"><i class="fa fa-file-contract"></i> Go</a>
-            </div>
-        </div>
+    <div class="col-lg-3 col-md-12">
+        <form id="form">
+            <fieldset>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label asp-for="CompanyId"></label>
+                            <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
+                                    required
+                                    data-live-search="true">
+                            </select>
+                            <span asp-validation-for="CompanyId" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Date"></label>
+                            <div class="input-group">
+                                <input type="date" asp-for="Date" class="form-control" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="DaysPerPeriod"></label>
+                            <input asp-for="DaysPerPeriod" type="number" step="1" class="form-control" min="30" required>
+                            <span asp-validation-for="DaysPerPeriod" class="form-text text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="NumberOfPeriod"></label>
+                            <input asp-for="NumberOfPeriod" type="number" step="1" class="form-control" min="0" required>
+                            <span asp-validation-for="NumberOfPeriod" class="form-text text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+                            <a href="#" class="btn btn-primary" onclick="javascript: runReport(); return;">Run report</a>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
     </div>
-    <div class="col-sm-6">
+    <div class="col-lg-9 col-md-3">
         <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Special Report</h5>
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
+            <div id="content" class="card-body">
+
             </div>
         </div>
+
     </div>
 </div>
 
-<hr />
-<table id="table" data-toggle="table" data-height="460">
-</table>
-
-
 @section Scripts {
     <script type="text/javascript">
-        $(document).ready(() => {
-            $('#table').bootstrapTable({
-                undefinedText: 'N/A',
-                data: [{
-                    "id": 0,
-                    "name": "Item 0",
-                    "price": "$0"
-                }, {
-                    "id": 1,
-                    "name": "Item 1",
-                    "price": "$1"
-                }],
-                columns: [{
-                    title: 'ID',
-                    field: 'id'
-                }, {
-                    title: 'Item Name',
-                    field: 'name'
-                }, {
-                    title: 'Item Price',
-                    field: 'price'
-                }]
-            });
-        })
-    </script>
+        function runReport(e) {
+            var form = $('#form');
+            var fieldset = form.find('fieldset');
+            var data = JSON.stringify(form.serializeJSON({ parseNumbers: true }));
 
+            var options = {
+                'url': '/api/report/aging',
+                'type': 'POST',
+                'data': data,
+                'processData': false,
+                'contentType': 'application/json; charset=utf-8'
+            };
+
+            fieldset.attr('disabled', 'disabled');
+            $.ajax(options).done((data, status, jqXHR) => {
+                fieldset.removeAttr('disabled');
+                $('#content').html(data);
+            }).fail((jqXHR, status) => {
+                fieldset.removeAttr('disabled');
+                alert(status)
+            });
+        }
+    </script>
 }

@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+using Web.Extension;
+
 namespace Web {
     public class Startup {
         public Startup(IConfiguration configuration) {
@@ -29,6 +31,8 @@ namespace Web {
             });
 
             ServicesConfig.Configuration(services);
+            services.AddTransient<IViewRenderService, ViewRenderService>();
+
             MapperConfig.Register(services);
 
             services.AddDbContext<Core.Context.ApplicationContext>();

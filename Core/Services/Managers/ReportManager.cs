@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Managers {
     public interface IReportManager {
-        Task<ReportDto<AgingReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod);
+        Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod);
     }
 
     public class ReportManager: IReportManager {
@@ -19,16 +19,16 @@ namespace Core.Services.Managers {
             _context = context;
         }
 
-        public async Task<ReportDto<AgingReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod) {
+        public async Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, DATEDIFF(DAY, INV.[DueDate], @PERIOD ) AS DiffDate " +
                         "FROM[accountWa].[dbo].[Invoices] AS INV " +
                         "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY " +
                         "ON PAY.[Invoice_Id] = INV.[Id] " +
                         "LEFT JOIN [accountWa].[dbo].Customers as CUS " +
                         "ON CUS.[Id] = INV.[Customer_Id] " +
-                        //"WHERE INV.[Company_Id] = @COMPANY_ID AND [DiffDate] <= " +
                         "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIODFROM " +
                         "ORDER BY [CustomerId], [Date]";
+            var result = new List<ReportDataDto>();
 
             try {
                 using(var connection = _context.Database.GetDbConnection()) {
@@ -46,17 +46,10 @@ namespace Core.Services.Managers {
                         if(connection.State == System.Data.ConnectionState.Closed) {
                             await connection.OpenAsync();
                         }
-                        var report = new ReportDto<AgingReportDataDto>() {
-                            CompanyId = companyId,
-                            Date = period,
-                            DaysPerAgingPeriod = daysPerPeriod,
-                            NumberOfPeriod = numberOfPeriod,
-                            Datas = new List<AgingReportDataDto>()
-                        };
 
                         using(var reader = await command.ExecuteReaderAsync()) {
                             while(reader.Read()) {
-                                report.AddData(new AgingReportDataDto() {
+                                result.Add(new ReportDataDto() {
                                     Id = (long)reader["Id"],
                                     CustomerId = (long)reader["CustomerId"],
                                     CustomerName = reader["CustomerName"] as string,
@@ -71,13 +64,12 @@ namespace Core.Services.Managers {
                                 });
                             }
                         }
-                        return report;
                     }
                 }
             } catch(Exception e) {
                 Console.WriteLine(e.Message);
             }
-            return null;
+            return result;
         }
     }
 }

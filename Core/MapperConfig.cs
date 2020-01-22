@@ -22,13 +22,6 @@ namespace Core {
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
 
-            //CreateMap<CompanyCustomerDto, CompanyCustomerEntity>()
-            //    .ForMember(d => d.Company, o => o.Ignore())
-            //    .ForMember(d => d.Customer, o => o.Ignore())
-            //    .ReverseMap()
-            //    .ForMember(d => d.CompanyId, o => o.MapFrom(s => s.CompanyId))
-            //    .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.CustomerId));
-
             CreateMap<InvoiceDto, InvoiceEntity>()
                 .ReverseMap();
 
