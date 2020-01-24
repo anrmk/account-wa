@@ -1,83 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
-    <RuntimeFrameworkName>Microsoft.AspNetCore.App</RuntimeFrameworkName>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <RuntimeFrameworkVersion>3.*</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20200108235212_init.cs" />
-    <Compile Remove="Migrations\20200108235212_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109055744_init.cs" />
-    <Compile Remove="Migrations\20200109055744_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109190025_init.cs" />
-    <Compile Remove="Migrations\20200109190025_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109190716_init.cs" />
-    <Compile Remove="Migrations\20200109190716_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109201155_init.cs" />
-    <Compile Remove="Migrations\20200109201155_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109201433_init.cs" />
-    <Compile Remove="Migrations\20200109201433_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109204415_update.cs" />
-    <Compile Remove="Migrations\20200109204415_update.Designer.cs" />
-    <Compile Remove="Migrations\20200109205700_init.cs" />
-    <Compile Remove="Migrations\20200109205700_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109210951_updateCustomer.cs" />
-    <Compile Remove="Migrations\20200109210951_updateCustomer.Designer.cs" />
-    <Compile Remove="Migrations\20200109211214_init.cs" />
-    <Compile Remove="Migrations\20200109211214_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109220050_udpateCompany.cs" />
-    <Compile Remove="Migrations\20200109220050_udpateCompany.Designer.cs" />
-    <Compile Remove="Migrations\20200109221243_udpateCompanyCustomer.cs" />
-    <Compile Remove="Migrations\20200109221243_udpateCompanyCustomer.Designer.cs" />
-    <Compile Remove="Migrations\20200109221841_init.cs" />
-    <Compile Remove="Migrations\20200109221841_init.Designer.cs" />
-    <Compile Remove="Migrations\20200109222038_update1.cs" />
-    <Compile Remove="Migrations\20200109222038_update1.Designer.cs" />
-    <Compile Remove="Migrations\20200109231157_update4.cs" />
-    <Compile Remove="Migrations\20200109231157_update4.Designer.cs" />
-    <Compile Remove="Migrations\20200110221607_update-payment2.cs" />
-    <Compile Remove="Migrations\20200110221607_update-payment2.Designer.cs" />
-    <Compile Remove="Migrations\20200111004314_update-payment4.cs" />
-    <Compile Remove="Migrations\20200111004314_update-payment4.Designer.cs" />
-    <Compile Remove="Migrations\20200113182446_update-paymentinvoice.cs" />
-    <Compile Remove="Migrations\20200113182446_update-paymentinvoice.Designer.cs" />
-    <Compile Remove="Migrations\20200113193820_update-paymentinvoice-tolist.cs" />
-    <Compile Remove="Migrations\20200113193820_update-paymentinvoice-tolist.Designer.cs" />
-    <Compile Remove="Migrations\20200114032805_update-payment-ref.cs" />
-    <Compile Remove="Migrations\20200114032805_update-payment-ref.Designer.cs" />
-    <Compile Remove="Migrations\20200114050224_update-company-taxrate.cs" />
-    <Compile Remove="Migrations\20200114050224_update-company-taxrate.Designer.cs" />
-    <Compile Remove="Migrations\20200114181426_update-payment-amount.cs" />
-    <Compile Remove="Migrations\20200114181426_update-payment-amount.Designer.cs" />
-    <Compile Remove="Migrations\20200114184016_update-payment-amount1.cs" />
-    <Compile Remove="Migrations\20200114184016_update-payment-amount1.Designer.cs" />
-    <Compile Remove="Migrations\20200114184133_init.cs" />
-    <Compile Remove="Migrations\20200114184133_init.Designer.cs" />
-    <Compile Remove="Migrations\20200114200749_update-attr.cs" />
-    <Compile Remove="Migrations\20200114200749_update-attr.Designer.cs" />
-    <Compile Remove="Migrations\20200114203710_init.cs" />
-    <Compile Remove="Migrations\20200114203710_init.Designer.cs" />
-    <Compile Remove="Migrations\20200114204547_init1.cs" />
-    <Compile Remove="Migrations\20200114204547_init1.Designer.cs" />
-    <Compile Remove="Migrations\20200114205917_init2.cs" />
-    <Compile Remove="Migrations\20200114205917_init2.Designer.cs" />
-    <Compile Remove="Migrations\20200115002558_init1.cs" />
-    <Compile Remove="Migrations\20200115002558_init1.Designer.cs" />
-    <Compile Remove="Migrations\20200117204807_init2.cs" />
-    <Compile Remove="Migrations\20200117204807_init2.Designer.cs" />
-    <Compile Remove="Migrations\20200120223243_update-company-customers.cs" />
-    <Compile Remove="Migrations\20200120223243_update-company-customers.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+	<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="3.0.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="3.0.0" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
