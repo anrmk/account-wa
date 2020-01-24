@@ -25,6 +25,7 @@ namespace Core.Context {
 
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
+        public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
 
         //public DbSet<CompanyCustomerEntity> CompanyCustomers { get; set; }
 

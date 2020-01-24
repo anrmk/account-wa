@@ -18,8 +18,10 @@ namespace Core.Context {
             _context = context;
 
             // CompanyInitializer();
-            CustomerInitializer();
-            InvoceInitializer();
+            //CustomerInitializerDec();
+            //InvoceInitializerDec();
+            //CustomerInitializer();
+            //InvoceInitializer();
             _context.SaveChanges();
         }
 
@@ -47,6 +49,7 @@ namespace Core.Context {
             _context.Customers.AddRange(customerList);
         }
 
+
         private void InvoceInitializer() {
             if(_context.Invoices.Any()) {
                 return;
@@ -68,5 +71,57 @@ namespace Core.Context {
             }
             //_context.Customers.AddRange(customerList);
         }
+
+        #region TEST
+        private void CustomerInitializerDec() {
+            var customers = _context.Customers.ToList();
+            var customersIds = customers.Select(x => x.AccountNumber);
+
+            string rootPath = System.IO.Directory.GetCurrentDirectory();
+            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\customer_bc_bundt_dec.json");
+            var customerList = JsonConvert.DeserializeObject<List<CustomerEntity>>(JSON);
+
+            var diffCustomers = customerList.Where(x => !customersIds.Contains(x.AccountNumber));
+            _context.Customers.AddRange(diffCustomers);
+            _context.SaveChanges();
+
+            var activities = diffCustomers.Select(x => new CustomerActivityEntity() {
+                CreatedDate = new DateTime(2019, 12, 1),
+                CustomerId = x.Id
+            });
+            _context.CustomerActivities.AddRange(activities);
+        }
+
+        private void InvoceInitializerDec() {
+            var customers = _context.Invoices.ToList();
+
+            string rootPath = System.IO.Directory.GetCurrentDirectory();
+
+            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\invoice_bc_bundt_dec.json");
+            var invoiceList = JsonConvert.DeserializeObject<List<InvoiceEntity>>(JSON);
+            foreach(var i in invoiceList) {
+                if(i.Subtotal != 0) {
+                    var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
+
+                    if(customer != null) {
+                        var customerId = customer.Id;
+                        var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customerId) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
+                        if(invoice == null) {
+
+                            i.CustomerId = customerId;
+                            _context.Invoices.Add(i);
+                        } else {
+                            Console.WriteLine($"Invoice {invoice.No}");
+                        }
+
+                    } else {
+                        Console.WriteLine("NOT FOUND: " + i.CustomerAccountNumber);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
     }
 }

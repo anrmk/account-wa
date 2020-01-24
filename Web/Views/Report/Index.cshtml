@@ -6,14 +6,14 @@
 
 <div class="row">
     <div class="col-lg-3 col-md-12">
-        <form id="form">
+        <form id="filterReportForm">
             <fieldset>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="card">
                     <div class="card-body">
                         <div class="form-group">
                             <label asp-for="CompanyId"></label>
-                            <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
+                            <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
                                     required
                                     data-live-search="true">
                             </select>
@@ -22,7 +22,7 @@
                         <div class="form-group">
                             <label asp-for="Date"></label>
                             <div class="input-group">
-                                <input type="date" asp-for="Date" class="form-control" required>
+                                <input id="date" type="date" asp-for="Date" class="form-control" required />
                                 <div class="input-group-append">
                                     <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
                                 </div>
@@ -30,12 +30,12 @@
                         </div>
                         <div class="form-group">
                             <label asp-for="DaysPerPeriod"></label>
-                            <input asp-for="DaysPerPeriod" type="number" step="1" class="form-control" min="30" required>
+                            <input asp-for="DaysPerPeriod" type="number" step="1" class="form-control" min="30" required />
                             <span asp-validation-for="DaysPerPeriod" class="form-text text-danger"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="NumberOfPeriod"></label>
-                            <input asp-for="NumberOfPeriod" type="number" step="1" class="form-control" min="0" required>
+                            <input id="numberOfPeriod" asp-for="NumberOfPeriod" type="number" step="1" class="form-control" min="0" required />
                             <span asp-validation-for="NumberOfPeriod" class="form-text text-danger"></span>
                         </div>
                     </div>
@@ -49,6 +49,18 @@
         </form>
     </div>
     <div class="col-lg-9 col-md-3">
+        <ul class="nav justify-content-end">
+            <li class="nav-item">
+                <form asp-controller="Report" asp-action="ExportToCsv" method="post" id="test">
+                    <input type="hidden" name="CompanyId" id="printCompanyId" />
+                    <input type="hidden" name="Date" id="printDate" />
+                    <input type="hidden" name="DaysPerPeriod" id="printDaysPerPeriod" />
+                    <input type="hidden" name="NumberOfPeriod" id="printNumberOfPeriod" />
+
+                    <button type="submit" class="btn btn-link" onclick="submitExportToCvs()" >Export CSV</button>
+                </form>
+            </li>
+        </ul>
         <div class="card">
             <div id="content" class="card-body">
 
@@ -61,7 +73,7 @@
 @section Scripts {
     <script type="text/javascript">
         function runReport(e) {
-            var form = $('#form');
+            var form = $('#filterReportForm');
             var fieldset = form.find('fieldset');
             var data = JSON.stringify(form.serializeJSON({ parseNumbers: true }));
 
@@ -81,6 +93,14 @@
                 fieldset.removeAttr('disabled');
                 alert(status)
             });
+        }
+
+        function submitExportToCvs() {
+            var data = $('#filterReportForm').serializeJSON();
+            $('#printCompanyId').val(data.CompanyId);
+            $('#printDate').val(data.Date);
+            $('#printDaysPerPeriod').val(data.DaysPerPeriod);
+            $('#printNumberOfPeriod').val(data.NumberOfPeriod);
         }
     </script>
 }
