@@ -49,8 +49,9 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {
             var result = await DbSet
                 .Where(x => x.CompanyId == id)
-                .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till).DefaultIfEmpty(),
-                (customer, activity) => new { Customer = customer })
+                .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till),
+                (customer, activity) => new { Customer = customer }).Distinct()
+
                 .Select(p => p.Customer).ToListAsync();
 
             return result;

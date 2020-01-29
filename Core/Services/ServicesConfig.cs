@@ -9,6 +9,7 @@ namespace Core.Services {
         public static void Configuration(IServiceCollection services) {
             ///Context
             services.AddTransient<IApplicationContext, ApplicationContext>();
+            services.AddTransient<IUserProfileManager, UserProfileManager>();
             //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             ///Managers
@@ -19,8 +20,6 @@ namespace Core.Services {
             services.AddTransient<ICompanyCustomerManager, CompanyCustomerManager>();
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();
-
-            //services.AddTransient<IAgingManager, AgingManager>();
 
             ///Business
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();

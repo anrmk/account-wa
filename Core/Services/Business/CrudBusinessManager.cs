@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Entities;
+using Core.Extension;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
@@ -18,6 +21,7 @@ namespace Core.Services.Business {
 
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
+        Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10);
         Task<List<CustomerDto>> GetUndiedCustomers(long? companyId = null);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
@@ -125,6 +129,31 @@ namespace Core.Services.Business {
         public async Task<CustomerDto> GetCustomer(long id) {
             var result = await _customerManager.FindInclude(id);
             return _mapper.Map<CustomerDto>(result);
+        }
+
+        public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10) {
+            Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
+                   (true)
+                && (string.IsNullOrEmpty(search) || (x.Name.ToLower().Contains(search.ToLower())))
+                && (string.IsNullOrEmpty(search) || (x.AccountNumber.ToLower().Contains(search.ToLower())))
+                && (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
+
+            #region Sort
+            Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
+            #endregion
+            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, offset, limit);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<CustomerDto>(new List<CustomerDto>(), 0, offset, limit);
+
+            var page = (offset + limit) / limit;
+
+            var result = Mapper.Map<List<CustomerDto>>(list);
+            return new Pager<CustomerDto>(result, count, page, limit);
+
+            //   return _mapper.Map<Pager<CustomerDto>>(result);
         }
 
         public async Task<List<CustomerDto>> GetCustomers() {
@@ -270,6 +299,8 @@ namespace Core.Services.Business {
             var entity = await _paymentManager.FindByInvoiceId(id);
             return _mapper.Map<List<PaymentDto>>(entity);
         }
+
+
         #endregion
     }
 }

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Core.Data.Entities {
     [Table(name: "Payments")]
     public class PaymentEntity: AuditableEntity<long> {
-        [StringLength(8)]
+        [StringLength(16)]
         [Required]
         public string Ref { get; set; }
 
@@ -21,5 +21,7 @@ namespace Core.Data.Entities {
         [Column("Invoice_Id")]
         public long? InvoiceId { get; set; }
         public virtual InvoiceEntity Invoice { get; set; }
+
+        public bool IsDraft { get; set; } = true;
     }
 }

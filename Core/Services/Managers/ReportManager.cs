@@ -23,10 +23,10 @@ namespace Core.Services.Managers {
             var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, DATEDIFF(DAY, INV.[DueDate], @PERIOD ) AS DiffDate " +
                         "FROM[accountWa].[dbo].[Invoices] AS INV " +
                         "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY " +
-                        "ON PAY.[Invoice_Id] = INV.[Id] " +
+                        "ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @PERIOD " +
                         "LEFT JOIN [accountWa].[dbo].Customers as CUS " +
                         "ON CUS.[Id] = INV.[Customer_Id] " +
-                        "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIODFROM " +
+                        "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIODFROM AND INV.[Date] <= @PERIOD " +
                         "ORDER BY [CustomerId], [Date]";
             var result = new List<ReportDataDto>();
 

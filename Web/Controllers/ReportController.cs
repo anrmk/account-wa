@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using AutoMapper;
 
 using Core.Context;
 using Core.Services.Business;
+
 using CsvHelper;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;

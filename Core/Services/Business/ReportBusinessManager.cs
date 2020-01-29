@@ -64,6 +64,7 @@ namespace Core.Services.Business {
                 }
 
                 var diffPay = d.Amount - (d.PayAmount ?? 0);
+
                 if(diffPay > 0) {
                     //Add amount to Current fiedl if DiffDate negativ 
                     if(d.DiffDate <= 0) {
@@ -104,6 +105,7 @@ namespace Core.Services.Business {
                 Data = report.Select(x => x.Value).ToList(),
                 Balance = balance,
                 TotalCustomers = customers.Count,
+                BalanceCustomers = report.Count(x => x.Value.Data["Total"] != 0)
             };
         }
     }

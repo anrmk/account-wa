@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Core.Data.Entities;
 
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -18,7 +19,7 @@ namespace Core.Context {
         int SaveChanges();
     }
 
-    public class ApplicationContext: DbContext, IApplicationContext {
+    public class ApplicationContext: IdentityDbContext<ApplicationUserEntity>, IApplicationContext {
         #region DbSet
         public DbSet<CompanyEntity> Companies { get; set; }
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
@@ -27,13 +28,8 @@ namespace Core.Context {
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
         public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
 
-        //public DbSet<CompanyCustomerEntity> CompanyCustomers { get; set; }
-
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
-
-
-        // public DbSet<AgingEntity> Agings { get; set; }
         #endregion
 
         public Database ApplicationDatabase { get; private set; }
@@ -42,8 +38,6 @@ namespace Core.Context {
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer("Data Source=(LocalDb)\\MSSQLLocalDB;Initial Catalog=accountWa;Integrated Security=SSPI;");
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            //modelBuilder.Entity<CompanyCustomerEntity>().HasKey(sc => new { sc.CompanyId, sc.CustomerId });
-
             base.OnModelCreating(modelBuilder);
         }
 

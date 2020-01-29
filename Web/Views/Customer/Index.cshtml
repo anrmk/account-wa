@@ -7,8 +7,11 @@
     <div id="toolbar" role="toolbar">
         <a asp-controller="Customer" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
     </div>
-    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer" data-search="true" data-toolbar="#toolbar"
-           data-thead-classes="thead-dark">
+    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer" 
+           data-search="true" data-toolbar="#toolbar"
+           data-thead-classes="thead-dark"
+           data-side-pagination="server"
+           data-pagination="true">
         <thead>
             <tr>
                 <th data-field="accountNumber" rowspan="2" scope="col" data-formatter="accountNumberFormatter">Account Number</th>

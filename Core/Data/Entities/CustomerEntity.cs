@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Data.Entities {
     [Table(name: "Customers")]
-    public class CustomerEntity: EntityBase<long> {
+    public class CustomerEntity: AuditableEntity<long> {
         [Required]
         [MaxLength(16)]
         public string AccountNumber { get; set; }

@@ -7,7 +7,7 @@ namespace Core.Data.Entities {
     [Table(name: "Invoices")]
     public class InvoiceEntity: AuditableEntity<long> {
         [Required]
-        [MaxLength(8)]
+        [MaxLength(16)]
         public string No { get; set; }
 
         [Required]
@@ -39,5 +39,7 @@ namespace Core.Data.Entities {
         public string CustomerAccountNumber { get; set; }
 
         public virtual ICollection<PaymentEntity> Payment { get; set; }
+
+        public bool IsDraft { get; set; } = true;
     }
 }

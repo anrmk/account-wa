@@ -9,6 +9,9 @@ using Core.Extension;
 namespace Core {
     public class MapperConfig: Profile {
         public MapperConfig() {
+            CreateMap<ApplicationUserEntity, ApplicationUserDto>().ReverseMap();
+            CreateMap<UserProfileEntity, UserProfileDto>().ReverseMap();
+
             CreateMap<CompanyDto, CompanyEntity>()
                 .ForMember(d => d.Customers, o => o.Ignore())
                 .ReverseMap()
