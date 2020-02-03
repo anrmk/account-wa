@@ -23,11 +23,11 @@ namespace Core.Data.Entities {
 
         [DataType(DataType.Currency)]
         [Column(TypeName = "decimal(18, 2)")]
-        public double CreditLimit { get; set; }
+        public double? CreditLimit { get; set; }
 
         [DataType(DataType.Currency)]
         [Column(TypeName = "decimal(18, 2)")]
-        public double CreditUtilized { get; set; }
+        public double? CreditUtilized { get; set; }
 
         [ForeignKey("Address")]
         [Column("CustomerAddress_Id")]

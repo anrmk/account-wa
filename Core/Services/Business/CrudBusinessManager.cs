@@ -30,14 +30,14 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<List<InvoiceDto>> GetInvoices();
+        Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10);
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
         Task<InvoiceDto> CreateInvoice(InvoiceDto dto);
         Task<bool> DeleteInvoice(long id);
 
         Task<PaymentDto> GetPayment(long id);
-        Task<List<PaymentDto>> GetPayments();
+        Task<Pager<PaymentDto>> GetPaymentPages(string search, string order, int offset = 0, int limit = 10);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
         Task<PaymentDto> CreatePayment(PaymentDto dto);
     }
@@ -47,18 +47,16 @@ namespace Core.Services.Business {
         public readonly ICompanyManager _companyManager;
         public readonly ICustomerManager _customerManager;
         public readonly ICustomerActivityManager _customerActivityManager;
-        public readonly ICompanyCustomerManager _companyCustomersManager;
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICompanyCustomerManager companyCustomersManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
-            _companyCustomersManager = companyCustomersManager;
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
         }
@@ -141,7 +139,10 @@ namespace Core.Services.Business {
             #region Sort
             Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
             #endregion
-            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, offset, limit);
+
+            string[] include = new string[] { "Company", "Address", "Activities" };
+
+            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, offset, limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -150,10 +151,8 @@ namespace Core.Services.Business {
 
             var page = (offset + limit) / limit;
 
-            var result = Mapper.Map<List<CustomerDto>>(list);
+            var result = _mapper.Map<List<CustomerDto>>(list);
             return new Pager<CustomerDto>(result, count, page, limit);
-
-            //   return _mapper.Map<Pager<CustomerDto>>(result);
         }
 
         public async Task<List<CustomerDto>> GetCustomers() {
@@ -167,13 +166,8 @@ namespace Core.Services.Business {
         }
 
         public async Task<List<CustomerDto>> GetCustomers(long companyId) {
-            var ccitems = await _companyCustomersManager.FindAll(companyId);
-            if(ccitems.Count() > 0) {
-                var ids = ccitems.Select(x => x.CustomerId).ToArray();
-                var result = await _customerManager.FindByIds(ids);
-                return _mapper.Map<List<CustomerDto>>(result);
-            }
-            return null;
+            var result = await _customerManager.FindByCompanyId(companyId);
+            return _mapper.Map<List<CustomerDto>>(result);
         }
 
         public async Task<List<CustomerDto>> GetCustomers(long[] ids) {
@@ -235,9 +229,29 @@ namespace Core.Services.Business {
             return _mapper.Map<InvoiceDto>(entity);
         }
 
-        public async Task<List<InvoiceDto>> GetInvoices() {
-            var result = await _invoiceManager.AllInclude();
-            return _mapper.Map<List<InvoiceDto>>(result);
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10) {
+            Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
+                   (true)
+                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())))
+                && (string.IsNullOrEmpty(search) || (x.Subtotal.ToString().Contains(search.ToLower())));
+
+            #region Sort
+            Expression<Func<InvoiceEntity, string>> orderPredicate = x => x.Id.ToString();
+            #endregion
+
+            string[] include = new string[] { "Company", "Customer", "Payment" };
+
+            Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<InvoiceDto>(new List<InvoiceDto>(), 0, offset, limit);
+
+            var page = (offset + limit) / limit;
+
+            var result = _mapper.Map<List<InvoiceDto>>(list);
+            return new Pager<InvoiceDto>(result, count, page, limit);
         }
 
         public async Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId) {
@@ -262,8 +276,8 @@ namespace Core.Services.Business {
             if(entity == null) {
                 return null;
             }
-
-            entity = await _invoiceManager.Update(_mapper.Map(dto, entity));
+            var entity1 = _mapper.Map(dto, entity);
+            entity = await _invoiceManager.Update(entity1);
             return _mapper.Map<InvoiceDto>(entity);
         }
         #endregion
@@ -273,9 +287,34 @@ namespace Core.Services.Business {
             var result = await _paymentManager.FindInclude(id);
             return _mapper.Map<PaymentDto>(result);
         }
-        public async Task<List<PaymentDto>> GetPayments() {
-            var result = await _paymentManager.FindAllInclude();
-            return _mapper.Map<List<PaymentDto>>(result);
+
+        public async Task<Pager<PaymentDto>> GetPaymentPages(string search, string order, int offset, int limit) {
+            Expression<Func<PaymentEntity, bool>> wherePredicate = x =>
+                   (true)
+                && (string.IsNullOrEmpty(search) || (x.Ref.ToLower().Contains(search.ToLower())) || (x.Amount.ToString().Contains(search.ToLower())));
+            //&& (string.IsNullOrEmpty(search) || (x.Invoice..ToLower().Contains(search.ToLower())))
+            //&& (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
+
+            #region Sort
+            Expression<Func<PaymentEntity, string>> orderPredicate = x => x.Id.ToString();
+            #endregion
+
+            string[] include = new string[] { "Invoice" };
+
+            Tuple<List<PaymentEntity>, int> tuple = await _paymentManager.Pager<PaymentEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<PaymentDto>(new List<PaymentDto>(), 0, offset, limit);
+
+            var page = (offset + limit) / limit;
+
+            var result = _mapper.Map<List<PaymentDto>>(list);
+            return new Pager<PaymentDto>(result, count, page, limit);
+
+            //var result = await _paymentManager.FindAllInclude();
+            //return _mapper.Map<List<PaymentDto>>(result);
         }
 
         public async Task<PaymentDto> CreatePayment(PaymentDto dto) {
@@ -283,14 +322,7 @@ namespace Core.Services.Business {
             if(item == null)
                 return null;
 
-            //if(item.Payment != null) {
-            //    return _mapper.Map<PaymentDto>(item.Payment);
-            //}
-
             var entity = await _paymentManager.Create(_mapper.Map<PaymentEntity>(dto));
-
-            // item.PaymentId = entity.Id;
-            // item = await _invoiceManager.UpdateType(item);
 
             return _mapper.Map<PaymentDto>(entity);
         }

@@ -17,7 +17,6 @@ namespace Core.Services {
             services.AddTransient<ICompanyManager, CompanyManager>();
             services.AddTransient<ICustomerManager, CustomerManager>();
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();
-            services.AddTransient<ICompanyCustomerManager, CompanyCustomerManager>();
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();
 

@@ -7,22 +7,26 @@
     <div id="toolbar" role="toolbar">
         <a asp-controller="Customer" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
     </div>
-    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer" 
-           data-search="true" data-toolbar="#toolbar"
+    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer"
+           data-search="true" 
+           data-toolbar="#toolbar"
            data-thead-classes="thead-dark"
            data-side-pagination="server"
-           data-pagination="true">
+           data-pagination="true"
+           data-total-field="totalItems"
+           data-data-field="items">
         <thead>
             <tr>
-                <th data-field="accountNumber" rowspan="2" scope="col" data-formatter="accountNumberFormatter">Account Number</th>
+                <th data-field="accountNumber" rowspan="2" scope="col">Account Number</th>
                 <th data-field="name" rowspan="2" scope="col">Name</th>
+                <th data-field="isActive" rowspan="2" scope="col" data-formatter="activityFormatter">Activity</th>
                 <th data-field="terms" rowspan="2" scope="col">Terms</th>
                 <th scope="col" colspan="2">Contacts</th>
                 <th rowspan="2" data-formatter="actionFormatter" class="text-nowrap"></th>
             </tr>
             <tr>
                 <th data-field="phoneNumber" scope="col">Phone</th>
-                <th data-field="address" scope="col">Address</th>
+                <th data-field="address.fullAddress" scope="col">Address</th>
             </tr>
         </thead>
     </table>
@@ -30,8 +34,8 @@
 
 @section Scripts {
     <script type="text/javascript">
-        function accountNumberFormatter(value, row) {
-            return `<i class='fa fa-circle mr-1 ${row['isActive'] ? 'text-success' : 'text-danger'}'></i> ${value}`;
+        function activityFormatter(value, row) {
+            return `<i class='mr-1 fa  ${row['isActive'] ? 'fa-check-circle' : 'fa-times-circle'}'></i>`;
         }
 
         function actionFormatter(value, row) {

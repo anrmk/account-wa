@@ -18,16 +18,6 @@ namespace Core.Context {
         public ApplicationInitializer(ApplicationContext context) {
             _context = context;
             string rootPath = System.IO.Directory.GetCurrentDirectory();
-
-
-            //CustomerInitializer($"{rootPath}\\Db\\mactive_customers_oct.json");
-
-            //InvoceInitializerDraft($"{rootPath}\\Db\\invoice_mactive_dec_2019.json");
-
-            //PaymentInitializerDraft($"{rootPath}\\Db\\invoice_mactive_nov_2019.json", 
-            //    $"{rootPath}\\Db\\invoice_mactive_dec_2019.json", new DateTime(2019, 12, 1), new DateTime(2019, 12, 31));
-
-            //_context.SaveChanges();
         }
 
         private void CompanyInitializer() {
@@ -73,14 +63,19 @@ namespace Core.Context {
             var customerList = JsonConvert.DeserializeObject<List<CustomerEntity>>(JSON);
 
             var diffCustomers = customerList.Where(x => !customersIds.Contains(x.AccountNumber));
-            _context.Customers.AddRange(diffCustomers);
-            //_context.SaveChanges();
+            if(diffCustomers.Count() > 0) {
+                _context.Customers.AddRange(diffCustomers);
+                _context.SaveChanges();
 
-            var activities = customerList.Select(x => new CustomerActivityEntity() {
-                CreatedDate = x.CreatedDate,
-                CustomerId = x.Id
-            });
-            _context.CustomerActivities.AddRange(activities);
+                var activities = diffCustomers.Select(x => new CustomerActivityEntity() {
+                    CreatedDate = x.CreatedDate,
+                    CustomerId = x.Id,
+                    IsActive = true
+                });
+
+                _context.CustomerActivities.AddRange(activities);
+                _context.SaveChanges();
+            }
         }
 
         private void InvoceInitializerDraft(string fileUrl) {
@@ -94,21 +89,21 @@ namespace Core.Context {
                     var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
 
                     if(customer != null) {
-                        var customerId = customer.Id;
-                        var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customerId) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
+                        var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
                         if(invoice == null) {
-                            i.CustomerId = customerId;
+                            i.CustomerId = customer.Id;
                             _context.Invoices.Add(i);
                         } else {
                             diffInvoices++;
-                            Console.WriteLine($"Invoice {invoice.No} already existed: Subtotal: {invoice.Subtotal}");
+                            Console.WriteLine($"INVOICE ALREADY EXISTED: CustomerId {i.CustomerId}, No {invoice.No}, Subtotal {invoice.Subtotal}");
                         }
                     } else {
-                        Console.WriteLine("NOT FOUND: " + i.CustomerAccountNumber);
+                        Console.WriteLine($"INVOICE CUSTOMER NOT FOUND: CustomerId {i.CustomerAccountNumber}");
                     }
                 }
             }
             var test = diffInvoices;
+            _context.SaveChanges();
         }
 
         private void PaymentInitializerDraft(string fileUrlFrom, string fileUrlTo, DateTime startDate, DateTime endDate) {
@@ -135,7 +130,6 @@ namespace Core.Context {
                     var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
                     if(invoice != null) {
                         var newDate = RandomDateExtansion.GetRandomDateTime(startDate, endDate);
-                        //startDate.AddHours(new Random(Convert.ToInt32(DateTime.Now.Ticks / int.MaxValue)).Next(0, (int)(endDate - startDate).TotalHours));
 
                         var payment = new PaymentEntity() {
                             Ref = "Inv_" + invoice.No,
@@ -148,9 +142,14 @@ namespace Core.Context {
                         };
 
                         _context.Payments.Add(payment);
+                    } else {
+                        Console.WriteLine($"PAYMENT INVOICE NOT FOUND: CustomerId {i.CustomerId}, Payment {i.Subtotal}");
                     }
+                } else {
+                    Console.WriteLine($"PAYMENT CUSTOMER NOT FOUND: CustomerId {i.CustomerAccountNumber}");
                 }
             }
+            _context.SaveChanges();
         }
         #endregion
     }

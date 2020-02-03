@@ -26,6 +26,9 @@ namespace Core {
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
 
             CreateMap<InvoiceDto, InvoiceEntity>()
+                .ForMember(d => d.Company, o => o.Ignore())
+                .ForMember(d => d.Customer, o => o.Ignore())
+                .ForMember(d => d.Payment, o => o.Ignore())
                 .ReverseMap();
 
             CreateMap<PaymentDto, PaymentEntity>()

@@ -7,6 +7,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -90,10 +91,15 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
+        //[HttpGet]
+        //public async Task<List<PaymentViewModelList>> GetPayments() {
+        //    var result = await _businessManager.GetPayments();
+        //    return _mapper.Map<List<PaymentViewModelList>>(result);
+        //}
+
         [HttpGet]
-        public async Task<List<PaymentViewModelList>> GetPayments() {
-            var result = await _businessManager.GetPayments();
-            return _mapper.Map<List<PaymentViewModelList>>(result);
+        public async Task<Pager<PaymentDto>> GetPayments(string search, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetPaymentPages(search ?? "", order, offset, limit);
         }
     }
 }

@@ -16,7 +16,6 @@ namespace Core.Services.Managers {
         Task<List<CustomerEntity>> FindByCompanyId(long id);
         Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till);
 
-
         Task<List<CustomerEntity>> AllInclude();
         Task<List<CustomerEntity>> AllUntied(long? companyId);
     }

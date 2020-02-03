@@ -7,6 +7,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -164,9 +165,8 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<List<InvoiceViewModelList>> GetInvoices() {
-            var result = await _businessManager.GetInvoices();
-            return _mapper.Map<List<InvoiceViewModelList>>(result);
+        public async Task<Pager<InvoiceDto>> GetInvoices(string search, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetInvoicePage(search ?? "", order, offset, limit);
         }
 
         [HttpGet]

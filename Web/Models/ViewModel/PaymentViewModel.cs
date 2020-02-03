@@ -16,7 +16,7 @@ namespace Web.ViewModels {
 
         [Required]
         [Display(Name = "Reference no.")]
-        [MaxLength(8)]
+        [MaxLength(16)]
         public string Ref { get; set; }
 
         [Range(0, 100)]

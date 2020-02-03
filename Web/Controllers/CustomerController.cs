@@ -6,6 +6,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -119,20 +120,8 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<List<CustomerViewModelList>> GetCustomers(string search, string order, int offset = 0, int limit = 10) {
-            Dictionary<string, string> _filter = new Dictionary<string, string>();
-            //var filter = "";
-            //if(filter != null) {
-            //    var _pairs = filter.Split('|');
-            //    foreach(var _pair in _pairs) {
-            //        var _splittedPair = _pair.Split(':');
-            //        _filter.Add(_splittedPair[0], _splittedPair[1]);
-            //    }
-            //}
-
-            var result = await _businessManager.GetCustomers();
-            //var result = await _businessManager.GetCustomersPage(search, order, offset, limit);
-            return _mapper.Map<List<CustomerViewModelList>>(result);
+        public async Task<Pager<CustomerDto>> GetCustomers(string search, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetCustomersPage(search ?? "", order, offset, limit);
         }
     }
 }

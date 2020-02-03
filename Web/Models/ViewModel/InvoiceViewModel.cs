@@ -22,7 +22,7 @@ namespace Web.ViewModels {
         public long Id { get; set; }
 
         [Required]
-        [MaxLength(8)]
+        [MaxLength(16)]
         [Display(Name = "Invoice No")]
         public string No { get; set; }
 
