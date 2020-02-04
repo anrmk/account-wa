@@ -14,7 +14,7 @@ namespace Web {
             using(var scope = host.Services.CreateScope()) {
                 var services = scope.ServiceProvider;
                 try {
-                    ApplicationInitializer.Initialize(new ApplicationContext());
+                    ApplicationInitializer.Initialize(services);
                 } catch(Exception ex) {
                     var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "An error occurred seeding the DB.");

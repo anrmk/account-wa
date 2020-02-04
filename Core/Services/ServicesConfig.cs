@@ -22,7 +22,9 @@ namespace Core.Services {
 
             ///Business
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
+            services.AddTransient<IAccountBusinessService, AccountBusinessService>();
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();
+            
 
         }
     }

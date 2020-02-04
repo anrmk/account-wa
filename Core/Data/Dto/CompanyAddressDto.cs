@@ -8,8 +8,6 @@
         public string ZipCode { get; set; }
         public string Country { get; set; }
 
-        public override string ToString() {
-            return $"{Address}, {City}, {State}, {ZipCode}, {Country}".Trim(',').Trim();
-        }
+        public string FullAddress => $"{ Address}, {City}, {State}, {ZipCode}, {Country}".Trim(',').Trim();
     }
 }

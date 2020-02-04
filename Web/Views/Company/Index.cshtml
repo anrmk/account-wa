@@ -6,14 +6,20 @@
     <div id="toolbar" role="toolbar">
         <a asp-controller="Company" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
     </div>
-    <table id="datatable" class="table table-striped" data-toggle="table" data-url="/api/company" data-search="true" data-toolbar="#toolbar"
-           data-thead-classes="thead-dark">
+    <table id="datatable" class="table table-striped" data-toggle="table" data-url="/api/company" 
+           data-search="true" 
+           data-toolbar="#toolbar"
+           data-thead-classes="thead-dark"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-total-field="totalItems"
+           data-data-field="items">
         <thead>
             <tr>
                 <th data-field="no">Company Id</th>
                 <th data-field="name">Name</th>
                 <th data-field="totalCustomers">Total Customers</th>
-                <th data-field="address">Address</th>
+                <th data-field="address.fullAddress">Address</th>
                 <th data-formatter="actionFormatter" class="text-nowrap"></th>
             </tr>
         </thead>

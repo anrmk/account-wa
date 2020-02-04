@@ -27,7 +27,7 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].Customers as CUS " +
                         "ON CUS.[Id] = INV.[Customer_Id] " +
                         "WHERE INV.[Company_Id] = @COMPANY_ID AND INV.[DueDate] >= @PERIODFROM AND INV.[Date] <= @PERIOD " +
-                        "ORDER BY [CustomerId], [Date]";
+                        "ORDER BY CUS.[AccountNumber]";
             var result = new List<ReportDataDto>();
 
             try {

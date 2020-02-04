@@ -4,58 +4,75 @@ using System.Linq;
 
 using Core.Data.Entities;
 using Core.Extension;
-
+using Core.Services.Managers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Core.Context {
     public class ApplicationInitializer {
-        private readonly ApplicationContext _context;
+        private readonly IServiceProvider _serviceProvider;
 
-        public static ApplicationInitializer Initialize(ApplicationContext context) {
-            return new ApplicationInitializer(context);
+        public static ApplicationInitializer Initialize(IServiceProvider serviceProvider) {
+            return new ApplicationInitializer(serviceProvider);
         }
 
-        public ApplicationInitializer(ApplicationContext context) {
-            _context = context;
+        public ApplicationInitializer(IServiceProvider serviceProvider) {
+            _serviceProvider = serviceProvider;
+
+            RoleManager();
+            ApplicationUser();
+
+
             string rootPath = System.IO.Directory.GetCurrentDirectory();
+            //CustomerInitializer($"{rootPath}\\Db\\dd_customers_jan_2020.json");
+
+            //InvoceInitializerDraft($"{rootPath}\\Db\\dd_invoices_jan_2020.json");
+
+            //PaymentInitializerDraft($"{rootPath}\\Db\\dd_invoices_dec_2019.json", 
+            //    $"{rootPath}\\Db\\dd_invoices_jan_2020.json", new DateTime(2020, 1, 1), new DateTime(2020, 1, 31));
+
         }
 
-        private void CompanyInitializer() {
-            if(_context.Companies.Any()) {
-                return;
+        private void RoleManager() {
+            var roleManager = _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            if(!roleManager.RoleExistsAsync("Administrator").Result) {
+                IdentityResult roleResult = roleManager.CreateAsync(new IdentityRole() {
+                    Name = "Administrator",
+                    NormalizedName = "ADMINISTRATOR"
+                }).Result;
             }
 
-            string rootPath = System.IO.Directory.GetCurrentDirectory();
-
-            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\companies.json");
-            var companyList = JsonConvert.DeserializeObject<List<CompanyEntity>>(JSON);
-            _context.Companies.AddRange(companyList);
+            if(!roleManager.RoleExistsAsync("User").Result) {
+                IdentityResult roleResult = roleManager.CreateAsync(new IdentityRole() {
+                    Name = "User",
+                    NormalizedName = "USER"
+                }).Result;
+            }
         }
 
-        private void InvoceInitializer() {
-            if(_context.Invoices.Any()) {
-                return;
-            }
+        private void ApplicationUser() {
+            var userManager = _serviceProvider.GetRequiredService<UserManager<ApplicationUserEntity>>();
 
-            string rootPath = System.IO.Directory.GetCurrentDirectory();
+            if(userManager.FindByEmailAsync("test@test.kz").Result == null) {
+                var user = new ApplicationUserEntity() {
+                    UserName = "test@test.kz",
+                    NormalizedUserName = "Тестовый пользователь",
+                    Email = "test@test.kz",
+                    EmailConfirmed = true
+                };
 
-            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\invoice_bc_bundt.json");
-            var invoiceList = JsonConvert.DeserializeObject<List<InvoiceEntity>>(JSON);
-            foreach(var i in invoiceList) {
-                var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
-                if(customer != null) {
-                    i.CustomerId = customer.Id;
-                    _context.Invoices.Add(i);
-
-                } else {
-                    Console.WriteLine("NOT FOUND: " + i.CustomerAccountNumber);
+                var result = userManager.CreateAsync(user, "123qweAS1!").Result;
+                if(result.Succeeded) {
+                    userManager.AddToRoleAsync(user, "Administrator").Wait();
                 }
             }
-            //_context.Customers.AddRange(customerList);
         }
 
         #region TEST
         private void CustomerInitializer(string fileUrl) {
+            var _context = _serviceProvider.GetRequiredService<ApplicationContext>();
             var customers = _context.Customers.ToList();
             var customersIds = customers.Select(x => x.AccountNumber);
 
@@ -79,6 +96,7 @@ namespace Core.Context {
         }
 
         private void InvoceInitializerDraft(string fileUrl) {
+            var _context = _serviceProvider.GetRequiredService<ApplicationContext>();
             var customers = _context.Invoices.ToList();
 
             var JSON = System.IO.File.ReadAllText(fileUrl);
@@ -103,10 +121,12 @@ namespace Core.Context {
                 }
             }
             var test = diffInvoices;
-            _context.SaveChanges();
+           _context.SaveChanges();
         }
 
         private void PaymentInitializerDraft(string fileUrlFrom, string fileUrlTo, DateTime startDate, DateTime endDate) {
+            var _context = _serviceProvider.GetRequiredService<ApplicationContext>();
+
             var fromJson = System.IO.File.ReadAllText(fileUrlFrom);
             var toJson = System.IO.File.ReadAllText(fileUrlTo);
 
@@ -120,9 +140,6 @@ namespace Core.Context {
             var noInSecondInvoiceList = invoiceListFrom.Where(x => !invoiceListTo.Any(p => p.CustomerAccountNumber == x.CustomerAccountNumber)).ToList();
 
             diffInvoiceList.AddRange(noInSecondInvoiceList);
-            //var test1 = diffInvoiceList.Any(x => x.CustomerAccountNumber.Equals("169492")); //есть в двух списках, с разной ценой
-            //var test21 = noInSecondList.Any(x => x.CustomerAccountNumber.Equals("169631")); //есть в двух списках, с одной ценой - их не трогать
-            //var test3 = diffInvoiceList.Any(x => x.CustomerAccountNumber.Equals("169385")); //нет во втором списке
 
             foreach(var i in diffInvoiceList) {
                 var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
@@ -151,6 +168,19 @@ namespace Core.Context {
             }
             _context.SaveChanges();
         }
+        /*
+        private void CompanyInitializer() {
+            if(_context.Companies.Any()) {
+                return;
+            }
+
+            string rootPath = System.IO.Directory.GetCurrentDirectory();
+
+            var JSON = System.IO.File.ReadAllText($"{rootPath}\\Db\\companies.json");
+            var companyList = JsonConvert.DeserializeObject<List<CompanyEntity>>(JSON);
+            _context.Companies.AddRange(companyList);
+        }
+        */
         #endregion
     }
 }

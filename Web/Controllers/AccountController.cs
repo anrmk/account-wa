@@ -16,10 +16,10 @@ using Microsoft.Extensions.Logging;
 using Web.Models.AccountViewModel;
 
 namespace Web.Controllers {
-    public class AccountControllercs: BaseController<AccountControllercs> {
+    public class AccountController: BaseController<AccountController> {
         private readonly IAccountBusinessService _accountBusinessService;
 
-        public AccountControllercs(ILogger<AccountControllercs> logger, IMapper mapper, ApplicationContext context,
+        public AccountController(ILogger<AccountController> logger, IMapper mapper, ApplicationContext context,
          IAccountBusinessService accountBusinessService) : base(logger, mapper, context) {
             _accountBusinessService = accountBusinessService;
         }

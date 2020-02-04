@@ -10,6 +10,7 @@ namespace Core.Data.Dto {
         public double TaxRate { get; set; }
 
         public IList<long> Customers;
+        public int TotalCustomers => Customers.Count;
 
         public CompanyAddressDto Address { get; set; }
 

@@ -15,6 +15,7 @@ namespace Core.Services.Business {
     public interface ICrudBusinessManager {
         Task<CompanyDto> GetCompany(long id);
         Task<List<CompanyDto>> GetCompanies();
+        Task<Pager<CompanyDto>> GetCompanyPage(string search, string order, int offset = 0, int limit = 10);
         Task<CompanyDto> CreateCompany(CompanyDto dto);
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
@@ -66,6 +67,33 @@ namespace Core.Services.Business {
         public async Task<CompanyDto> GetCompany(long id) {
             var result = await _companyManager.FindInclude(id);
             return _mapper.Map<CompanyDto>(result);
+        }
+
+        public async Task<Pager<CompanyDto>> GetCompanyPage(string search, string order, int offset = 0, int limit = 10) {
+            Expression<Func<CompanyEntity, bool>> wherePredicate = x =>
+                   (true)
+                && (string.IsNullOrEmpty(search)
+                || x.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || x.No.Contains(search, StringComparison.OrdinalIgnoreCase)
+                || x.PhoneNumber.ToLower().Contains(search.ToLower(), StringComparison.OrdinalIgnoreCase));
+
+            #region Sort
+            Expression<Func<CompanyEntity, string>> orderPredicate = x => x.Id.ToString();
+            #endregion
+
+            string[] include = new string[] { "Address", "Customers" };
+
+            Tuple<List<CompanyEntity>, int> tuple = await _companyManager.Pager<CompanyEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<CompanyDto>(new List<CompanyDto>(), 0, offset, limit);
+
+            var page = (offset + limit) / limit;
+
+            var result = _mapper.Map<List<CompanyDto>>(list);
+            return new Pager<CompanyDto>(result, count, page, limit);
         }
 
         public async Task<List<CompanyDto>> GetCompanies() {
@@ -220,7 +248,8 @@ namespace Core.Services.Business {
         #region INVOICE
         public async Task<InvoiceDto> GetInvoice(long id) {
             var result = await _invoiceManager.FindInclude(id);
-            return _mapper.Map<InvoiceDto>(result);
+            var dto = _mapper.Map<InvoiceDto>(result);
+            return dto;
         }
 
         public async Task<InvoiceDto> CreateInvoice(InvoiceDto dto) {
@@ -232,8 +261,11 @@ namespace Core.Services.Business {
         public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10) {
             Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())))
-                && (string.IsNullOrEmpty(search) || (x.Subtotal.ToString().Contains(search.ToLower())));
+                && (string.IsNullOrEmpty(search)
+                || (x.No.ToLower().Contains(search.ToLower()))
+                || (x.Subtotal.ToString().Contains(search.ToLower()))
+                || (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
+                || (x.Customer.Name.ToLower().Contains(search.ToLower())));
 
             #region Sort
             Expression<Func<InvoiceEntity, string>> orderPredicate = x => x.Id.ToString();

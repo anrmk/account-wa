@@ -7,6 +7,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -138,10 +139,15 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
+        //[HttpGet]
+        //public async Task<List<CompanyViewModelList>> GetCompanies() {
+        //    var result = await _businessManager.GetCompanies();
+        //    return _mapper.Map<List<CompanyViewModelList>>(result);
+        //}
+
         [HttpGet]
-        public async Task<List<CompanyViewModelList>> GetCompanies() {
-            var result = await _businessManager.GetCompanies();
-            return _mapper.Map<List<CompanyViewModelList>>(result);
+        public async Task<Pager<CompanyDto>> GetCompanies(string search, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetCompanyPage(search ?? "", order, offset, limit);
         }
 
         [HttpGet]

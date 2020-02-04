@@ -19,6 +19,7 @@ namespace Core.Data.Dto {
 
         public long? CompanyId { get; set; }
         public CompanyDto Company { get; set; }
+        //public string Company
 
         public long? CustomerId { get; set; }
         public CustomerDto Customer { get; set; }
