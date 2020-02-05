@@ -14,10 +14,12 @@
 
     <div class="input-group-lg form-label-group">
         <input asp-for="Email" placeholder="E-mail address" class="form-control" required autofocus />
+        <span asp-validation-for="Email"></span>
     </div>
 
     <div class="input-group-lg form-label-group">
-        <input asp-for="Password" placeholder="Password" class="form-control" required="" />
+        <input asp-for="Password" placeholder="Password" class="form-control" required />
+        <span asp-validation-for="Password"></span>
     </div>
 
     <div class="checkbox mb-3">
@@ -28,9 +30,9 @@
     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
     <p class="mt-5 mb-3 text-muted text-center">By clicking Sign In with Email, you agree to our Terms and have read and acknowledge our US Privacy Statement.</p>
 
-    <div asp-validation-summary="All" class="ui error message"></div>
+    <div asp-validation-summary="All" class="message"></div>
 
-    <div class="ui message">
+    <p>
         New to <strong>Platform</strong>? <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Sign Up!</a>
-    </div>
+    </p>
 </form>

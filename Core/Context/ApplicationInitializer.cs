@@ -25,7 +25,7 @@ namespace Core.Context {
 
 
             string rootPath = System.IO.Directory.GetCurrentDirectory();
-            //CustomerInitializer($"{rootPath}\\Db\\dd_customers_jan_2020.json");
+            //CustomerInitializer($"{rootPath}\\Db\\express_customers_jan_2020.json");
 
             //InvoceInitializerDraft($"{rootPath}\\Db\\dd_invoices_jan_2020.json");
 

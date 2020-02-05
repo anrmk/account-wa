@@ -1,5 +1,5 @@
 using System;
-
+using System.IO;
 using Core.Context;
 
 using Microsoft.AspNetCore.Hosting;
@@ -27,6 +27,7 @@ namespace Web {
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => {
+                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
                     webBuilder.UseStartup<Startup>();
                 });
     }
