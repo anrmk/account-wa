@@ -42,7 +42,9 @@ namespace Core.Services.Managers {
         }
 
         public async Task<List<CustomerEntity>> FindByCompanyId(long id) {
-            return await DbSet.Where(x => x.CompanyId == id).ToListAsync();
+            return await DbSet
+                .Include(x => x.Address)
+                .Where(x => x.CompanyId == id).ToListAsync();
         }
 
         public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {

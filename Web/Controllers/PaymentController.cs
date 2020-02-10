@@ -76,6 +76,65 @@ namespace Web.Controllers.Mvc {
 
             return View(model);
         }
+
+        // GET: Payment/Edit/5
+        public async Task<ActionResult> Edit(long id) {
+            var item = await _businessManager.GetPayment(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var paidInvoice = await _businessManager.GetInvoice(item.InvoiceId ?? 0);
+            var invoices = await _businessManager.GetUnpaidInvoices(item.CustomerId ?? 0);
+            if(paidInvoice != null) {
+                invoices.Add(paidInvoice);
+            }
+            ViewBag.Invoices = invoices.Select(x => new SelectListItem() { Text = $"{x.No} - {x.Subtotal}", Value = x.Id.ToString() }).ToList();
+
+            return View(_mapper.Map<PaymentViewModel>(item));
+        }
+
+        // POST: Payment/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(long id, PaymentViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateInvoice(id, _mapper.Map<InvoiceDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(Index));
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View(model);
+        }
+
+        // GET: Invoice/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Delete(long id) {
+            try {
+                var item = await _businessManager.DeletePayment(id);
+                if(item == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Index));
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
     }
 }
 

@@ -52,7 +52,7 @@ namespace Web {
 
                 // Lockout settings
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-                options.Lockout.MaxFailedAccessAttempts = 10;
+                options.Lockout.MaxFailedAccessAttempts = 3;
                 options.Lockout.AllowedForNewUsers = true;
 
                 // User settings
@@ -60,7 +60,7 @@ namespace Web {
             });
 
             services.ConfigureApplicationCookie(options => {
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+                options.ExpireTimeSpan = TimeSpan.FromHours(1);
                 // Cookie settings
                 options.Cookie.HttpOnly = true;
                

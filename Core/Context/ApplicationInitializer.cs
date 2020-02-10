@@ -27,10 +27,10 @@ namespace Core.Context {
             string rootPath = System.IO.Directory.GetCurrentDirectory();
             //CustomerInitializer($"{rootPath}\\Db\\express_customers_jan_2020.json");
 
-            //InvoceInitializerDraft($"{rootPath}\\Db\\dd_invoices_jan_2020.json");
+            //InvoceInitializerDraft($"{rootPath}\\Db\\express_invoices_jan_2020.json");
 
-            //PaymentInitializerDraft($"{rootPath}\\Db\\dd_invoices_dec_2019.json", 
-            //    $"{rootPath}\\Db\\dd_invoices_jan_2020.json", new DateTime(2020, 1, 1), new DateTime(2020, 1, 31));
+            //PaymentInitializerDraft($"{rootPath}\\Db\\western_invoices_dec_2019.json", 
+            //    $"{rootPath}\\Db\\western_invoices_jan_2020.json", new DateTime(2020, 1, 1), new DateTime(2020, 1, 31));
 
         }
 
@@ -135,18 +135,18 @@ namespace Core.Context {
 
             //find records in two list with diff SUBTOTAL and the same CUSTOMERACCOUNTNUMBER
             //exclude records which the same PRICE and CUSTOMERACCOUNTNUMBER in two lists
-            var diffInvoiceList = invoiceListFrom.Where(x => invoiceListTo.Any(p => x.CustomerAccountNumber == p.CustomerAccountNumber && x.Subtotal != p.Subtotal)).ToList();
+            var diffInvoiceList = invoiceListFrom.Where(x => !invoiceListTo.Any(p => x.CustomerAccountNumber == p.CustomerAccountNumber && x.Subtotal == p.Subtotal)).ToList();
             //find record in FIRST LIST witch no in th SECOND LIST
-            var noInSecondInvoiceList = invoiceListFrom.Where(x => !invoiceListTo.Any(p => p.CustomerAccountNumber == x.CustomerAccountNumber)).ToList();
+            //var noInSecondInvoiceList = invoiceListFrom.Where(x => !invoiceListTo.Any(p => p.CustomerAccountNumber == x.CustomerAccountNumber && p.Subtotal == x.Subtotal)).ToList();
 
-            diffInvoiceList.AddRange(noInSecondInvoiceList);
+            //diffInvoiceList.AddRange(noInSecondInvoiceList);
 
             foreach(var i in diffInvoiceList) {
                 var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
                 if(customer != null) {
                     var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
                     if(invoice != null) {
-                        var newDate = RandomDateExtansion.GetRandomDateTime(startDate, endDate);
+                        var newDate = RandomExtansion.GetRandomDateTime(startDate, endDate);
 
                         var payment = new PaymentEntity() {
                             Ref = "Inv_" + invoice.No,

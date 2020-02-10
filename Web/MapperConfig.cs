@@ -61,7 +61,7 @@ namespace Web {
                .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
 
-            CreateMap<CustomerViewModelList, CustomerDto>()
+            CreateMap<CustomerListViewModel, CustomerDto>()
                 .ReverseMap()
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
@@ -74,7 +74,7 @@ namespace Web {
                 //.ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payment != null ? s.Payment.Amount : 0))
                 //.ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payment != null ? s.Payment.Date : (DateTime?)null))
                 ;
-            CreateMap<InvoiceViewModelList, InvoiceDto>()
+            CreateMap<InvoiceListViewModel, InvoiceDto>()
                 .ReverseMap()
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => (s.Customer != null) ? s.Customer.Name : ""));

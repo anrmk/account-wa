@@ -8,5 +8,6 @@ namespace Core.Data.Dto {
         public DateTime Date { get; set; }
         public long? InvoiceId { get; set; }
         public string InvoiceNo { get; set; }
+        public long? CustomerId { get; set; }
     }
 }

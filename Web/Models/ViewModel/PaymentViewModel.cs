@@ -19,7 +19,6 @@ namespace Web.ViewModels {
         [MaxLength(16)]
         public string Ref { get; set; }
 
-        [Range(0, 100)]
         [Display(Name = "Payment Amount")]
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
@@ -43,5 +42,7 @@ namespace Web.ViewModels {
 
         [Display(Name = "Invoice No")]
         public string InvoiceNo { get; set; }
+
+        public long CustomerId { get; set; }
     }
 }

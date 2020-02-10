@@ -24,7 +24,7 @@
                 <td>@item.Name</td>
                 <td>@item.Terms</td>
                 <td>@item.PhoneNumber</td>
-                <td>@item.Address</td>
+                <td>@item.Address.FullAddress</td>
                 <td><a asp-action="Create" asp-controller="Invoice" asp-route-companyId="@Model.Id" asp-route-customerId="@item.Id">create</a></td>
             </tr>
             }

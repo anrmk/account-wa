@@ -123,5 +123,12 @@ namespace Web.Controllers.Api {
         public async Task<Pager<CustomerDto>> GetCustomers(string search, string order, int offset = 0, int limit = 10) {
             return await _businessManager.GetCustomersPage(search ?? "", order, offset, limit);
         }
+
+        [HttpGet]
+        [Route("company/{id}")]
+        public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
+            var result = await _businessManager.GetCustomers(id);
+            return _mapper.Map<List<CustomerListViewModel>>(result);
+        }
     }
 }

@@ -41,6 +41,8 @@ namespace Core.Services.Business {
         Task<Pager<PaymentDto>> GetPaymentPages(string search, string order, int offset = 0, int limit = 10);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
         Task<PaymentDto> CreatePayment(PaymentDto dto);
+        Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
+        Task<bool> DeletePayment(long id);
     }
 
     public class CrudBusinessManager: ICrudBusinessManager {
@@ -160,9 +162,10 @@ namespace Core.Services.Business {
         public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10) {
             Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) || (x.Name.ToLower().Contains(search.ToLower())))
-                && (string.IsNullOrEmpty(search) || (x.AccountNumber.ToLower().Contains(search.ToLower())))
-                && (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
+                && (string.IsNullOrEmpty(search) 
+                    || x.Name.ToLower().Contains(search.ToLower())
+                    || x.AccountNumber.ToLower().Contains(search.ToLower())
+                    || x.Description.ToLower().Contains(search.ToLower()));
 
             #region Sort
             Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
@@ -364,7 +367,26 @@ namespace Core.Services.Business {
             return _mapper.Map<List<PaymentDto>>(entity);
         }
 
+        public async Task<PaymentDto> UpdatePayment(long id, PaymentDto dto) {
+            if(id != dto.Id) {
+                return null;
+            }
+            var entity = await _paymentManager.FindInclude(id);
+            if(entity == null) {
+                return null;
+            }
+            entity = await _paymentManager.Update(_mapper.Map(dto, entity));
+            return _mapper.Map<PaymentDto>(entity);
+        }
 
+        public async Task<bool> DeletePayment(long id) {
+            var entity = await _paymentManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _paymentManager.Delete(entity);
+            return result != 0;
+        }
         #endregion
     }
 }

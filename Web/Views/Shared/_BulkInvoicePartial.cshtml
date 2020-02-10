@@ -1,0 +1,48 @@
+﻿@model Web.ViewModels.BulkInvoiceViewModel
+@{
+    Layout = null;
+}
+
+<form class="card mb-3">
+    <input type="hidden" asp-for="CompanyId" />
+    <div class="card-header">
+        <div class="navbar p-0">
+            <span class="navbar-text" href="#">Summary Range 1000-6000</span>
+            <ul class="nav justify-content-end">
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Generate</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link close" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Customer</th>
+                <th>Subtotal</th>
+                <th>Date</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model.Invoices) {
+                <tr>
+                    <td>@item.No</td>
+                    <td>@item.Customer?.Name</td>
+                    <td>@item.Subtotal</td>
+                    <td>@item.Date</td>
+                    <td>@item.DueDate</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <a href="#" class="btn btn-primary">Save</a>
+        </div>
+    </div>
+</form>

@@ -1,12 +1,23 @@
 ﻿@model Web.ViewModels.PaymentViewModel
 
 @{
-    ViewData["Title"] = "Create Payment";
+    ViewData["Title"] = "Edit Payment";
     //ViewData["SubTitle"] = "Please provide all required details to register new customer";
 }
 
-<form method="POST" asp-action="Create">
+@section Toolbar  {
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <form method="POST" asp-action="Delete">
+                <input asp-for="Id" type="hidden" />
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </form>
+        </div>
+    </div>
+}
+<form method="POST" asp-action="Edit">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input asp-for="Id" type="hidden" />
     <div class="card">
         <div class="card-body">
             <div class="row">
@@ -19,16 +30,17 @@
                         </div>
                         <div class="col-6">
                             <label>Select Customers</label>
-                            <select id="customer" class="form-control selectpicker" asp-items="@ViewBag.Customers" data-live-search="true" required>
+                            <select asp-for="CustomerId" asp-items="@ViewBag.Customers" id="customer" class="form-control selectpicker" data-live-search="true" required>
                                 <option>Please select one</option>
                             </select>
                         </div>
                     </div>
+
                 </div>
                 <div class="col-4">
                     <div class="form-row md-3">
                         <label asp-for="InvoiceId">Unpaid Invoices</label>
-                        <select id="invoices" asp-for="InvoiceId" class="form-control selectpicker" data-live-search="true" data-show-subtext="true" required title="Please select one">
+                        <select asp-for="InvoiceId" asp-items="@ViewBag.Invoices" id="invoices" class="form-control selectpicker" data-live-search="true" data-show-subtext="true" required title="Please select one">
                         </select>
                     </div>
                 </div>
@@ -68,7 +80,7 @@
                 var target = $(e.currentTarget);
                 $.get(`/api/invoice/unpaid/${target.val()}`, data => {
                     var opt = $.map(data, function (val, i) {
-                        return `<option value='${val.id}'>${val.no} - ${val.amount}</option>`
+                        return `<option value='${val.id}' data-subtext='$${val.amount} - ${val.dueDate}'>${val.no}</option>`
                     });
                     $("#invoices").html(opt).selectpicker('refresh');
                 });

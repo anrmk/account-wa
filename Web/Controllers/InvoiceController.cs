@@ -8,6 +8,7 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
+using Core.Extensions;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -92,6 +93,42 @@ namespace Web.Controllers.Mvc {
             return View(model);
         }
 
+        // GET: Invoice/Bulk
+        public async Task<ActionResult> Bulk() {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var summaryRange = new string[] { "1000 - 6000", "6001 - 15000", "15001 - 20000", "20001 - 30000", "30001 - 50000", "50001 - 100000" };
+            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = x });
+
+            var customers = await _businessManager.GetCustomers();
+            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var model = new BulkInvoiceViewModel() {
+
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> BulkCreate(BulkInvoiceViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    //var item = await _businessManager.CreateInvoice(_mapper.Map<InvoiceDto>(model));
+                    //if(item == null) {
+                    //    return BadRequest();
+                    //}
+
+                    return RedirectToAction(nameof(Index));
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+            return View(model);
+        }
+
         // GET: Invoice/Edit/5
         public async Task<ActionResult> Edit(long id) {
             var item = await _businessManager.GetInvoice(id);
@@ -157,10 +194,13 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class InvoiceController: ControllerBase {
         private readonly IMapper _mapper;
+        private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
 
-        public InvoiceController(IMapper mapper, ICrudBusinessManager businessManager) {
+        public InvoiceController(IMapper mapper, IViewRenderService viewRenderService,
+            ICrudBusinessManager businessManager) {
             _mapper = mapper;
+            _viewRenderService = viewRenderService;
             _businessManager = businessManager;
         }
 
@@ -178,16 +218,46 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         [Route("unpaid/{id}")]
-        public async Task<List<InvoiceViewModelList>> GetUnpaid(long id) {
+        public async Task<List<InvoiceListViewModel>> GetUnpaid(long id) {
             var result = await _businessManager.GetUnpaidInvoices(id);
-            return _mapper.Map<List<InvoiceViewModelList>>(result);
+            return _mapper.Map<List<InvoiceListViewModel>>(result);
         }
 
         [HttpGet]
         [Route("{id}/customers")]
-        public async Task<List<CustomerViewModelList>> GetCustomersByCompanyId(long id) {
+        public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
             var result = await _businessManager.GetCustomers(id);
-            return _mapper.Map<List<CustomerViewModelList>>(result);
+            return _mapper.Map<List<CustomerListViewModel>>(result);
+        }
+
+        [HttpPost]
+        [Route("bulk")]
+        public async Task<IActionResult> GenerateBulkInvoice(BulkInvoiceViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
+                    var customers = await _businessManager.GetCustomers(model.Customers.ToArray());
+                    foreach(var customer in customers) {
+                        var date = RandomExtansion.GetRandomDateTime(model.DateFrom, model.DateTo);
+                        var invoice = new InvoiceViewModel() {
+                            CompanyId = model.CompanyId,
+                            Customer = _mapper.Map<CustomerViewModel>(customer),
+                            Date = date,
+                            DueDate = date.AddDays(30),
+                            No = $"{date.ToString("mmyy")}_{RandomExtansion.GetRandomNumber(100000, 999999)}",
+                            Subtotal = 1000
+                        };
+                        invoices.Add(invoice);
+                    }
+                    model.Invoices = invoices;
+
+                    string html = _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", model).Result;
+                    return Ok(html);
+                }
+            } catch(Exception er) {
+                //_logger.LogError(er, er.Message);
+            }
+            return Ok(model);
         }
     }
 }

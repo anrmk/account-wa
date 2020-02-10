@@ -34,7 +34,8 @@ namespace Core {
             CreateMap<PaymentDto, PaymentEntity>()
                 .ForMember(d => d.Invoice, o => o.Ignore())
                 .ReverseMap()
-                .ForMember(d => d.InvoiceNo, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.No : ""));
+                .ForMember(d => d.InvoiceNo, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.No : ""))
+                .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null));
         }
     }
 }

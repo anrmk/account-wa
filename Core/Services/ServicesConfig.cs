@@ -1,4 +1,5 @@
 ﻿using Core.Context;
+using Core.Extensions;
 using Core.Services.Business;
 using Core.Services.Managers;
 
@@ -11,6 +12,9 @@ namespace Core.Services {
             services.AddTransient<IApplicationContext, ApplicationContext>();
             services.AddTransient<IUserProfileManager, UserProfileManager>();
             //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            ///Extension Service
+            services.AddTransient<IViewRenderService, ViewRenderService>();
 
             ///Managers
             services.AddTransient<IReportManager, ReportManager>();
