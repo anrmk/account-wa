@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Base {
     public abstract class AsyncEntityManager<T>: IEntityManager<T> where T : class {
-
         protected IApplicationContext _context;
+
         public bool ShareContext { get; set; } = false;
 
         protected AsyncEntityManager(IApplicationContext context) {
@@ -50,8 +50,6 @@ namespace Core.Services.Base {
             return await DbSet.FirstOrDefaultAsync(predicate);
         }
 
-
-
         public virtual async Task<IEnumerable<T>> Create(IEnumerable<T> l) {
             foreach(var t in l) {
                 var entry = _context.Entry(t);
@@ -67,6 +65,7 @@ namespace Core.Services.Base {
         public virtual async Task<T> Create(T t) {
             try {
                 var entry = DbSet.Add(t);
+                entry.State = EntityState.Added;
                 if(!ShareContext)
                     await _context.SaveChangesAsync();
 

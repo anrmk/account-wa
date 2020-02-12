@@ -144,9 +144,10 @@ namespace Core.Context {
             foreach(var i in diffInvoiceList) {
                 var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
                 if(customer != null) {
+                    var random = new Random();
                     var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
                     if(invoice != null) {
-                        var newDate = RandomExtansion.GetRandomDateTime(startDate, endDate);
+                        var newDate = random.NextDate(startDate, endDate);
 
                         var payment = new PaymentEntity() {
                             Ref = "Inv_" + invoice.No,

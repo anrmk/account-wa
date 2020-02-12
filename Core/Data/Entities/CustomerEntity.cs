@@ -43,4 +43,8 @@ namespace Core.Data.Entities {
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
     }
+
+    public class CustomerBulkEntity : CustomerEntity {
+        public int Total { get; set; }
+    }
 }

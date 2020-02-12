@@ -130,5 +130,12 @@ namespace Web.Controllers.Api {
             var result = await _businessManager.GetCustomers(id);
             return _mapper.Map<List<CustomerListViewModel>>(result);
         }
+
+        [HttpGet]
+        [Route("bulk")]
+        public async Task<List<CustomerDto>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
+            var reuslt = await _businessManager.GetBulkCustomers(Id, from, to);
+            return reuslt;
+        }
     }
 }

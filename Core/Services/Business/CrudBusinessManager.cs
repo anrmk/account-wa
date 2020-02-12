@@ -20,12 +20,16 @@ namespace Core.Services.Business {
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
 
+        Task<CompanySummaryRangeDto> GetCompanySummery(long id);
+        Task<List<CompanySummaryRangeDto>> GetCompanySummary(long companyId);
+
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
         Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10);
         Task<List<CustomerDto>> GetUndiedCustomers(long? companyId = null);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
+        Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
@@ -35,6 +39,7 @@ namespace Core.Services.Business {
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
         Task<InvoiceDto> CreateInvoice(InvoiceDto dto);
+        Task<List<InvoiceDto>> CreateInvoice(List<InvoiceDto> list);
         Task<bool> DeleteInvoice(long id);
 
         Task<PaymentDto> GetPayment(long id);
@@ -48,16 +53,19 @@ namespace Core.Services.Business {
     public class CrudBusinessManager: ICrudBusinessManager {
         public readonly IMapper _mapper;
         public readonly ICompanyManager _companyManager;
+        public readonly ICompanySummaryRangeManager _companySummaryManager;
         public readonly ICustomerManager _customerManager;
         public readonly ICustomerActivityManager _customerActivityManager;
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
 
-        public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
+        public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager, 
+            ICompanySummaryRangeManager companySummaryManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager) {
             _mapper = mapper;
             _companyManager = companyManager;
+            _companySummaryManager = companySummaryManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
             _invoiceManager = invoiceManager;
@@ -65,7 +73,6 @@ namespace Core.Services.Business {
         }
 
         #region COMPANY
-
         public async Task<CompanyDto> GetCompany(long id) {
             var result = await _companyManager.FindInclude(id);
             return _mapper.Map<CompanyDto>(result);
@@ -151,6 +158,16 @@ namespace Core.Services.Business {
             int result = await _companyManager.Delete(entity);
             return result != 0;
         }
+
+        public async Task<CompanySummaryRangeDto> GetCompanySummery(long id) {
+            var result = await _companySummaryManager.Find(id);
+            return _mapper.Map<CompanySummaryRangeDto>(result);
+        }
+
+        public async Task<List<CompanySummaryRangeDto>> GetCompanySummary(long companyId) {
+            var result = await _companySummaryManager.AllInclude(companyId);
+            return _mapper.Map<List<CompanySummaryRangeDto>>(result);
+        }
         #endregion
 
         #region CUSTOMER
@@ -198,6 +215,11 @@ namespace Core.Services.Business {
 
         public async Task<List<CustomerDto>> GetCustomers(long companyId) {
             var result = await _customerManager.FindByCompanyId(companyId);
+            return _mapper.Map<List<CustomerDto>>(result);
+        }
+
+        public async Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to) {
+            var result = await _customerManager.FindBulks(companyId, from, to);
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
@@ -259,6 +281,12 @@ namespace Core.Services.Business {
             var entity = _mapper.Map<InvoiceEntity>(dto);
             entity = await _invoiceManager.Create(entity);
             return _mapper.Map<InvoiceDto>(entity);
+        }
+
+        public async Task<List<InvoiceDto>> CreateInvoice(List<InvoiceDto> list) {
+            var entities = _mapper.Map<List<InvoiceEntity>>(list).AsEnumerable();
+            entities = await _invoiceManager.Create(entities);
+            return _mapper.Map<List<InvoiceDto>>(entities);
         }
 
         public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10) {

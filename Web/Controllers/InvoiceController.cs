@@ -98,34 +98,18 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var summaryRange = new string[] { "1000 - 6000", "6001 - 15000", "15001 - 20000", "20001 - 30000", "30001 - 50000", "50001 - 100000" };
-            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = x });
-
-            var customers = await _businessManager.GetCustomers();
-            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            var selectedCompany = companies.FirstOrDefault();
 
             var model = new BulkInvoiceViewModel() {
-
+                CompanyId = selectedCompany?.Id ?? 0
             };
 
-            return View(model);
-        }
+            var summaryRange = await _businessManager.GetCompanySummary(selectedCompany?.Id ?? 0);
+            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.SummaryFrom} - {x.SummaryTo}", Value = x.Id.ToString() });
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> BulkCreate(BulkInvoiceViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    //var item = await _businessManager.CreateInvoice(_mapper.Map<InvoiceDto>(model));
-                    //if(item == null) {
-                    //    return BadRequest();
-                    //}
+            var customers = await _businessManager.GetBulkCustomers(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
+            ViewBag.Customers = customers;
 
-                    return RedirectToAction(nameof(Index));
-                }
-            } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-            }
             return View(model);
         }
 
@@ -235,29 +219,54 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> GenerateBulkInvoice(BulkInvoiceViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
                     var customers = await _businessManager.GetCustomers(model.Customers.ToArray());
-                    foreach(var customer in customers) {
-                        var date = RandomExtansion.GetRandomDateTime(model.DateFrom, model.DateTo);
-                        var invoice = new InvoiceViewModel() {
-                            CompanyId = model.CompanyId,
-                            Customer = _mapper.Map<CustomerViewModel>(customer),
-                            Date = date,
-                            DueDate = date.AddDays(30),
-                            No = $"{date.ToString("mmyy")}_{RandomExtansion.GetRandomNumber(100000, 999999)}",
-                            Subtotal = 1000
-                        };
-                        invoices.Add(invoice);
-                    }
-                    model.Invoices = invoices;
+                    var subtotalRange = await _businessManager.GetCompanySummery(model.SummaryRangeId ?? 0);
 
-                    string html = _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", model).Result;
-                    return Ok(html);
+                    if(subtotalRange != null) {
+                        model.SummaryRange = $"{subtotalRange.SummaryFrom}-{subtotalRange.SummaryTo}";
+                        List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
+                        Random random = new Random();
+
+                        foreach(var customer in customers) {
+                            var date = random.NextDate(model.DateFrom, model.DateTo);
+                            var invoice = new InvoiceViewModel() {
+                                CompanyId = model.CompanyId,
+                                CustomerId = customer.Id,
+                                Customer = _mapper.Map<CustomerViewModel>(customer),
+                                Date = date,
+                                DueDate = date.AddDays(30),
+                                No = $"{date.ToString("mmyy")}_{random.Next(100000, 999999)}",
+                                Subtotal = random.NextDecimal(subtotalRange.SummaryFrom, subtotalRange.SummaryTo)
+                            };
+                            invoices.Add(invoice);
+                        }
+                        model.Invoices = invoices;
+
+                        string html = _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", model).Result;
+                        return Ok(html);
+                    } else {
+                        return BadRequest();
+                    }
                 }
             } catch(Exception er) {
-                //_logger.LogError(er, er.Message);
+                Console.WriteLine(er.Message);
             }
             return Ok(model);
+        }
+
+        [HttpPost]
+        [Route("bulkcreate")]
+        public async Task<IActionResult> CreateBulkInvoices(BulkInvoiceViewModel model) {
+            if(!ModelState.IsValid) {
+                return BadRequest(model);
+            }
+
+            var invoiceList = _mapper.Map<List<InvoiceDto>>(model.Invoices);
+            var result = await _businessManager.CreateInvoice(invoiceList);
+            if(result == null || result.Count == 0) {
+                return BadRequest(model);
+            }
+            return Ok(result);
         }
     }
 }

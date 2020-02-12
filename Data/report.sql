@@ -90,3 +90,18 @@ FROM [accountWa].[dbo].[Invoices] WHERE [Date] <= @pdate_from AND
 '169779',
 '169780')
 )
+
+
+
+use accountWa;
+
+SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber], CUS.[Name], 
+CUS.[Description], CUS.[Terms], CUS.[CreditLimit], 
+CUS.[CreditUtilized], CUS.[Company_Id]
+
+FROM [dbo].[Customers] AS CUS 
+LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [Total] FROM [dbo].[Invoices]
+WHERE [Date] > '2020-02-11' AND [DATE] <= '2020-03-12'
+group by [Customer_Id]) AS INV 
+ON CUS.[Id] = INV.[Customer_Id]
+WHERE CUS.[Company_Id] = 2 order by [Name]	

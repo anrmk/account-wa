@@ -14,6 +14,9 @@ namespace Core.Data.Dto {
 
         public bool IsActive { get; set; }
 
+        //only for bulk customers!!!
+        public int Total { get; set; }
+
         public CustomerAddressDto Address { get; set; }
 
         public DateTime CreatedDate { get; set; }

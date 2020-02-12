@@ -19,6 +19,11 @@ namespace Web.ViewModels {
         [Display(Name = "Customers")]
         public List<long> Customers { get; set; }
 
-        public List<InvoiceViewModel> Invoices { get; set; }
+        [Display(Name = "Summary Range")]
+        public long? SummaryRangeId { get; set; }
+
+        public string SummaryRange { get; set; }
+
+        public virtual List<InvoiceViewModel> Invoices { get; set; }
     }
 }

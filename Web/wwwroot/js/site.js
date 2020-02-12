@@ -7,9 +7,4 @@
     };
     $.validator.setDefaults(settings);
     $.validator.unobtrusive.options = settings;
-
-
-    //$('.datepicker').datepicker({
-        
-    //});
 });

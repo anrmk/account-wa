@@ -4,7 +4,7 @@
     ViewData["SubTitle"] = "Bulk Invoicing is ideal for when you have a lot of clients to bill for a lot of work. Use the Bulk Invoice wizard to quickly create and send invoices to all of your clients quickly!";
 }
 
-<form class="need-validation" id="bulkForm" asp-action="BulkCreate" asp-controller="Invoice">
+<form class="need-validation" id="bulkForm" action="/api/invoice/bulk" method="post">
     <fieldset>
         <div class="card mb-3">
             <div class="card-body">
@@ -15,39 +15,32 @@
                             <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
                                     required
                                     data-live-search="true">
-                                <option>Chose a company</option>
                             </select>
                             <span asp-validation-for="CompanyId" class="text-danger"></span>
                         </div>
                         <div class="form-group">
                             <label>Summary Range</label>
-                            <select id="summaryRange" asp-items="@ViewBag.SummaryRange" class="form-control selectpicker"
+                            <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control selectpicker"
                                     required
                                     data-live-search="true">
-                                <option>Chose a summary range</option>
                             </select>
                             <span class="text-danger"></span>
                         </div>
                         <div class="form-group">
                             <label asp-for="DateFrom"></label>
-                            <input asp-for="DateFrom" type="date" class="form-control" required>
+                            <input id="datefrom" asp-for="DateFrom" type="date" class="form-control" required>
                         </div>
                         <div class="form-group">
                             <label asp-for="DateTo"></label>
-                            <input asp-for="DateTo" type="date" class="form-control" required>
+                            <input id="dateto" asp-for="DateTo" type="date" class="form-control" required>
                         </div>
                     </div>
 
                     <div class="col-lg-8 col">
                         <div class="form-group">
                             <label>Customers</label>
-                            <div id="toolbar" role="toolbar">
-                                <a id="checkAll" href="#" class="btn btn-secondary">checkAll</a>
-                                <a id="unckeckAll" href="#" class="btn btn-secondary">uncheckAll</a>
-                            </div>
                             <table id="datatable" class="table table-striped table-sm" data-toggle="table"
                                    *data-search="true"
-                                   data-toolbar="#toolbar"
                                    data-thead-classes="thead-dark"
                                    data-id-field="id"
                                    data-select-item-name="Customers[]"
@@ -57,13 +50,14 @@
                                    data-show-extended-pagination="true"
                                    @*data-total-field="totalItems"
                                    data-data-field="items"*@
-                                   data-height="460">
+                                   data-height="380">
 
                                 <thead>
                                     <tr>
                                         <th data-field="state" data-checkbox="true"></th>
                                         <th data-field="accountNumber" scope="col" class="text-nowrap">No</th>
                                         <th data-field="name" scope="col">Name</th>
+                                        <th data-field="total" scope="col">Total</th>
                                         <th data-field="terms" scope="col">Terms</th>
                                     </tr>
                                 </thead>
@@ -80,53 +74,57 @@
     </fieldset>
 </form>
 
-<div id="content">
-
-</div>
+<div id="content"></div>
 
 
 @section Scripts {
     <script type="text/javascript">
-        var $form = $('#bulkForm');
-        var $table = $('#datatable');
-        var $checkall = $('#checkAll');
-        var $unckeckAll = $('#unckeckAll');
+        $(document).ready(e => {
+            var data =  @Json.Serialize(ViewBag.Customers);
+            var $table = $('#datatable').bootstrapTable('load', data);
+            var $bulkForm = $('#bulkForm');
 
-        $('#companies').on('change', (e) => {
-            var id = $(e.currentTarget).val();
-            $.when($.ajax(`/api/company/${id}`), $.ajax(`/api/customer/company/${id}`)).then((company, customers) => {
-                $table.bootstrapTable('load', customers[0])
+            $('#companies, #datefrom, #dateto').on('change', (e) => {
+                let $fieldset =  $bulkForm.find('fieldset');
+                let fd = $bulkForm.serializeJSON();
+
+                $.when($.fn.getCompanySummaryRange(fd.CompanyId), $.fn.getBulkCustomers(fd.CompanyId, fd.DateFrom, fd.DateTo)).done((company, customers) => {
+                    var opt = $.map(company[0], function (val, i) {
+                        return `<option value='${val.id}'>${val.summaryFrom} - ${val.summaryTo}</option>`
+                    });
+                    $("#summaryRange").html(opt).selectpicker('refresh');
+
+                    $('#content').empty();
+                    $table.bootstrapTable('load', customers[0]);
+                }).then(_ => {
+                    
+                });
             });
-        });
 
-        $checkall.click(function () {
-            $table.bootstrapTable('checkAll');
-        });
+            $bulkForm.on('submit', e => {
+                //var $target = $(e.target);
+                $bulkForm.ajaxSubmit({}, (target, data, status) => {
+                    status === 'success' ? $('#content').html(data) : $('#content').empty();
+                });
+                e.preventDefault();
+            });
 
-        $unckeckAll.click(function () {
-            $table.bootstrapTable('uncheckAll');
-        });
+            $('#content').on('submit', e => {
+                var $target = $(e.target);
+                $target.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                    if (status === 'success') {
+                        form.addClass('border-success').delay(1500).fadeOut(1000, function () {
+                            $(this).remove();
+                        });
 
-        $form.submit(e => {
-            var fieldset = $form.find('fieldset');
-
-            var postData = JSON.stringify($form.serializeJSON({ parseNumbers: true }));
-            var formURL = $form.attr("action");
-            //let validator = $($form).validate();
-
-            var options = {
-                'url': '/api/invoice/bulk',
-                'type': 'POST',
-                'data': postData,
-                'processData': false,
-                'contentType': 'application/json; charset=utf-8',
-                success: function (data, textStatus, jqXHR) {
-                    $('#content').append(data);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                }
-            };
-            e.preventDefault();
+                        let fd = form.serializeJSON();
+                        $.when($.fn.getBulkCustomers(fd.CompanyId, fd.DateFrom, fd.DateTo)).then((customers) => {
+                            $table.bootstrapTable('load', customers);
+                        });
+                    }
+                });
+                e.preventDefault();
+            });
         });
     </script>
 }

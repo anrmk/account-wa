@@ -19,7 +19,7 @@ namespace Core.Services.Business {
             using(SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"))) {
                 var query = $"SELECT LANG.[NameEn] as [Name], COUNT(DOC.[NsiLanguageEntity_Id]) AS [Value] " +
                            "FROM [Documents] DOC " +
-                           "INNER JOIN[nsi.Languages] LANG ON DOC.NsiLanguageEntity_Id = LANG.Id " +
+                           "INNER JOIN [nsi.Languages] LANG ON DOC.NsiLanguageEntity_Id = LANG.Id " +
                            "GROUP BY DOC.NsiLanguageEntity_Id, LANG.[NameEn] " +
                            "UNION ALL SELECT 'Total' [Name], COUNT(*) FROM [Documents] " +
                            "UNION ALL SELECT 'Archive' [Name], COUNT(*) FROM [Documents] WHERE IsArchive = 1";

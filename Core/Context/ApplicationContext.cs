@@ -27,10 +27,12 @@ namespace Core.Context {
         #region DbSet
         public DbSet<CompanyEntity> Companies { get; set; }
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
+        public DbSet<CompanySummaryRangeEntity> CompanySummaryRanges { get; set; }
 
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
         public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
+        //public DbSet<CustomerBulkEntity> CustomersBulk { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }

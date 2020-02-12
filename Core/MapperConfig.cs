@@ -18,13 +18,15 @@ namespace Core {
                  .ForMember(d => d.Customers, o => o.MapFrom(s => s.Customers.Select(r => r.Id)));
 
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
+            CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
 
             CreateMap<CustomerDto, CustomerEntity>()
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
-
+            CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();
+            
             CreateMap<InvoiceDto, InvoiceEntity>()
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Customer, o => o.Ignore())

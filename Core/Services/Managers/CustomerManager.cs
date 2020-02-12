@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Core.Context;
 using Core.Data.Entities;
 using Core.Services.Base;
-
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Managers {
@@ -18,6 +18,8 @@ namespace Core.Services.Managers {
 
         Task<List<CustomerEntity>> AllInclude();
         Task<List<CustomerEntity>> AllUntied(long? companyId);
+
+        Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to);
     }
 
     public class CustomerManager: AsyncEntityManager<CustomerEntity>, ICustomerManager {
@@ -64,6 +66,56 @@ namespace Core.Services.Managers {
                 .Include(x => x.Activities)
                .Where(x => x.Id == id)
                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
+            var context = (ApplicationContext)this._context;
+            var result = new List<CustomerBulkEntity>();
+            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber], CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
+                                                    "FROM[dbo].[Customers] AS CUS " +
+                                                    "LEFT JOIN(SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] " +
+                                                    "WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO " +
+                                                    "group by[Customer_Id]) AS INV " +
+                                                    "ON CUS.[Id] = INV.[Customer_Id] " +
+                                                    "WHERE CUS.[Company_Id] = @COMPANY_ID";
+
+            try {
+                using(var connection = context.Database.GetDbConnection()) {
+                    using(var command = connection.CreateCommand()) {
+                        command.CommandText = query;
+                        command.Parameters.Add(new SqlParameter("@COMPANY_ID", System.Data.SqlDbType.BigInt));
+                        command.Parameters.Add(new SqlParameter("@DATE_FROM", System.Data.SqlDbType.Date));
+                        command.Parameters.Add(new SqlParameter("@DATE_TO", System.Data.SqlDbType.Date));
+                        command.Parameters["@COMPANY_ID"].Value = companyId;
+                        command.Parameters["@DATE_FROM"].Value = from;
+                        command.Parameters["@DATE_TO"].Value = to;
+
+                        if(connection.State == System.Data.ConnectionState.Closed) {
+                            await connection.OpenAsync();
+                        }
+
+                        using(var reader = await command.ExecuteReaderAsync()) {
+                            while(reader.Read()) {
+                                result.Add(new CustomerBulkEntity() {
+                                    Id = (long)reader["Id"],
+                                    Total = reader["Total"] != DBNull.Value ?(int)reader["Total"] : 0,
+                                    AccountNumber = reader["AccountNumber"] as string,
+                                    Name = reader["Name"] as string,
+                                    Description = reader["Description"] as string,
+                                    Terms = reader["Terms"] as string,
+                                    //CreditLimit = (double)reader["CreditLimit"],
+                                    //CreditUtilized = (double)reader["CreditUtilized"],
+                                    CompanyId = (long)reader["Company_Id"]
+                                });
+                            }
+                        }
+                    }
+                }
+            }catch(Exception e) {
+                Console.WriteLine(e.Message);
+            }
+
+            return result;
         }
     }
 }

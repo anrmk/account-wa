@@ -3,46 +3,60 @@
     Layout = null;
 }
 
-<form class="card mb-3">
-    <input type="hidden" asp-for="CompanyId" />
-    <div class="card-header">
-        <div class="navbar p-0">
-            <span class="navbar-text" href="#">Summary Range 1000-6000</span>
-            <ul class="nav justify-content-end">
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Generate</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link close" aria-label="Close"><span aria-hidden="true">&times;</span></a>
-                </li>
-            </ul>
+<form class="card mb-3" action="/api/invoice/bulkcreate" method="post">
+    <fieldset>
+        <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+        <input type="hidden" name="SummaryRangeId" value="@Model.SummaryRangeId" />
+        <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+        <div class="card-header">
+            <div class="navbar p-0">
+                <span class="navbar-text" href="#">Summary Range @Model.SummaryRange</span>
+                <ul class="nav justify-content-end">
+                    <li class="nav-item">
+                        <a class="nav-link close" aria-label="Close"><span aria-hidden="true">&times;</span></a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </div>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Customer</th>
-                <th>Subtotal</th>
-                <th>Date</th>
-                <th>Due Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var item in Model.Invoices) {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@item.No</td>
-                    <td>@item.Customer?.Name</td>
-                    <td>@item.Subtotal</td>
-                    <td>@item.Date</td>
-                    <td>@item.DueDate</td>
+                    <th>#</th>
+                    <th>No</th>
+                    <th>Customer</th>
+                    <th>Subtotal</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-    <div class="card-footer">
-        <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <a href="#" class="btn btn-primary">Save</a>
+            </thead>
+            <tbody>
+                @for(var i = 0; i < Model.Invoices.Count; i++) {
+                    var item = Model.Invoices[i];
+                    <tr>
+                        <td>
+                            @(i + 1)
+                            <input type="hidden" name="Customers[]" value="@item.CustomerId" />
+                            <input type="hidden" name="Invoices[][No]" value="@item.No" />
+                            <input type="hidden" name="Invoices[][CompanyId]" value="@item.CompanyId" />
+                            <input type="hidden" name="Invoices[][CustomerId]" value="@item.CustomerId" />
+                            <input type="hidden" name="Invoices[][Subtotal]" value="@item.Subtotal" />
+                            <input type="hidden" name="Invoices[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="Invoices[][DueDate]" value="@item.DueDate.ToString("yyyy-MM-dd")" />
+                        </td>
+                        <td>@item.No</td>
+                        <td>@item.Customer?.Name</td>
+                        <td>@item.Subtotal</td>
+                        <td>@item.Date</td>
+                        <td>@item.DueDate</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="card-footer">
+            <div class="" role="toolbar" aria-label="Toolbar with button groups">
+                <button class="btn btn-primary">Save</button>
+            </div>
         </div>
-    </div>
+    </fieldset>
 </form>
