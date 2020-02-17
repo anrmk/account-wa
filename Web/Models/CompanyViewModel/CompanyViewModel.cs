@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class CompanyViewModelList {
+    public class CompanyListViewModel {
         public long Id { get; set; }
         public string No { get; set; }
         public string Name { get; set; }
@@ -12,6 +12,7 @@ namespace Web.ViewModels {
 
         public string Address { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
         public string CreatedBy { get; set; }
 
         public int TotalCustomers { get; set; }
@@ -20,8 +21,9 @@ namespace Web.ViewModels {
     public class CompanyViewModel {
         public long Id { get; set; }
 
+        #region GENERAL
         [Required]
-        [MaxLength(6)]
+        [MaxLength(8)]
         public string No { get; set; }
 
         [Required]
@@ -35,11 +37,11 @@ namespace Web.ViewModels {
         [Display(Name = "Tax Rate")]
         [Range(0, 100)]
         public double TaxRate { get; set; }
+        #endregion
 
-        public IList<long> Customers { get; set; }
+        #region ADDRESS
+        public long AddressId { get; set; }
 
-        #region Address
-        public long? AddressId { get; set; }
         [MaxLength(60)]
         public string Address { get; set; }
 
@@ -58,5 +60,8 @@ namespace Web.ViewModels {
         [MaxLength(60)]
         public string Country { get; set; }
         #endregion
+
+        public IList<long> Customers { get; set; }
+
     }
 }

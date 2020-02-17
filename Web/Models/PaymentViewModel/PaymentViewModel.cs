@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Web.ViewModels {
     public class PaymentViewModelList {
         public long Id { get; set; }
-        public string Ref { get; set; }
+        public string No { get; set; }
         public string InvoiceNo { get; set; }
         public long InvoiceId { get; set; }
         public decimal InvoiceAmount { get; set; }
@@ -17,7 +17,7 @@ namespace Web.ViewModels {
         [Required]
         [Display(Name = "Reference no.")]
         [MaxLength(16)]
-        public string Ref { get; set; }
+        public string No { get; set; }
 
         [Display(Name = "Payment Amount")]
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]

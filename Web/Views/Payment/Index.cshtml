@@ -1,52 +1,44 @@
 ﻿@{
-    ViewData["Title"] = "Payments List";
+    ViewData["Title"] = "Payments";
 }
 
-<div>
-    <div id="toolbar" role="toolbar">
-        <a asp-controller="Payment" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
+<div class="card">
+    <div class="card-body">
+        <div id="toolbar" role="toolbar">
+            <a asp-controller="Payment" asp-action="Create" class="btn btn-sm btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+            <a asp-controller="Payment" asp-action="Bulk" class="btn btn-sm btn-outline-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
+        </div>
+        <table id="datatable" data-toggle="table" data-url="/api/payment"
+               data-total-field="totalItems"
+               data-data-field="items">
+            <thead>
+                <tr>
+                    <th data-field="no" data-sortable="true">No</th>
+                    <th data-field="amount">Amount</th>
+                    <th data-field="date" data-formatter="dateFormat" data-sortable="true">Date</th>
+                    <th data-field="dueDate" data-formatter="dateFormat" data-sortable="true">Due Date</th>
+                    <th data-field="invoiceNo" data-formatter="invoiceFormatter">Invoice</th>
+                    <th>Status (not available)</th>
+                    <th data-formatter="actionFormatter" class="text-nowrap text-right">Actions</th>
+                </tr>
+            </thead>
+        </table>
     </div>
-    <table id="datatable" class="table table-striped" data-toggle="table" data-url="/api/payment" 
-           data-search="true" 
-           data-toolbar="#toolbar"
-           data-thead-classes="thead-dark"
-           data-side-pagination="server"
-           data-pagination="true"
-           data-total-field="totalItems"
-           data-data-field="items" >
-        <thead>
-            <tr>
-                <th data-field="ref" rowspan="2">Ref#</th>
-                <th data-field="date" data-formatter="dateFormat" rowspan="2">Date</th>
-                <th data-field="amount" rowspan="2">Amount</th>
-                <th colspan="2">Invoice</th>
-                <th data-formatter="actionFormatter" rowspan="2"></th>
-            </tr>
-            <tr>
-                <th data-field="invoiceNo" data-formatter="InvoiceActionFormatter">No</th>
-                <th data-field="dueDate" data-formatter="dateFormat" >Due Date</th>
-            </tr>
-        </thead>
-    </table>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
-        function actionFormatter(value, row) {
-            return `<a href='/payment/edit/${row.id}'><i class='fa fa-edit'></i></a>
-                    <a href='/payment/details/${row.id}' class='mr-1'><i class='fa fa-file-invoice'></i></a>`;
-        }
-
-        function InvoiceActionFormatter(value, row) {
-            return `<a href='/invoice/details/${row.invoiceId}'>${value}</a>`
-        }
-
         function dateFormat(value, row, index) {
             return moment(value).format('MMM/DD/YYYY');
         }
 
-                //$('#datatable').on('click-row.bs.table', function (event, row, field) {
-                //    window.location.href = `/payment/details/${row.id}`;
-                //});
+        function actionFormatter(value, row) {
+            return `<a href='/payment/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
+                    <a href='/payment/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`;
+        }
+
+        function invoiceFormatter(value, row) {
+            return `<a href='/invoice/details/${row.invoiceId}'>${value}</a>`
+        }
     </script>
 }

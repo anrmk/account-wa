@@ -1,4 +1,5 @@
 using System;
+
 using Core.Context;
 using Core.Data.Entities;
 using Core.Services;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Web.Extension;
 
 namespace Web {
@@ -60,10 +62,10 @@ namespace Web {
             });
 
             services.ConfigureApplicationCookie(options => {
-                options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                options.ExpireTimeSpan = TimeSpan.FromHours(24);
                 // Cookie settings
                 options.Cookie.HttpOnly = true;
-               
+
                 // If the LoginPath isn't set, ASP.NET Core defaults 
                 // the path to /Account/Login.
                 options.LoginPath = "/Account/Login";

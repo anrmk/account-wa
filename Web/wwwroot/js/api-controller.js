@@ -11,6 +11,15 @@ $.fn.getBulkCustomers = function (id, from, to) {
     });
 }
 
+//Get bulk customers
+$.fn.getBulkInvoices = function (id, from, to) {
+    return $.ajax({
+        url: '/api/invoice/bulk',
+        data: { 'id': id, 'from': from, 'to': to }
+    });
+}
+
+
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
     var fieldset = this.find('fieldset');
@@ -31,4 +40,8 @@ $.fn.ajaxSubmit = function (opt, callback) {
         fieldset.removeAttr('disabled');
         callback(this, null, status, jqXHR);
     });
+}
+
+$.fn.close = function () {
+    $(this).closest('.card').fadeOut();
 }

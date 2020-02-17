@@ -4,9 +4,10 @@ using System.Linq;
 
 using Core.Data.Entities;
 using Core.Extension;
-using Core.Services.Managers;
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+
 using Newtonsoft.Json;
 
 namespace Core.Context {
@@ -121,7 +122,7 @@ namespace Core.Context {
                 }
             }
             var test = diffInvoices;
-           _context.SaveChanges();
+            _context.SaveChanges();
         }
 
         private void PaymentInitializerDraft(string fileUrlFrom, string fileUrlTo, DateTime startDate, DateTime endDate) {
@@ -150,7 +151,7 @@ namespace Core.Context {
                         var newDate = random.NextDate(startDate, endDate);
 
                         var payment = new PaymentEntity() {
-                            Ref = "Inv_" + invoice.No,
+                            No = "Inv_" + invoice.No,
                             InvoiceId = invoice.Id,
                             IsDraft = true,
                             Amount = invoice.Subtotal,

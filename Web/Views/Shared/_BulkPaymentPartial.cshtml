@@ -1,4 +1,4 @@
-﻿@model Web.ViewModels.BulkInvoiceViewModel
+﻿@model Web.ViewModels.BulkPaymentViewModel
 @{
     Layout = null;
 }
@@ -6,7 +6,6 @@
 <form class="card mb-3" action="/api/invoice/bulkcreate" method="post">
     <fieldset>
         <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
-        <input type="hidden" name="SummaryRangeId" value="@Model.SummaryRangeId" />
         <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
         <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
         <div class="card-header">
@@ -24,31 +23,25 @@
                 <tr>
                     <th>#</th>
                     <th>No</th>
-                    <th>Customer</th>
-                    <th>Subtotal</th>
+                    <th>Amount</th>
                     <th>Date</th>
-                    <th>Due Date</th>
                 </tr>
             </thead>
             <tbody>
-                @for(var i = 0; i < Model.Invoices.Count; i++) {
-                    var item = Model.Invoices[i];
+                @for(var i = 0; i < Model.Payments.Count; i++) {
+                    var item = Model.Payments[i];
                     <tr>
                         <td>
                             @(i + 1)
-                            <input type="hidden" name="Customers[]" value="@item.CustomerId" />
-                            <input type="hidden" name="Invoices[][No]" value="@item.No" />
-                            <input type="hidden" name="Invoices[][CompanyId]" value="@item.CompanyId" />
-                            <input type="hidden" name="Invoices[][CustomerId]" value="@item.CustomerId" />
-                            <input type="hidden" name="Invoices[][Subtotal]" value="@item.Subtotal" />
-                            <input type="hidden" name="Invoices[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
-                            <input type="hidden" name="Invoices[][DueDate]" value="@item.DueDate.ToString("yyyy-MM-dd")" />
+                            <input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
+                            <input type="hidden" name="Payments[][Ref]" value="@item.No" />
+                            <input type="hidden" name="Payments[][Amount]" value="@item.Amount" />
+                            <input type="hidden" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
                         </td>
                         <td>@item.No</td>
-                        <td>@item.Customer?.Name</td>
-                        <td>@item.Subtotal</td>
+                        <td>@item.InvoiceNo</td>
+                        <td>@item.Amount</td>
                         <td>@item.Date</td>
-                        <td>@item.DueDate</td>
                     </tr>
                 }
             </tbody>

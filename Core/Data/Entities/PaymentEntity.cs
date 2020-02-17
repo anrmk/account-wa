@@ -7,7 +7,7 @@ namespace Core.Data.Entities {
     public class PaymentEntity: AuditableEntity<long> {
         [StringLength(16)]
         [Required]
-        public string Ref { get; set; }
+        public string No { get; set; }
 
         [Range(1, 100)]
         [DataType(DataType.Currency)]

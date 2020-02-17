@@ -19,6 +19,8 @@ namespace Core.Services {
             ///Managers
             services.AddTransient<IReportManager, ReportManager>();
             services.AddTransient<ICompanyManager, CompanyManager>();
+            services.AddTransient<ICompanyAddressMananger, CompanyAddressManager>();
+            
             services.AddTransient<ICompanySummaryRangeManager, CompanySummaryRangeManager>();
             services.AddTransient<ICustomerManager, CustomerManager>();
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();
@@ -29,7 +31,7 @@ namespace Core.Services {
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();
-            
+
 
         }
     }

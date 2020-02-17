@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AutoMapper.Configuration.Annotations;
 
 namespace Core.Data.Entities {
     [Table(name: "Companies")]
@@ -25,6 +26,11 @@ namespace Core.Data.Entities {
         public long? AddressId { get; set; }
         public virtual CompanyAddressEntity Address { get; set; }
 
+        [Ignore]
         public virtual ICollection<CustomerEntity> Customers { get; set; }
+
+        [Ignore]
+        public virtual ICollection<CompanySummaryRangeEntity> SummaryRange { get; set; }
+
     }
 }

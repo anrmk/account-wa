@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AutoMapper.Configuration.Annotations;
 
 namespace Core.Data.Entities {
     [Table(name: "Customers")]
@@ -37,6 +38,7 @@ namespace Core.Data.Entities {
         [ForeignKey("Company")]
         [Column("Company_Id", Order = 0)]
         public long? CompanyId { get; set; }
+
         public virtual CompanyEntity Company { get; set; }
 
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
@@ -44,7 +46,7 @@ namespace Core.Data.Entities {
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
     }
 
-    public class CustomerBulkEntity : CustomerEntity {
+    public class CustomerBulkEntity: CustomerEntity {
         public int Total { get; set; }
     }
 }

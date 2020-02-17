@@ -19,8 +19,10 @@ namespace Core.Services.Managers {
         public CompanyManager(IApplicationContext context) : base(context) { }
 
         public async Task<CompanyEntity> FindInclude(long id) {
-            return await DbSet.Include(x => x.Address)
+            return await DbSet
+                .Include(x => x.Address)
                 .Include(x => x.Customers)
+                .Include(x => x.SummaryRange)
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
         }
@@ -28,7 +30,7 @@ namespace Core.Services.Managers {
         public async Task<List<CompanyEntity>> AllInclude() {
             return await DbSet
                 .Include(x => x.Address)
-                .Include(x => x.Customers)
+                //.Include(x => x.Customers)
                 .ToListAsync();
         }
     }

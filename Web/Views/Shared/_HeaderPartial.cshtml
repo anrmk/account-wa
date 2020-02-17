@@ -7,7 +7,39 @@
 @{
     var url = Context.Request.Path.ToString().ToLower();
 }
-<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+
+<nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0 d-block " href="#">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mr-2" role="img" viewBox="0 0 24 24" focusable="false"><title>Platform</title><circle cx="12" cy="12" r="10"></circle><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path></svg>
+        <strong>Platform</strong>
+    </a>
+    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+    <ul class="navbar-nav px-3">
+        <li class="nav-item text-nowrap">
+            <form method="post" role="form" asp-area="" asp-controller="Account" asp-action="Logout">
+                <a class="nav-link" href="javascript:void(0);" onclick="$(this).closest('form').submit();">Sign out</a>
+            </form>
+        </li>
+    </ul>
+    
+    @*<ul class="navbar-nav px-3">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="@UserManager.GetUserName(User)">
+                <img src="~/images/elliot.jpg" class="rounded-circle" width="30">
+            </a>
+            <div class="dropdown-menu" aria-labelledby="settingsDropdown">
+                <a class="dropdown-item" href="#">Action</a>
+                <a class="dropdown-item" href="#">Another action</a>
+                <div class="dropdown-divider"></div>
+                <form method="post" role="form" asp-area="" asp-controller="Account" asp-action="Logout">
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="$(this).closest('form').submit();">Signout</a>
+                </form>
+            </div>
+        </li>
+    </ul>*@
+</nav>
+
+@*<nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
     <div class="container d-flex justify-content-between">
         <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="d-block mr-2" role="img" viewBox="0 0 24 24" focusable="false"><title>Platform</title><circle cx="12" cy="12" r="10"></circle><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path></svg>
@@ -59,4 +91,4 @@
             </ul>
         </div>
     </div>
-</nav>
+</nav>*@

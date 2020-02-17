@@ -16,10 +16,9 @@
     </div>
 }
 
-
 <div class="card">
     <div class="card-header">
-        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+        <ul id="companyTab" class="nav nav-tabs card-header-tabs" role="tablist">
             <li class="nav-item">
                 <a class="nav-link active" data-toggle="tab" id="general-tab" href="#general">General</a>
             </li>
@@ -32,7 +31,7 @@
         </ul>
     </div>
     <div class="card-body">
-        <form id="editForm" asp-action="Edit" class="tab-content" method="POST" >
+        <form class="tab-content" id="submitForm" method="POST" asp-action="Edit">
             <input asp-for="Id" type="hidden" />
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                 <div class="form-row mb-3">
@@ -112,29 +111,42 @@
                 </div>
             </div>
             <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>From</th>
-                            <th>To</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach(var item in ViewBag.Summary) {
-                            <tr>
-                                <td>@item.SummaryFrom</td>
-                                <td>@item.SummaryTo</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <div class="form-row mb-3">
+                    <a asp-controller="Company" asp-action="CreateSummaryRange" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                </div>
+
+                <div class="form-row mb-3">
+                    <div class="col">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var item in ViewBag.Summary) {
+                                    <tr>
+                                        <td>@item.From</td>
+                                        <td>@item.To</td>
+                                        <td class="text-nowrap text-right">
+                                            <a href='/company/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
+                                            <a href='/company/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Delete</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-primary" form="editForm">Save</button>
-            <a asp-action="index" class="btn btn-link">Cancel</a>
+            <button type="submit" class="btn btn-sm btn-outline-primary" form="submitForm">Save</button>
+            <a asp-action="index" class="btn btn-sm btn-link">Cancel</a>
         </div>
     </div>
 </div>

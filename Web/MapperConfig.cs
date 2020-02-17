@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
 
 using Core.Data.Dto;
-
+using Core.Extension;
 using Microsoft.Extensions.DependencyInjection;
 
 using Web.ViewModels;
@@ -12,7 +13,6 @@ namespace Web {
             var mapperConfig = new MapperConfiguration(mc => {
                 mc.AddProfile(new Core.MapperConfig());
                 mc.AddProfile(new MapperConfig());
-
             });
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
@@ -34,20 +34,36 @@ namespace Web {
             //    .ReverseMap()
             //    .ForMember(d => d.InvoiceId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.Id : 0));
 
+            #region COMPANY
             CreateMap<CompanyViewModel, CompanyDto>()
                 .ForMember(d => d.Address, o => o.MapFrom(s => new CompanyAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
+                .ForMember(d => d.Customers, o => o.MapFrom(s => s.Customers.Select(x => new CustomerDto() { Id = x })))
                 .ReverseMap()
-                .ForMember(d => d.AddressId, o => o.MapFrom(s => (s.Address != null) ? s.Address.Id : (long?)null))
+
+                .ForMember(d => d.AddressId, o => o.MapFrom(s => (s.Address != null) ? s.Address.Id : 0))
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address : ""))
                 .ForMember(d => d.Address2, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address2 : ""))
                 .ForMember(d => d.City, o => o.MapFrom(s => (s.Address != null) ? s.Address.City : ""))
                 .ForMember(d => d.State, o => o.MapFrom(s => (s.Address != null) ? s.Address.State : ""))
+                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""))
                 .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
-                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
 
-            CreateMap<CompanyViewModelList, CompanyDto>()
+                .ForMember(d => d.Customers, o => o.MapFrom(s => s.Customers.Select(x => x.Id)));
+
+
+            CreateMap<CompanyListViewModel, CompanyDto>()
                 .ReverseMap()
-                .ForMember(d => d.TotalCustomers, o => o.MapFrom(s => (s.Customers != null) ? s.Customers.Count : 0))
+                .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
+
+            CreateMap<CompanySummaryRangeViewModel, CompanySummaryRangeDto>();
+            #endregion
+
+            #region CUSTOMER
+            CreateMap<CustomerListViewModel, CustomerDto>()
+                .ForMember(d => d.Invoices, o=> o.Ignore())
+                .ForMember(d => d.Activities, o=> o.Ignore())
+                .ReverseMap()
+                .ForMember(d => d.Company, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
             CreateMap<CustomerViewModel, CustomerDto>()
@@ -61,14 +77,14 @@ namespace Web {
                .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
 
-            CreateMap<CustomerListViewModel, CustomerDto>()
-                .ReverseMap()
-                .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
+            CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
+
+            #endregion
 
             CreateMap<InvoiceViewModel, InvoiceDto>()
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Company, o => o.Ignore())
-                .ForMember(d => d.Payment, o => o.Ignore())
+                .ForMember(d => d.Payments, o => o.Ignore())
                 .ReverseMap()
                 //.ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""))
                 //.ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payment != null ? s.Payment.Amount : 0))
@@ -76,8 +92,9 @@ namespace Web {
                 ;
             CreateMap<InvoiceListViewModel, InvoiceDto>()
                 .ReverseMap()
-                .ForMember(d => d.CompanyName, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
-                .ForMember(d => d.CustomerName, o => o.MapFrom(s => (s.Customer != null) ? s.Customer.Name : ""));
+                .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
+                .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
+                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()));
 
             CreateMap<PaymentViewModel, PaymentDto>()
                 .ReverseMap();

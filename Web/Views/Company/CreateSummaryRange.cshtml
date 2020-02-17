@@ -1,0 +1,31 @@
+﻿@model Web.ViewModels.CompanySummaryRangeViewModel
+
+@{
+    ViewData["Title"] = "Create Company Summary Range";
+}
+<div class="card">
+    <div class="card-header"></div>
+    <div class="card-body">
+        <form id="createForm" method="POST" asp-action="CreateSummaryRange">
+            <input asp-for="CompanyId" type="hidden" />
+            <div class="form-row mb-3">
+                <div class="col-6">
+                    <label asp-for="From"></label>
+                    <input asp-for="From" class="form-control">
+                    <span asp-validation-for="From" class="text-danger" required></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="To"></label>
+                    <input asp-for="To" class="form-control">
+                    <span asp-validation-for="To" class="text-danger" required></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-sm btn-outline-primary" form="createForm">Save</button>
+            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-sm btn-link">Cancel</a>
+        </div>
+    </div>
+</div>

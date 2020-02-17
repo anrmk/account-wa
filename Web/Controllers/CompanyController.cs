@@ -24,7 +24,6 @@ namespace Web.Controllers.Mvc {
             _businessManager = businessManager;
         }
 
-
         // GET: Company
         public ActionResult Index() {
             return View();
@@ -37,7 +36,7 @@ namespace Web.Controllers.Mvc {
             if(item == null) {
                 return NotFound();
             }
-            var customers = await _businessManager.GetCustomers(item.Customers.ToArray());
+            var customers = await _businessManager.GetCustomers(item.Customers.Select(x => x.Id).ToArray());
             ViewBag.Customers = customers;
 
             return View(_mapper.Map<CompanyViewModel>(item));
@@ -45,7 +44,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Company/Create
         public async Task<ActionResult> Create() {
-            var customers = await _businessManager.GetUndiedCustomers();
+            var customers = await _businessManager.GetUntiedCustomers(null);
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new CompanyViewModel());
@@ -80,10 +79,10 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var customers = await _businessManager.GetUndiedCustomers(item.Id);
+            var customers = await _businessManager.GetUntiedCustomers(item.Id);
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var summary = await _businessManager.GetCompanySummary(item.Id);
+            var summary = await _businessManager.GetCompanyAllSummaryRange(item.Id);
             ViewBag.Summary = summary;
 
             var model = _mapper.Map<CompanyViewModel>(item);
@@ -96,7 +95,8 @@ namespace Web.Controllers.Mvc {
         public async Task<ActionResult> Edit(long id, CompanyViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.UpdateCompany(id, _mapper.Map<CompanyDto>(model));
+                    var dto = _mapper.Map<CompanyDto>(model);
+                    var item = await _businessManager.UpdateCompany(id, dto);
                     if(item == null) {
                         return NotFound();
                     }
@@ -106,8 +106,12 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
 
-            var customers = await _businessManager.GetCustomers();
+            var customers = await _businessManager.GetUntiedCustomers(id);
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var summary = await _businessManager.GetCompanyAllSummaryRange(id);
+            ViewBag.Summary = summary;
+
             return View(model);
         }
 
@@ -127,6 +131,38 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
+
+        [Route("{id}/createSummaryRange")]
+        public async Task<ActionResult> CreateSummaryRange(long id) {
+            var item = await _businessManager.GetCompany(id);
+
+            if(item == null) {
+                return NotFound();
+            }
+            var model = new CompanySummaryRangeViewModel() {
+                CompanyId = id
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("{id}/createSummaryRange")]
+        public async Task<ActionResult> CreateSummaryRange(CompanySummaryRangeViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCompanySummaryRange(_mapper.Map<CompanySummaryRangeDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+
+                    return RedirectToAction(nameof(Edit), new { Id = model.CompanyId });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
     }
 }
 
@@ -142,9 +178,18 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
+
         [HttpGet]
-        public async Task<Pager<CompanyDto>> GetCompanies(string search, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetCompanyPage(search ?? "", order, offset, limit);
+        [Route("all")]
+        public async Task<List<CompanyDto>> GetAll() {
+            return await _businessManager.GetCompanies();
+        }
+
+        [HttpGet]
+        public async Task<Pager<CompanyListViewModel>> GetCompanies(string search, string sort, string order, int offset = 0, int limit = 10) {
+            var result = await _businessManager.GetCompanyPage(search ?? "", sort, order, offset, limit);
+            var pager = new Pager<CompanyListViewModel>(_mapper.Map<List<CompanyListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            return pager;
         }
 
         [HttpGet]
@@ -157,7 +202,7 @@ namespace Web.Controllers.Api {
         [HttpGet]
         [Route("{id}/summaryrange")]
         public async Task<List<CompanySummaryRangeDto>> GetRangeByCompanyId(long id) {
-            var result = await _businessManager.GetCompanySummary(id);
+            var result = await _businessManager.GetCompanyAllSummaryRange(id);
             return _mapper.Map<List<CompanySummaryRangeDto>>(result);
         }
     }

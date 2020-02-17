@@ -119,9 +119,19 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
+        /// <summary>
+        /// Get list of Customers
+        /// </summary>
+        /// <param name="search"></param>
+        /// <param name="order"></param>
+        /// <param name="offset"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<Pager<CustomerDto>> GetCustomers(string search, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetCustomersPage(search ?? "", order, offset, limit);
+        public async Task<Pager<CustomerListViewModel>> GetCustomers(string search, string sort, string order, int offset = 0, int limit = 10) {
+            var result = await _businessManager.GetCustomersPage(search ?? "", sort, order, offset, limit);
+            var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            return pager;
         }
 
         [HttpGet]

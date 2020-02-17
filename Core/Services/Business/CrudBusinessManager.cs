@@ -15,18 +15,19 @@ namespace Core.Services.Business {
     public interface ICrudBusinessManager {
         Task<CompanyDto> GetCompany(long id);
         Task<List<CompanyDto>> GetCompanies();
-        Task<Pager<CompanyDto>> GetCompanyPage(string search, string order, int offset = 0, int limit = 10);
+        Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<CompanyDto> CreateCompany(CompanyDto dto);
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
 
-        Task<CompanySummaryRangeDto> GetCompanySummery(long id);
-        Task<List<CompanySummaryRangeDto>> GetCompanySummary(long companyId);
+        Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id);
+        Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId);
+        Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto);
 
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
-        Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10);
-        Task<List<CustomerDto>> GetUndiedCustomers(long? companyId = null);
+        Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<List<CustomerDto>> GetUntiedCustomers(long? companyId);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
@@ -35,36 +36,40 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10);
+        Task<Pager<InvoiceDto>> GetInvoicePage(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
+        Task<List<InvoiceDto>> GetUnpaidInvoicesByCompanyId(long companyId, DateTime from, DateTime to);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
         Task<InvoiceDto> CreateInvoice(InvoiceDto dto);
         Task<List<InvoiceDto>> CreateInvoice(List<InvoiceDto> list);
         Task<bool> DeleteInvoice(long id);
 
         Task<PaymentDto> GetPayment(long id);
-        Task<Pager<PaymentDto>> GetPaymentPages(string search, string order, int offset = 0, int limit = 10);
+        Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
         Task<PaymentDto> CreatePayment(PaymentDto dto);
         Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
         Task<bool> DeletePayment(long id);
     }
 
-    public class CrudBusinessManager: ICrudBusinessManager {
+    public class CrudBusinessManager: BaseBusinessManager, ICrudBusinessManager {
         public readonly IMapper _mapper;
         public readonly ICompanyManager _companyManager;
+        public readonly ICompanyAddressMananger _companyAddressManager;
         public readonly ICompanySummaryRangeManager _companySummaryManager;
         public readonly ICustomerManager _customerManager;
         public readonly ICustomerActivityManager _customerActivityManager;
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
 
-        public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager, 
+        public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
+            ICompanyAddressMananger companyAddressManager,
             ICompanySummaryRangeManager companySummaryManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager) {
             _mapper = mapper;
             _companyManager = companyManager;
+            _companyAddressManager = companyAddressManager;
             _companySummaryManager = companySummaryManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
@@ -78,21 +83,18 @@ namespace Core.Services.Business {
             return _mapper.Map<CompanyDto>(result);
         }
 
-        public async Task<Pager<CompanyDto>> GetCompanyPage(string search, string order, int offset = 0, int limit = 10) {
+        public async Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10) {
             Expression<Func<CompanyEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search)
-                || x.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                || x.No.Contains(search, StringComparison.OrdinalIgnoreCase)
-                || x.PhoneNumber.ToLower().Contains(search.ToLower(), StringComparison.OrdinalIgnoreCase));
+                   && (x.No.Contains(search) || x.Name.Contains(search));
 
             #region Sort
-            Expression<Func<CompanyEntity, string>> orderPredicate = x => x.Id.ToString();
+            var sortby = GetExpression<CompanyEntity>(sort ?? "Name");
             #endregion
 
-            string[] include = new string[] { "Address", "Customers" };
+            string[] include = new string[] { "Address" };
 
-            Tuple<List<CompanyEntity>, int> tuple = await _companyManager.Pager<CompanyEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            Tuple<List<CompanyEntity>, int> tuple = await _companyManager.Pager<CompanyEntity>(wherePredicate, sortby, offset, limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -107,40 +109,42 @@ namespace Core.Services.Business {
 
         public async Task<List<CompanyDto>> GetCompanies() {
             var result = await _companyManager.AllInclude();
-            return _mapper.Map<List<CompanyDto>>(result);
+            var map = _mapper.Map<List<CompanyDto>>(result);
+            return map;
         }
 
         public async Task<CompanyDto> CreateCompany(CompanyDto dto) {
             var entity = await _companyManager.Create(_mapper.Map<CompanyEntity>(dto));
 
-            var customers = await _customerManager.FindByIds(dto.Customers.ToArray());
-            customers.ForEach(x => x.CompanyId = entity.Id);
-            await _customerManager.Update(customers);
-            entity.Customers = customers;
+            //TODO: Провверить работу создания и сохранения компании
+            //var customers = await _customerManager.FindByIds(dto.Customers.Select(x => x.Id).ToArray());
+            //customers.ForEach(x => x.CompanyId = entity.Id);
+            //await _customerManager.Update(customers);
+            //entity.Customers = customers;
 
             return _mapper.Map<CompanyDto>(entity);
         }
 
         public async Task<CompanyDto> UpdateCompany(long id, CompanyDto dto) {
-            if(id != dto.Id) {
-                return null;
-            }
             var entity = await _companyManager.FindInclude(id);
             if(entity == null) {
                 return null;
             }
-            entity = await _companyManager.Update(_mapper.Map(dto, entity));
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _companyManager.Update(newEntity);
+
 
             #region UPDATE CUSTOMER LIST
             var customers = await _customerManager.FindByCompanyId(entity.Id);
 
             //list of customers to delete
-            var customersForDelete = customers.Where(x => !dto.Customers.Contains(x.Id)).ToList();
+            //TODO: Проверить работу функции редактирования компании
+            var customersForDelete = customers.Where(x => !dto.Customers.Any(y=> y.Id == x.Id)).ToList();
             customersForDelete.ForEach(x => x.CompanyId = null);
 
             //list of customres to insert
-            var selectedCustomersIds = dto.Customers.Where(x => customers.Where(p => p.Id == x).FirstOrDefault() == null).ToList();
-            var customersForInsert = await _customerManager.FindByIds(selectedCustomersIds.ToArray());
+            var selectedCustomersIds = dto.Customers.Where(x => customers.Where(p => p.Id == x.Id).FirstOrDefault() == null).ToList();
+            var customersForInsert = await _customerManager.FindByIds(selectedCustomersIds.Select(x => x.Id).ToArray());
             customersForInsert.ForEach(x => x.CompanyId = entity.Id);
 
             var customersUpdate = customersForDelete.Union(customersForInsert);
@@ -159,14 +163,35 @@ namespace Core.Services.Business {
             return result != 0;
         }
 
-        public async Task<CompanySummaryRangeDto> GetCompanySummery(long id) {
+        /// <summary>
+        /// Получить ценовую группу по идунтификатору
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id) {
             var result = await _companySummaryManager.Find(id);
             return _mapper.Map<CompanySummaryRangeDto>(result);
         }
 
-        public async Task<List<CompanySummaryRangeDto>> GetCompanySummary(long companyId) {
-            var result = await _companySummaryManager.AllInclude(companyId);
+        /// <summary>
+        /// Получить список все ценовых групп компании
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <returns></returns>
+        public async Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId) {
+            var result = await _companySummaryManager.FindAllByCompanyId(companyId);
             return _mapper.Map<List<CompanySummaryRangeDto>>(result);
+        }
+
+        public async Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto) {
+            var company = await _companyManager.Find(dto.CompanyId);
+            if(company == null) {
+                return null;
+            }
+            var newEntity = _mapper.Map<CompanySummaryRangeEntity>(dto);
+
+            var entity = await _companySummaryManager.Create(newEntity);
+            return _mapper.Map<CompanySummaryRangeDto>(entity);
         }
         #endregion
 
@@ -176,10 +201,10 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(result);
         }
 
-        public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string order, int offset = 0, int limit = 10) {
+        public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
             Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) 
+                && (string.IsNullOrEmpty(search)
                     || x.Name.ToLower().Contains(search.ToLower())
                     || x.AccountNumber.ToLower().Contains(search.ToLower())
                     || x.Description.ToLower().Contains(search.ToLower()));
@@ -208,8 +233,8 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
-        public async Task<List<CustomerDto>> GetUndiedCustomers(long? companyId) {
-            var result = await _customerManager.AllUntied(companyId);
+        public async Task<List<CustomerDto>> GetUntiedCustomers(long? companyId) {
+            var result = await _customerManager.FindUntied(companyId);
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
@@ -218,13 +243,13 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
-        public async Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to) {
-            var result = await _customerManager.FindBulks(companyId, from, to);
+        public async Task<List<CustomerDto>> GetCustomers(long[] ids) {
+            var result = await _customerManager.FindByIds(ids);
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
-        public async Task<List<CustomerDto>> GetCustomers(long[] ids) {
-            var result = await _customerManager.FindByIds(ids);
+        public async Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to) {
+            var result = await _customerManager.FindBulks(companyId, from, to);
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
@@ -232,11 +257,13 @@ namespace Core.Services.Business {
             var entity = _mapper.Map<CustomerEntity>(dto);
             entity = await _customerManager.Create(entity);
 
-            //Make activity
-            var activity = await _customerActivityManager.Create(new CustomerActivityEntity() {
+            var activityDto = new CustomerActivityDto() {
                 CustomerId = entity.Id,
-                IsActive = dto.IsActive
-            });
+                IsActive = false
+            };
+
+            //Make activity
+            var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
 
             return _mapper.Map<CustomerDto>(entity);
         }
@@ -250,13 +277,15 @@ namespace Core.Services.Business {
                 return null;
             }
 
-            //Make activity
-            var activity = await _customerActivityManager.Create(new CustomerActivityEntity() {
-                CustomerId = entity.Id,
-                IsActive = dto.IsActive
-            });
-
             entity = await _customerManager.Update(_mapper.Map(dto, entity));
+
+            //Make activity
+            var activityDto = new CustomerActivityDto() {
+                CustomerId = entity.Id,
+                IsActive = false
+            };
+            var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
+
             return _mapper.Map<CustomerDto>(entity);
         }
 
@@ -289,7 +318,7 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceDto>>(entities);
         }
 
-        public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string order, int offset = 0, int limit = 10) {
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string sort, string order, int offset = 0, int limit = 10) {
             Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                    (true)
                 && (string.IsNullOrEmpty(search)
@@ -322,6 +351,11 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceDto>>(result);
         }
 
+        public async Task<List<InvoiceDto>> GetUnpaidInvoicesByCompanyId(long companyId, DateTime from, DateTime to) {
+            var result = await _invoiceManager.FindUnpaidByCompanyId(companyId, from, to);
+            return _mapper.Map<List<InvoiceDto>>(result);
+        }
+
         public async Task<bool> DeleteInvoice(long id) {
             var entity = await _invoiceManager.FindInclude(id);
             if(entity == null) {
@@ -351,10 +385,10 @@ namespace Core.Services.Business {
             return _mapper.Map<PaymentDto>(result);
         }
 
-        public async Task<Pager<PaymentDto>> GetPaymentPages(string search, string order, int offset, int limit) {
+        public async Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset, int limit) {
             Expression<Func<PaymentEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) || (x.Ref.ToLower().Contains(search.ToLower())) || (x.Amount.ToString().Contains(search.ToLower())));
+                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Amount.ToString().Contains(search.ToLower())));
             //&& (string.IsNullOrEmpty(search) || (x.Invoice..ToLower().Contains(search.ToLower())))
             //&& (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
 

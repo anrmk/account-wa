@@ -2,11 +2,26 @@
 
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
+    ViewData["Subtitle"] = "Unpaid balances for each customer, grouped by days past due.";
+}
+
+@section Toolbar {
+<ul class="nav justify-content-end">
+    <li class="nav-item">
+        <form asp-controller="Report" asp-action="ExportToCsv" method="post" id="test">
+            <input type="hidden" name="CompanyId" id="printCompanyId" />
+            <input type="hidden" name="Date" id="printDate" />
+            <input type="hidden" name="DaysPerPeriod" id="printDaysPerPeriod" />
+            <input type="hidden" name="NumberOfPeriod" id="printNumberOfPeriod" />
+            <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>
+        </form>
+    </li>
+</ul>
 }
 
 <div class="row">
     <div class="col-lg-3 col-md-12">
-        <form id="filterReportForm">
+        <form class="need-validation" id="filterReportForm" action="/api/report/aging" method="post">
             <fieldset>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="card">
@@ -41,7 +56,7 @@
                     </div>
                     <div class="card-footer">
                         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-                            <a href="#" class="btn btn-primary" onclick="javascript: runReport(); return;">Run report</a>
+                            <button class="btn btn-sm btn-outline-secondary">Run report</button>
                         </div>
                     </div>
                 </div>
@@ -49,51 +64,45 @@
         </form>
     </div>
     <div class="col-lg-9 col-md-3">
-        <ul class="nav justify-content-end">
-            <li class="nav-item">
-                <form asp-controller="Report" asp-action="ExportToCsv" method="post" id="test">
-                    <input type="hidden" name="CompanyId" id="printCompanyId" />
-                    <input type="hidden" name="Date" id="printDate" />
-                    <input type="hidden" name="DaysPerPeriod" id="printDaysPerPeriod" />
-                    <input type="hidden" name="NumberOfPeriod" id="printNumberOfPeriod" />
-
-                    <button type="submit" class="btn btn-link" onclick="submitExportToCvs()" >Export CSV</button>
-                </form>
-            </li>
-        </ul>
         <div class="card">
-            <div id="content" class="card-body">
-
-            </div>
+            <div id="content" class="card-body"></div>
         </div>
-
     </div>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
-        function runReport(e) {
-            var form = $('#filterReportForm');
-            var fieldset = form.find('fieldset');
-            var data = JSON.stringify(form.serializeJSON({ parseNumbers: true }));
-
-            var options = {
-                'url': '/api/report/aging',
-                'type': 'POST',
-                'data': data,
-                'processData': false,
-                'contentType': 'application/json; charset=utf-8'
-            };
-
-            fieldset.attr('disabled', 'disabled');
-            $.ajax(options).done((data, status, jqXHR) => {
-                fieldset.removeAttr('disabled');
-                $('#content').html(data);
-            }).fail((jqXHR, status) => {
-                fieldset.removeAttr('disabled');
-                alert(status)
+        $(document).ready(e => {
+            var $form = $('#filterReportForm');
+            $form.on('submit', e => {
+                $form.ajaxSubmit({}, (target, data, status) => {
+                    status === 'success' ? $('#content').html(data) : $('#content').empty();
+                });
+                e.preventDefault();
             });
-        }
+        });
+        //function runReport(e) {
+        //    var form = $('#filterReportForm');
+        //    var fieldset = form.find('fieldset');
+        //    var data = JSON.stringify(form.serializeJSON({ parseNumbers: true }));
+
+        //    var options = {
+        //        'url': '/api/report/aging',
+        //        'type': 'POST',
+        //        'data': data,
+        //        'processData': false,
+        //        'contentType': 'application/json; charset=utf-8'
+        //    };
+
+        //    fieldset.attr('disabled', 'disabled');
+        //    $.ajax(options).done((data, status, jqXHR) => {
+        //        fieldset.removeAttr('disabled');
+        //        $('#content').html(data);
+        //    }).fail((jqXHR, status) => {
+        //        fieldset.removeAttr('disabled');
+        //        alert(status)
+        //    });
+        //}
 
         function submitExportToCvs() {
             var data = $('#filterReportForm').serializeJSON();

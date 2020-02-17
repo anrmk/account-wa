@@ -1,10 +1,9 @@
-﻿@model Web.ViewModels.BulkInvoiceViewModel
+﻿@model Web.ViewModels.BulkPaymentViewModel
 @{
-    ViewData["Title"] = "Create Bulk Invoicing";
-    ViewData["SubTitle"] = "Bulk Invoicing is ideal for when you have a lot of clients to bill for a lot of work. Use the Bulk Invoice wizard to quickly create and send invoices to all of your clients quickly!";
+    ViewData["Title"] = "Create Bulk Payment";
 }
 
-<form class="need-validation" id="bulkForm" action="/api/invoice/bulk" method="post">
+<form class="need-validation" id="bulkForm" action="/api/payment/bulk" method="post">
     <fieldset>
         <div class="card mb-3">
             <div class="card-body">
@@ -19,14 +18,6 @@
                             <span asp-validation-for="CompanyId" class="text-danger"></span>
                         </div>
                         <div class="form-group">
-                            <label>Summary Range</label>
-                            <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control selectpicker"
-                                    required
-                                    data-live-search="true">
-                            </select>
-                            <span class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
                             <label asp-for="DateFrom"></label>
                             <input id="datefrom" asp-for="DateFrom" type="date" class="form-control" required>
                         </div>
@@ -38,7 +29,7 @@
 
                     <div class="col-lg-8 col">
                         <div class="form-group">
-                            <label>Customers</label>
+                            <label>Invoices</label>
                             <table id="datatable" class="table table-striped table-sm" data-toggle="table"
                                    data-id-field="id"
                                    data-select-item-name="Customers[]"
@@ -54,10 +45,12 @@
                                 <thead>
                                     <tr>
                                         <th data-field="state" data-checkbox="true"></th>
-                                        <th data-field="accountNumber" scope="col" class="text-nowrap">No</th>
-                                        <th data-field="name" scope="col">Name</th>
-                                        <th data-field="total" scope="col">Total</th>
-                                        <th data-field="terms" scope="col">Terms</th>
+                                        <th data-field="no" scope="col" class="text-nowrap">Invoice</th>
+                                        <th data-field="customer.name" scope="col">Customer</th>
+                                        <th data-field="date" scope="col" data-formatter="dateFormat">Date</th>
+                                        <th data-field="dueDate" scope="col" data-formatter="dateFormat">Due Date</th>
+                                        <th data-field="subtotal" scope="col">Subtotal</th>
+                                        <th data-field="paymentAmount" scope="col">Balance</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -77,8 +70,12 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function dateFormat(value, row, index) {
+            return value == null ? "" : moment(value).format('MMM/DD/YYYY');
+        }
+
         $(document).ready(e => {
-            var data =  @Json.Serialize(ViewBag.Customers);
+            var data =  @Json.Serialize(ViewBag.Invoices);
             var $table = $('#datatable').bootstrapTable('load', data);
             var $bulkForm = $('#bulkForm');
 
@@ -86,12 +83,7 @@
                 let $fieldset =  $bulkForm.find('fieldset');
                 let fd = $bulkForm.serializeJSON();
                 $fieldset.attr('disabled', 'disabled');
-                $.when($.fn.getCompanySummaryRange(fd.CompanyId), $.fn.getBulkCustomers(fd.CompanyId, fd.DateFrom, fd.DateTo)).done((company, customers) => {
-                    var opt = $.map(company[0], function (val, i) {
-                        return `<option value='${val.id}'>${val.summaryFrom} - ${val.summaryTo}</option>`
-                    });
-                    $("#summaryRange").html(opt).selectpicker('refresh');
-
+                $.when($.fn.getBulkInvoices(fd.CompanyId, fd.DateFrom, fd.DateTo)).done((company, customers) => {
                     $('#content').empty();
                     $table.bootstrapTable('load', customers[0]);
                 }).then(_ => {

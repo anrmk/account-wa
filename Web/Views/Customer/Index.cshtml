@@ -1,46 +1,47 @@
-﻿
-@{
-    ViewData["Title"] = "Customer List";
+﻿@{
+    ViewData["Title"] = "Customers";
+    ViewData["Subtitle"] = "Organize and keep track of your customers by adding, deleting, merging, or restoring them in the system. This boosts efficiency knowing your customer list is clean and there are no duplicates.";
 }
 
-<div>
-    <div id="toolbar" role="toolbar">
-        <a asp-controller="Customer" asp-action="Create" class="btn btn-primary"><i class="fa fa-plus mr-1"></i> Create</a>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div id="toolbar" role="toolbar">
+                <a asp-controller="Customer" asp-action="Create" class="btn btn-sm btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+            </div>
+            <table id="datatable" data-toggle="table" data-url="/api/customer"
+                   data-total-field="totalItems"
+                   data-data-field="items">
+                <thead>
+                    <tr>
+                        <th data-field="accountNumber" data-sortable="true">No</th>
+                        <th data-field="isActive" data-formatter="activityFormatter" data-sortable="true">Activity</th>
+                        <th data-field="name" data-formatter="nameFormatter">Customer</th>
+                        <th data-field="phoneNumber">Phone</th>
+                        <th data-field="creditLimit" data-sortable="true">Credit limit</th>
+                        <th data-field="creditUtilized">High credit utilized</th>
+                        <th data-field="address">Address</th>
+                        <th data-formatter="actionFormatter" class="text-nowrap text-right">Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
-    <table id="datatable" class="table table-sm table-striped" data-toggle="table" data-url="/api/customer"
-           data-search="true" 
-           data-toolbar="#toolbar"
-           data-thead-classes="thead-dark"
-           data-side-pagination="server"
-           data-pagination="true"
-           data-total-field="totalItems"
-           data-data-field="items">
-        <thead>
-            <tr>
-                <th data-field="accountNumber" rowspan="2" scope="col">No</th>
-                <th data-field="name" rowspan="2" scope="col">Name</th>
-                <th data-field="isActive" rowspan="2" scope="col" data-formatter="activityFormatter">Activity</th>
-                <th data-field="terms" rowspan="2" scope="col">Terms</th>
-                <th scope="col" colspan="2">Contacts</th>
-                <th rowspan="2" data-formatter="actionFormatter" class="text-nowrap"></th>
-            </tr>
-            <tr>
-                <th data-field="phoneNumber" scope="col">Phone</th>
-                <th data-field="address.fullAddress" scope="col">Address</th>
-            </tr>
-        </thead>
-    </table>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
+        function nameFormatter(value, row) {
+            return `${value} <p class='text-muted'>${row.company}</p>`;
+        }
+
         function activityFormatter(value, row) {
-            return `<i class='mr-1 fa  ${row['isActive'] ? 'fa-check-circle' : 'fa-times-circle'}'></i>`;
+            return `<i class='mr-1 fa ${row.isActive ? 'fa-check-circle' : 'fa-times-circle'}'></i>`;
         }
 
         function actionFormatter(value, row) {
-            return `<a href='/customer/edit/${row.id}' class='mr-1'><i class='fa fa-edit'></i></a>
-                    <a href='/customer/details/${row.id}' class='mr-1'><i class='fa fa-file-invoice'></i></a>`;
+            return `<a href='/customer/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1' >Edit</a>
+                    <a href='/customer/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1' >Detail</a>`;
         }
     </script>
 }

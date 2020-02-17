@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class BulkInvoiceViewModel {
+    public class BulkPaymentViewModel {
         public string Header { get; set; }
 
         [Display(Name = "Date from")]
@@ -16,16 +16,14 @@ namespace Web.ViewModels {
 
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
-        //public CompanyViewModel Company { get; set; }
 
-        [Display(Name = "Customers")]
-        public List<long> Customers { get; set; }
+        [Display(Name = "Invoices")]
+        public List<long> Invoices { get; set; }
+     
+        public virtual List<PaymentViewModel> Payments { get; set; }
+    }
 
-        [Display(Name = "Summary Range")]
-        public long? SummaryRangeId { get; set; }
+    public class BulkPaymentCreateViewModel {
 
-        public decimal Balance { get; set; }
-
-        public virtual List<InvoiceViewModel> Invoices { get; set; }
     }
 }

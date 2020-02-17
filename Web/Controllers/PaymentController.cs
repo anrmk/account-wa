@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -46,7 +45,7 @@ namespace Web.Controllers.Mvc {
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var paymentModel = new PaymentViewModel() {
-                Ref = BitConverter.ToString(bytes).Replace("-", ""),
+                No = BitConverter.ToString(bytes).Replace("-", ""),
                 Date = DateTime.Now
             };
 
@@ -73,6 +72,23 @@ namespace Web.Controllers.Mvc {
 
             var customers = await _businessManager.GetCustomers();
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View(model);
+        }
+
+        // GET: Payment/Bulk
+        public async Task<ActionResult> Bulk() {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var selectedCompany = companies.FirstOrDefault();
+
+            var model = new BulkPaymentViewModel() {
+                CompanyId = selectedCompany?.Id ?? 0
+            };
+
+            var invoices = await _businessManager.GetUnpaidInvoicesByCompanyId(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
+            ViewBag.Invoices = invoices;
 
             return View(model);
         }
@@ -150,15 +166,9 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
-        //[HttpGet]
-        //public async Task<List<PaymentViewModelList>> GetPayments() {
-        //    var result = await _businessManager.GetPayments();
-        //    return _mapper.Map<List<PaymentViewModelList>>(result);
-        //}
-
         [HttpGet]
-        public async Task<Pager<PaymentDto>> GetPayments(string search, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetPaymentPages(search ?? "", order, offset, limit);
+        public async Task<Pager<PaymentDto>> GetPayments(string search, string sort, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetPaymentPages(search ?? "", sort, order, offset, limit);
         }
     }
 }

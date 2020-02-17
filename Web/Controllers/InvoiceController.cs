@@ -104,8 +104,8 @@ namespace Web.Controllers.Mvc {
                 CompanyId = selectedCompany?.Id ?? 0
             };
 
-            var summaryRange = await _businessManager.GetCompanySummary(selectedCompany?.Id ?? 0);
-            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.SummaryFrom} - {x.SummaryTo}", Value = x.Id.ToString() });
+            var summaryRange = await _businessManager.GetCompanyAllSummaryRange(selectedCompany?.Id ?? 0);
+            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.From} - {x.To}", Value = x.Id.ToString() });
 
             var customers = await _businessManager.GetBulkCustomers(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
             ViewBag.Customers = customers;
@@ -189,8 +189,8 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<Pager<InvoiceDto>> GetInvoices(string search, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetInvoicePage(search ?? "", order, offset, limit);
+        public async Task<Pager<InvoiceDto>> GetInvoices(string search, string sort, string order, int offset = 0, int limit = 10) {
+            return await _businessManager.GetInvoicePage(search ?? "", sort, order, offset, limit);
         }
 
         [HttpGet]
@@ -198,6 +198,14 @@ namespace Web.Controllers.Api {
         public async Task<InvoiceViewModel> GetInvoice(long id) {
             var result = await _businessManager.GetInvoice(id);
             return _mapper.Map<InvoiceViewModel>(result);
+        }
+
+        [HttpGet]
+        [Route("unpaid")]
+        public async Task<List<BulkInvoiceViewModel>> GetUnpaid(long id, DateTime from, DateTime to) {
+
+            var result = await _businessManager.GetUnpaidInvoicesByCompanyId(id, from , to);
+            return _mapper.Map<List<BulkInvoiceViewModel>>(result);
         }
 
         [HttpGet]
@@ -220,10 +228,10 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var customers = await _businessManager.GetCustomers(model.Customers.ToArray());
-                    var subtotalRange = await _businessManager.GetCompanySummery(model.SummaryRangeId ?? 0);
+                    var subtotalRange = await _businessManager.GetCompanySummeryRange(model.SummaryRangeId ?? 0);
 
                     if(subtotalRange != null) {
-                        model.SummaryRange = $"{subtotalRange.SummaryFrom}-{subtotalRange.SummaryTo}";
+                        model.Header = $"{subtotalRange.From}-{subtotalRange.To}";
                         List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
                         Random random = new Random();
 
@@ -236,7 +244,7 @@ namespace Web.Controllers.Api {
                                 Date = date,
                                 DueDate = date.AddDays(30),
                                 No = $"{date.ToString("mmyy")}_{random.Next(100000, 999999)}",
-                                Subtotal = random.NextDecimal(subtotalRange.SummaryFrom, subtotalRange.SummaryTo)
+                                Subtotal = random.NextDecimal(subtotalRange.From, subtotalRange.To)
                             };
                             invoices.Add(invoice);
                         }

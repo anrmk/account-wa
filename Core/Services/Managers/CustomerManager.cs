@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Context;
 using Core.Data.Entities;
 using Core.Services.Base;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +18,7 @@ namespace Core.Services.Managers {
         Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till);
 
         Task<List<CustomerEntity>> AllInclude();
-        Task<List<CustomerEntity>> AllUntied(long? companyId);
+        Task<List<CustomerEntity>> FindUntied(long? companyId);
 
         Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to);
     }
@@ -32,7 +33,7 @@ namespace Core.Services.Managers {
                 .ToListAsync();
         }
 
-        public async Task<List<CustomerEntity>> AllUntied(long? companyId) {
+        public async Task<List<CustomerEntity>> FindUntied(long? companyId) {
             return await DbSet.Where(x => x.CompanyId == null || x.CompanyId == companyId).ToListAsync();
         }
 
@@ -69,7 +70,7 @@ namespace Core.Services.Managers {
         }
 
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
-            var context = (ApplicationContext)this._context;
+            var context = (ApplicationContext)_context;
             var result = new List<CustomerBulkEntity>();
             var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber], CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
                                                     "FROM[dbo].[Customers] AS CUS " +
@@ -98,7 +99,7 @@ namespace Core.Services.Managers {
                             while(reader.Read()) {
                                 result.Add(new CustomerBulkEntity() {
                                     Id = (long)reader["Id"],
-                                    Total = reader["Total"] != DBNull.Value ?(int)reader["Total"] : 0,
+                                    Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,
                                     AccountNumber = reader["AccountNumber"] as string,
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,
@@ -111,7 +112,7 @@ namespace Core.Services.Managers {
                         }
                     }
                 }
-            }catch(Exception e) {
+            } catch(Exception e) {
                 Console.WriteLine(e.Message);
             }
 

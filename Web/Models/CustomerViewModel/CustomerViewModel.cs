@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,6 +7,7 @@ namespace Web.ViewModels {
         public long Id { get; set; }
 
         [Required]
+        [Display(Name = "Account Number")]
         [MaxLength(16)]
         public string AccountNumber { get; set; }
 
@@ -23,17 +24,23 @@ namespace Web.ViewModels {
 
         public string Terms { get; set; }
 
+        [Display(Name = "Credit Limit")]
         [Column(TypeName = "decimal(18, 2)")]
         public double CreditLimit { get; set; }
 
+        [Display(Name = "Credit Utilized")]
         [Column(TypeName = "decimal(18, 2)")]
         public double CreditUtilized { get; set; }
 
+        public long? CompanyId { get; set; }
+
         [Display(Name = "Activity")]
         public bool IsActive { get; set; }
+        public virtual ICollection<CustomerActivityViewModel> Activities { get; set; }
 
         #region Address
         public long? AddressId { get; set; }
+
         [MaxLength(60)]
         public string Address { get; set; }
 

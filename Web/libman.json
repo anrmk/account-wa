@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "bootstrap-table@1.15.5",
+      "library": "bootstrap-table@1.16.0",
       "destination": "wwwroot/lib/bootstrap-table/"
     },
     {
@@ -36,6 +36,10 @@
     {
       "library": "jquery.serializeJSON@2.9.0",
       "destination": "wwwroot/lib/jquery-serializeJSON/"
+    },
+    {
+      "library": "bootstrap-table@1.16.0",
+      "destination": "wwwroot/lib/bootstrap-table/"
     }
   ]
 }

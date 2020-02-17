@@ -8,7 +8,7 @@ namespace Core.Extension {
     public static class PaymentExtension {
         public static decimal TotalAmount(this ICollection<PaymentDto> collection) {
             if(collection != null && collection.Count > 0) {
-                return collection.Select(x => x.Amount).Sum();
+                return collection.Sum(x => x.Amount);
             }
             return 0;
         }
