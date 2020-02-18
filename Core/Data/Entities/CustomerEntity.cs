@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using AutoMapper.Configuration.Annotations;
 
 namespace Core.Data.Entities {
     [Table(name: "Customers")]

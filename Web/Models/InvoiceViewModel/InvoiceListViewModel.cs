@@ -10,7 +10,11 @@
 
         public double PaymentAmount { get; set; }
         public string PaymentDate { get; set; }
+
+        public long CompanyId { get; set; }
         public string CompanyName { get; set; }
+
+        public long CustomerId { get; set; }
         public string CustomerName { get; set; }
     }
 }

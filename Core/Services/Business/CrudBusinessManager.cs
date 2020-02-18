@@ -47,7 +47,9 @@ namespace Core.Services.Business {
         Task<PaymentDto> GetPayment(long id);
         Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
+        Task<List<InvoiceDto>> GetInvoices(long[] ids);
         Task<PaymentDto> CreatePayment(PaymentDto dto);
+        Task<List<PaymentDto>> CreatePayment(List<PaymentDto> list);
         Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
         Task<bool> DeletePayment(long id);
     }
@@ -139,7 +141,7 @@ namespace Core.Services.Business {
 
             //list of customers to delete
             //TODO: Проверить работу функции редактирования компании
-            var customersForDelete = customers.Where(x => !dto.Customers.Any(y=> y.Id == x.Id)).ToList();
+            var customersForDelete = customers.Where(x => !dto.Customers.Any(y => y.Id == x.Id)).ToList();
             customersForDelete.ForEach(x => x.CompanyId = null);
 
             //list of customres to insert
@@ -306,6 +308,11 @@ namespace Core.Services.Business {
             return dto;
         }
 
+        public async Task<List<InvoiceDto>> GetInvoices(long[] ids) {
+            var result = await _invoiceManager.FindByIds(ids);
+            return _mapper.Map<List<InvoiceDto>>(result);
+        }
+
         public async Task<InvoiceDto> CreateInvoice(InvoiceDto dto) {
             var entity = _mapper.Map<InvoiceEntity>(dto);
             entity = await _invoiceManager.Create(entity);
@@ -323,15 +330,17 @@ namespace Core.Services.Business {
                    (true)
                 && (string.IsNullOrEmpty(search)
                 || (x.No.ToLower().Contains(search.ToLower()))
-                || (x.Subtotal.ToString().Contains(search.ToLower()))
-                || (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
-                || (x.Customer.Name.ToLower().Contains(search.ToLower())));
+                || (x.Subtotal.ToString().Contains(search.ToLower())));
+            //|| (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
+            //|| (x.Customer.Name.ToLower().Contains(search.ToLower()))
+            //|| (x.Company.Name.ToLower().Contains(search.ToLower()))
+            //|| (x.Company.No.ToLower().Contains(search.ToLower())));
 
             #region Sort
-            Expression<Func<InvoiceEntity, string>> orderPredicate = x => x.Id.ToString();
+            var orderPredicate = GetExpression<InvoiceEntity>(sort ?? "No"); ;
             #endregion
 
-            string[] include = new string[] { "Company", "Customer", "Payment" };
+            string[] include = new string[] { "Company", "Customer", "Payments" };
 
             Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, offset, limit, include);
             var list = tuple.Item1;
@@ -422,6 +431,12 @@ namespace Core.Services.Business {
             var entity = await _paymentManager.Create(_mapper.Map<PaymentEntity>(dto));
 
             return _mapper.Map<PaymentDto>(entity);
+        }
+
+        public async Task<List<PaymentDto>> CreatePayment(List<PaymentDto> list) {
+            var entities = _mapper.Map<List<PaymentEntity>>(list).AsEnumerable();
+            entities = await _paymentManager.Create(entities);
+            return _mapper.Map<List<PaymentDto>>(entities);
         }
 
         public async Task<List<PaymentDto>> GetPaymentByInvoiceId(long id) {

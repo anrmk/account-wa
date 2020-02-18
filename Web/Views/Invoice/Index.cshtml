@@ -15,10 +15,10 @@
             <thead>
                 <tr>
                     <th data-field="no" data-sortable="true">Invoice</th>
-                    <th data-field="customer.name" data-formatter="customerActionFormatter">Customer</th>
-                    <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sortable="true">Date</th>
-                    <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate" data-sortable="true">Due Date</th>
-                    <th data-field="subtotal" data-sortable="true">Subtotal</th>
+                    <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
+                    <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" >Date</th>
+                    <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate" >Due Date</th>
+                    <th data-field="subtotal" >Subtotal</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right">Actions</th>
                 </tr>
             </thead>
@@ -29,13 +29,17 @@
 
 @section Scripts {
     <script type="text/javascript">
+         function nameFormatter(value, row) {
+            return `${value} <p class='text-muted'>${row.companyName}</p>`;
+        }
+
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
                         <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
         }
 
-        function customerActionFormatter(value, row) {
-            return `<a href='/customer/details/${row.customer.id}'>${value}</a>`
-        }
+        //function customerActionFormatter(value, row) {
+        //    return `<a href='/customer/details/${row.customerId}'>${value}</a>`
+        //}
     </script>
 }

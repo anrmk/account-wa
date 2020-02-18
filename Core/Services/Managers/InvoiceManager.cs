@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Core.Services.Managers {
     public interface IInvoiceManager: IEntityManager<InvoiceEntity> {
         Task<InvoiceEntity> FindInclude(long id);
+        Task<List<InvoiceEntity>> FindByIds(long[] ids);
         Task<List<InvoiceEntity>> AllInclude();
         Task<List<InvoiceEntity>> FindUnpaidByCustomerId(long id);
         Task<List<InvoiceEntity>> FindUnpaidByCompanyId(long companyId, DateTime from, DateTime to);
@@ -23,45 +24,47 @@ namespace Core.Services.Managers {
         public async Task<List<InvoiceEntity>> AllInclude() {
             return await DbSet.Include(x => x.Company)
                 .Include(x => x.Customer)
-                .Include(x => x.Payment)
+                .Include(x => x.Payments)
                 .ToListAsync();
         }
 
         public async Task<InvoiceEntity> FindInclude(long id) {
             return await DbSet.Include(x => x.Company)
                 .Include(x => x.Customer)
-                .Include(x => x.Payment)
+                .Include(x => x.Payments)
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<InvoiceEntity>> FindByIds(long[] ids) {
+            return await DbSet.Include(x => x.Company)
+                .Include(x => x.Customer)
+                .Include(x => x.Payments)
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync();
         }
 
         //Get unpaid invoices by customer
         public async Task<List<InvoiceEntity>> FindUnpaidByCustomerId(long id) {
             return await DbSet
                 .Include(x => x.Customer)
-                .Include(x => x.Payment)
-                .Where(x => x.CustomerId == id && x.Subtotal * (1 + x.TaxRate / 100) > x.Payment.Select(b => b.Amount).Sum() || x.Payment.Count == 0)
+                .Include(x => x.Payments)
+                .Where(x => x.CustomerId == id && x.Subtotal * (1 + x.TaxRate / 100) > x.Payments.Select(b => b.Amount).Sum() || x.Payments.Count == 0)
                 .ToListAsync();
         }
 
         public async Task<List<InvoiceEntity>> FindUnpaidByCompanyId(long companyId, DateTime from, DateTime to) {
-            var result1 = await DbSet
-                .Include(x => x.Company)
-                .Include(x => x.Customer)
-                .Include(x => x.Payment)
-                .Where(x => x.CompanyId == companyId)
-                .ToListAsync();
-            
-
             var result = await DbSet
                 .Include(x => x.Company)
                 .Include(x => x.Customer)
-                .Include(x => x.Payment)
-                .Where(x => x.CompanyId == companyId && (x.Subtotal * (1 + x.TaxRate / 100) > x.Payment.Select(b => b.Amount).Sum() || x.Payment.Count == 0))
+                .Include(x => x.Payments)
+                .Where(x => x.CompanyId == companyId && (x.Subtotal * (1 + x.TaxRate / 100) > x.Payments.Select(b => b.Amount).Sum() || x.Payments.Count == 0))
                 .ToListAsync();
 
-            var serachPayment = result.Where(x => x.Payment.Count() > 0).ToList();
-            var invoice = serachPayment.Where(x => x.Payment.Where(y => y.Id == 33810).Any()).FirstOrDefault();
+            var oplacheniy = result.Where(x => x.Id == 14474).FirstOrDefault();
+
+            var serachPayment = result.Where(x => x.Payments.Count() > 0).ToList();
+            var invoice = serachPayment.Where(x => x.Payments.Where(y => y.Id == 14474).Any()).FirstOrDefault();
 
             return result;
         }

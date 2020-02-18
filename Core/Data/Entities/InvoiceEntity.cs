@@ -38,7 +38,7 @@ namespace Core.Data.Entities {
         [NotMapped]
         public string CustomerAccountNumber { get; set; }
 
-        public virtual ICollection<PaymentEntity> Payment { get; set; }
+        public virtual ICollection<PaymentEntity> Payments { get; set; }
 
         public bool IsDraft { get; set; } = true;
     }

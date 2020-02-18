@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+using Core.Extension;
+
 namespace Web.ViewModels {
     public class BulkPaymentViewModel {
         public string Header { get; set; }
@@ -19,11 +21,17 @@ namespace Web.ViewModels {
 
         [Display(Name = "Invoices")]
         public List<long> Invoices { get; set; }
-     
+
+
+        [Display(Name = "Date from")]
+        [DataType(DataType.Date)]
+        public DateTime PaymentDateFrom { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+
+        [Display(Name = "Date to")]
+        [DataType(DataType.Date)]
+        public DateTime PaymentDateTo { get; set; } = DateTime.Now.LastDayOfMonth();
+
+
         public virtual List<PaymentViewModel> Payments { get; set; }
-    }
-
-    public class BulkPaymentCreateViewModel {
-
     }
 }

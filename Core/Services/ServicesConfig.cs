@@ -1,13 +1,19 @@
-﻿using Core.Context;
+﻿using System.Security.Principal;
+
+using Core.Context;
 using Core.Extensions;
 using Core.Services.Business;
 using Core.Services.Managers;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Core.Services {
     public class ServicesConfig {
         public static void Configuration(IServiceCollection services) {
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>().HttpContext?.User);
+
             ///Context
             services.AddTransient<IApplicationContext, ApplicationContext>();
             services.AddTransient<IUserProfileManager, UserProfileManager>();
@@ -20,7 +26,7 @@ namespace Core.Services {
             services.AddTransient<IReportManager, ReportManager>();
             services.AddTransient<ICompanyManager, CompanyManager>();
             services.AddTransient<ICompanyAddressMananger, CompanyAddressManager>();
-            
+
             services.AddTransient<ICompanySummaryRangeManager, CompanySummaryRangeManager>();
             services.AddTransient<ICustomerManager, CustomerManager>();
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();

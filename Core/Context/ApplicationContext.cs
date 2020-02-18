@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 using Core.Data.Entities;
@@ -24,6 +26,8 @@ namespace Core.Context {
 
     public class ApplicationContext: IdentityDbContext<ApplicationUserEntity>, IApplicationContext {
         private readonly IConfiguration _configuration;
+        private readonly ClaimsPrincipal _principal;
+
         private readonly string _contentRootPath = "";
 
         #region DbSet
@@ -42,8 +46,9 @@ namespace Core.Context {
 
         public Database ApplicationDatabase { get; private set; }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, IHostingEnvironment environment) : base(options) {
+        public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, IPrincipal principal, IHostingEnvironment environment) : base(options) {
             _configuration = configuration;
+            _principal = principal as ClaimsPrincipal;
             _contentRootPath = environment.ContentRootPath;
         }
 
@@ -62,8 +67,9 @@ namespace Core.Context {
             foreach(var entry in modifiedEntries) {
                 IAuditableEntity entity = entry.Entity as IAuditableEntity;
                 if(entity != null) {
-                    string identityName = ""; // Thread.CurrentPrincipal.Identity.Name;
-                    DateTime now = DateTime.UtcNow;
+
+                    string identityName = _principal?.Identity.Name ?? "system"; // Thread.CurrentPrincipal.Identity.Name;
+                    DateTime now = DateTime.Now;
 
                     if(entry.State == EntityState.Added) {
                         entity.CreatedBy = identityName;

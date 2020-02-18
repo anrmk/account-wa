@@ -104,8 +104,6 @@ namespace Core.Services.Managers {
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,
                                     Terms = reader["Terms"] as string,
-                                    //CreditLimit = (double)reader["CreditLimit"],
-                                    //CreditUtilized = (double)reader["CreditUtilized"],
                                     CompanyId = (long)reader["Company_Id"]
                                 });
                             }

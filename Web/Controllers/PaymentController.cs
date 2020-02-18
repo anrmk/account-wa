@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
+using Core.Extensions;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -88,10 +90,12 @@ namespace Web.Controllers.Mvc {
             };
 
             var invoices = await _businessManager.GetUnpaidInvoicesByCompanyId(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
-            ViewBag.Invoices = invoices;
+            ViewBag.Invoices = _mapper.Map<List<InvoiceListViewModel>>(invoices);
 
             return View(model);
         }
+
+
 
         // GET: Payment/Edit/5
         public async Task<ActionResult> Edit(long id) {
@@ -159,16 +163,92 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class PaymentController: ControllerBase {
         private readonly IMapper _mapper;
+        private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
 
-        public PaymentController(IMapper mapper, ICrudBusinessManager businessManager) {
+        public PaymentController(IMapper mapper, IViewRenderService viewRenderService, ICrudBusinessManager businessManager) {
             _mapper = mapper;
+            _viewRenderService = viewRenderService;
             _businessManager = businessManager;
         }
 
         [HttpGet]
         public async Task<Pager<PaymentDto>> GetPayments(string search, string sort, string order, int offset = 0, int limit = 10) {
             return await _businessManager.GetPaymentPages(search ?? "", sort, order, offset, limit);
+        }
+
+        /// <summary>
+        /// Формируем список оплат (PAYMENTS) 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("bulk")]
+        public async Task<IActionResult> GenerateBulkInvoice(BulkPaymentViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    Random rd = new Random();
+                    byte[] bytes = new byte[4];
+
+
+                    var invoices = await _businessManager.GetInvoices(model.Invoices.ToArray());
+                    var invoiceList = _mapper.Map<List<InvoiceListViewModel>>(invoices);
+
+                    //if(subtotalRange != null) {
+                    //    model.Header = $"{subtotalRange.From}-{subtotalRange.To}";
+                    List<PaymentViewModel> payments = new List<PaymentViewModel>();
+                    Random random = new Random();
+
+                    foreach(var invoice in invoices) {
+                        rd.NextBytes(bytes);
+
+                        var date = random.NextDate(model.PaymentDateFrom, model.PaymentDateTo);
+                        var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100);
+
+                        var payment = new PaymentViewModel() {
+                            No = BitConverter.ToString(bytes).Replace("-", ""),
+                            CustomerId = invoice.Customer?.Id ?? 0,
+                            InvoiceId = invoice.Id,
+                            InvoiceNo = invoice.No,
+                            InvoiceAmount = invoiceAmount,
+                            Date = date,
+                            Amount = invoiceAmount - invoice.Payments.TotalAmount()
+                        };
+                        payments.Add(payment);
+                    }
+                    model.Payments = payments;
+
+                    string html = _viewRenderService.RenderToStringAsync("_BulkPaymentPartial", model).Result;
+                    return Ok(html);
+                    //} else {
+                    //    return BadRequest();
+                    //}
+                }
+            } catch(Exception er) {
+                Console.WriteLine(er.Message);
+            }
+            return Ok(model);
+        }
+
+
+        /// <summary>
+        /// Сохраняем список
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("bulkcreate")]
+        public async Task<IActionResult> CreateBulkPayments(BulkPaymentViewModel model) {
+            if(!ModelState.IsValid) {
+                return BadRequest(model);
+            }
+
+            var invoiceList = _mapper.Map<List<PaymentDto>>(model.Payments);
+            var result = await _businessManager.CreatePayment(invoiceList);
+            if(result == null || result.Count == 0) {
+                return BadRequest(model);
+            }
+            return Ok(result);
         }
     }
 }

@@ -14,7 +14,7 @@ $.fn.getBulkCustomers = function (id, from, to) {
 //Get bulk customers
 $.fn.getBulkInvoices = function (id, from, to) {
     return $.ajax({
-        url: '/api/invoice/bulk',
+        url: '/api/invoice/unpaid',
         data: { 'id': id, 'from': from, 'to': to }
     });
 }

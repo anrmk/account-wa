@@ -189,8 +189,10 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<Pager<InvoiceDto>> GetInvoices(string search, string sort, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetInvoicePage(search ?? "", sort, order, offset, limit);
+        public async Task<Pager<InvoiceListViewModel>> GetInvoices(string search, string sort, string order, int offset = 0, int limit = 10) {
+            var result = await _businessManager.GetInvoicePage(search ?? "", sort, order, offset, limit);
+            var pager = new Pager<InvoiceListViewModel>(_mapper.Map<List<InvoiceListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            return pager;
         }
 
         [HttpGet]
@@ -202,10 +204,10 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         [Route("unpaid")]
-        public async Task<List<BulkInvoiceViewModel>> GetUnpaid(long id, DateTime from, DateTime to) {
+        public async Task<List<InvoiceListViewModel>> GetUnpaid(long id, DateTime from, DateTime to) {
 
-            var result = await _businessManager.GetUnpaidInvoicesByCompanyId(id, from , to);
-            return _mapper.Map<List<BulkInvoiceViewModel>>(result);
+            var result = await _businessManager.GetUnpaidInvoicesByCompanyId(id, from, to);
+            return _mapper.Map<List<InvoiceListViewModel>>(result);
         }
 
         [HttpGet]

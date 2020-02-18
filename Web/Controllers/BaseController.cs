@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+
+using AutoMapper;
 
 using Core.Context;
 
@@ -14,6 +16,8 @@ namespace Web.Controllers {
         protected readonly ApplicationContext _context;
 
         public string CurrentLanguage => "en";
+
+        public string CurrentUser => User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         public BaseController(/*IStringLocalizer<IController> localizer,*/ ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
             //      _localizer = localizer;

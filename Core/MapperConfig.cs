@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-using AutoMapper;
+﻿using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Entities;
@@ -12,36 +10,42 @@ namespace Core {
             CreateMap<ApplicationUserEntity, ApplicationUserDto>().ReverseMap();
             CreateMap<UserProfileEntity, UserProfileDto>().ReverseMap();
 
+            #region COMPANY
             CreateMap<CompanyDto, CompanyEntity>()
                 .ForMember(d => d.Customers, o => o.Ignore())
                 .ReverseMap()
                 ;
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
             CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
+            #endregion
 
-
+            #region CUSTOMER
             CreateMap<CustomerDto, CustomerEntity>()
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
-                ;
-                //.ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
+            ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
 
             CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();
+            #endregion
 
+            #region INVOICE
             CreateMap<InvoiceDto, InvoiceEntity>()
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Customer, o => o.Ignore())
-                .ForMember(d => d.Payment, o => o.Ignore())
+                .ForMember(d => d.Payments, o => o.Ignore())
                 .ReverseMap();
+            #endregion
 
+            #region PAYMENT
             CreateMap<PaymentDto, PaymentEntity>()
                 .ForMember(d => d.Invoice, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.InvoiceNo, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.No : ""))
                 .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null));
+            #endregion
         }
     }
 }

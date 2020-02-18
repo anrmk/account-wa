@@ -1,8 +1,10 @@
 ﻿using System.Linq;
+
 using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Extension;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using Web.ViewModels;
@@ -19,21 +21,6 @@ namespace Web {
         }
 
         public MapperConfig() {
-            //CreateMap<PeriodViewModel, Period>()
-            //    .ForMember(d => d.Month, o => o.MapFrom(s => s.Value.Month))
-            //    .ForMember(d => d.Year, o => o.MapFrom(s => s.Value.Year))
-            //    .ReverseMap()
-            //    .ForMember(d => d.Value, o => o.MapFrom(s => new DateTime(s.Year, s.Month, 1)))
-            //    .ForMember(d => d.Display, o => o.Ignore());
-
-            //CreateMap<CustomerViewModel, Customer>()
-            //    .ReverseMap();
-
-
-            //CreateMap<PaymentViewModel, Payment>()
-            //    .ReverseMap()
-            //    .ForMember(d => d.InvoiceId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.Id : 0));
-
             #region COMPANY
             CreateMap<CompanyViewModel, CompanyDto>()
                 .ForMember(d => d.Address, o => o.MapFrom(s => new CompanyAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
@@ -60,8 +47,8 @@ namespace Web {
 
             #region CUSTOMER
             CreateMap<CustomerListViewModel, CustomerDto>()
-                .ForMember(d => d.Invoices, o=> o.Ignore())
-                .ForMember(d => d.Activities, o=> o.Ignore())
+                .ForMember(d => d.Invoices, o => o.Ignore())
+                .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.Company, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
@@ -81,29 +68,29 @@ namespace Web {
 
             #endregion
 
+            #region INVOICE
             CreateMap<InvoiceViewModel, InvoiceDto>()
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Payments, o => o.Ignore())
-                .ReverseMap()
-                //.ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""))
-                //.ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payment != null ? s.Payment.Amount : 0))
-                //.ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payment != null ? s.Payment.Date : (DateTime?)null))
-                ;
+                .ReverseMap();
+
             CreateMap<InvoiceListViewModel, InvoiceDto>()
                 .ReverseMap()
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
+                .ForMember(d => d.Amount, o => o.MapFrom(s => (s.Subtotal * (1 + s.TaxRate / 100)).ToString("0.##")))
                 .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()));
+            #endregion
 
+            #region PAYMENT
             CreateMap<PaymentViewModel, PaymentDto>()
                 .ReverseMap();
 
             CreateMap<PaymentViewModelList, PaymentDto>()
                 .ReverseMap();
 
-            //CreateMap<ReportViewModel, ReportDto>().ReverseMap();
-            //CreateMap<ReportDataViewModel, ReportDataDto>().ReverseMap();
+            #endregion
         }
     }
 }
