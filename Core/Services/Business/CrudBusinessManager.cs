@@ -36,7 +36,7 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<Pager<InvoiceDto>> GetInvoicePage(string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
         Task<List<InvoiceDto>> GetUnpaidInvoicesByCompanyId(long companyId, DateTime from, DateTime to);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
@@ -134,7 +134,6 @@ namespace Core.Services.Business {
             }
             var newEntity = _mapper.Map(dto, entity);
             entity = await _companyManager.Update(newEntity);
-
 
             #region UPDATE CUSTOMER LIST
             var customers = await _customerManager.FindByCompanyId(entity.Id);
@@ -279,12 +278,14 @@ namespace Core.Services.Business {
                 return null;
             }
 
-            entity = await _customerManager.Update(_mapper.Map(dto, entity));
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerManager.Update(newEntity);
 
             //Make activity
             var activityDto = new CustomerActivityDto() {
                 CustomerId = entity.Id,
-                IsActive = false
+                IsActive = dto.IsActive,
+                CreatedDate = DateTime.Now
             };
             var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
 
@@ -325,12 +326,16 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceDto>>(entities);
         }
 
-        public async Task<Pager<InvoiceDto>> GetInvoicePage(string search, string sort, string order, int offset = 0, int limit = 10) {
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, string search, string sort, string order, int offset = 0, int limit = 10) {
+            var c = companyId;
+            var b = date;
+
+            
             Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search)
-                || (x.No.ToLower().Contains(search.ToLower()))
-                || (x.Subtotal.ToString().Contains(search.ToLower())));
+                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Subtotal.ToString().Contains(search.ToLower()))
+                && (companyId.HasValue ? x.Company.Id == companyId.Value : true)
+                );
             //|| (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
             //|| (x.Customer.Name.ToLower().Contains(search.ToLower()))
             //|| (x.Company.Name.ToLower().Contains(search.ToLower()))

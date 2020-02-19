@@ -6,31 +6,36 @@
 --) SELECT [Id], [CreatedDate], 'True' FROM [accountWa].[dbo].[Customers] where [Company_Id] = 1
 
 /***** AGING REPORT SELECT ****/
-DECLARE @date_from DATETIME;
-DECLARE @companyId INT;
+DECLARE @DATETO DATETIME;
+DECLARE @DATEFROM DATETIME;
+DECLARE @COMPANYID INT;
+DECLARE @daysPerPeriod INT;
+DECLARE @numberOfPeriod INT;
 
-SET @date_from = '2019-11-30';
-SET @companyId = 1;
+SET @daysPerPeriod 	= 30;
+SET @numberOfPeriod	= 4;
+
+SET @DATETO = '2019-12-31';
+SET @DATEFROM = DATEADD(day, @daysPerPeriod*@numberOfPeriod*-1,  @DATETO);
+SET @COMPANYID = 1;
+
 SELECT 
   CUS.[AccountNumber], CUS.[Name], 
-  INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], DATEDIFF(DAY, INV.[DueDate], @date_from ) AS DiffDate,     
+  INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], 
+  DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate,     
+  INV.[Subtotal], INV.[TaxRate],
   CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS [Amount], INV.[Date], INV.[DueDate],  
   PAY.[Id] AS PayId, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate
 FROM [accountWa].[dbo].[Invoices] AS INV
 LEFT JOIN  [accountWa].[dbo].[Payments] AS PAY
-ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @date_from
+ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO
 LEFT JOIN [accountWa].[dbo].Customers as CUS
 ON CUS.[Id] = INV.[Customer_Id]
 LEFT JOIN [accountWa].[dbo].Companies as COM
 ON COM.[Id] = INV.[Customer_Id]
-WHERE INV.[Company_Id] = @companyId AND INV.[DueDate] >= DATEADD(day, 30*4*-1,  @date_from) AND INV.[Date] <= @date_from
-ORDER BY INV.[Date] DESC
+WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO
+ORDER BY INV.[Subtotal] DESC
 
-select * from [accountWa].[dbo].[Invoices] 
-	where IsDraft=1
-	order by Subtotal, Company_Id 
-
-select *  from [accountWa].[dbo].Invoices where Company_Id = 10002 Order by [Date]
 
 --delete [accountWa].[dbo].[Invoices] where IsDraft =1
 
@@ -66,7 +71,7 @@ SET @pdate_from = '2019-11-1';
 SET @pdate_to = '2019-11-30';
 INSERT INTO [accountWa].[dbo].[Payments] (
 	[Invoice_Id],
-	[Ref],
+	[No],
 	[Amount],
 	[Date],
 	[CreatedDate],

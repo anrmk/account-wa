@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Core.Data.Dto;
+using Core.Data.Entities;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
@@ -27,14 +28,14 @@ namespace Core.Services.Business {
             _customerActivityManager = customerActivityManager;
         }
 
-        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod) {
+        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var company = await _companyManager.FindInclude(companyId);
             if(company == null)
                 return null;
 
-            var customers = await _customerManager.FindByCompanyId(companyId, period);
+            var customers = await _customerManager.FindByCompanyId(companyId, dateTo);
 
-            var result = await _reportManager.GetAgingReport(companyId, period, daysPerPeriod, numberOfPeriod);
+            var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriod);
 
             #region CREATE HEADERS
             var columns = new List<string>() { "Current" };
@@ -46,28 +47,32 @@ namespace Core.Services.Business {
 
             var report = new Dictionary<long, AgingSummaryData>();
 
-            foreach(var d in result) {
-                var recordKey = d.CustomerId.ToString();
-                if(!report.ContainsKey(d.CustomerId)) {
-                    report.Add(d.CustomerId, new AgingSummaryData() {
-                        CustomerName = d.CustomerName,
-                        AccountNumber = d.AccountNumber,
+            foreach(var invoice in result) {
+                var recordKey = invoice.CustomerId ?? 0;
+
+                if(!report.ContainsKey(recordKey)) {
+                    report.Add(recordKey, new AgingSummaryData() {
+                        CustomerName = invoice.Customer.Name,
+                        AccountNumber = invoice.Customer.AccountNumber,
                         Data = new Dictionary<string, decimal>()
                     });
                 }
 
-                var summary = report[d.CustomerId].Data;
+                var summary = report[recordKey].Data;
                 //init all column names
                 foreach(var c in columns) {
                     if(!summary.ContainsKey(c))
                         summary.Add(c, 0);
                 }
 
-                var diffPay = d.Amount - (d.PayAmount ?? 0);
+                var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
+                var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
 
                 if(diffPay > 0) {
+                    var diffDate = (dateTo - invoice.DueDate).Days;
+
                     //Add amount to Current fiedl if DiffDate negativ 
-                    if(d.DiffDate <= 0) {
+                    if(diffDate <= 0) {
                         summary["Current"] += diffPay;
                     } else {
                         for(var i = 0; i < numberOfPeriod; i++) {
@@ -75,13 +80,13 @@ namespace Core.Services.Business {
                             int to = (i + 1) * daysPerPeriod;
                             string key = $"{from + 1}-{to}";
 
-                            if(d.DiffDate > from && d.DiffDate <= to) {
+                            if(diffDate > from && diffDate <= to) {
                                 summary[key] += diffPay;
                             }
                         }
                     }
                 } else {
-                    Console.WriteLine($"{d.CustomerName} = 0");
+                     Console.WriteLine($"{invoice.CustomerId} Pay more that should {diffPay}");
                 }
             }
 
@@ -100,7 +105,7 @@ namespace Core.Services.Business {
             return new AgingSummaryReport() {
                 CompanyId = companyId,
                 CompanyName = company.Name,
-                Date = period,
+                Date = dateTo,
                 Columns = columns.ToArray(),
                 Data = report.Select(x => x.Value).ToList(),
                 Balance = balance,

@@ -13,6 +13,7 @@ namespace Core {
             #region COMPANY
             CreateMap<CompanyDto, CompanyEntity>()
                 .ForMember(d => d.Customers, o => o.Ignore())
+                .ForMember(d => d.SummaryRange, o => o.Ignore())
                 .ReverseMap()
                 ;
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
@@ -21,6 +22,8 @@ namespace Core {
 
             #region CUSTOMER
             CreateMap<CustomerDto, CustomerEntity>()
+                .ForMember(d => d.Company, o => o.Ignore())
+                .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));

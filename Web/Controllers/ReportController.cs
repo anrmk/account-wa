@@ -130,5 +130,14 @@ namespace Web.Controllers.Api {
             }
             return null;
         }
+
+        [HttpGet]
+        [Route("test")]
+        public async Task<IActionResult> GetTestReport() {
+            var result = await _businessManager.GetAgingReport(1, new DateTime(2019, 12, 31), 30, 4);
+            //string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
+            return Ok(result);
+
+        }
     }
 }

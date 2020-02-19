@@ -28,7 +28,7 @@
                         </tr>
                         <tr>
                             <td scope="col">No Balance</td>
-                            <td>@(Model.TotalCustomers-Model.BalanceCustomers)</td>
+                            <td>@(Model.TotalCustomers - Model.BalanceCustomers)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -47,7 +47,9 @@
                         @foreach(var column in Model.Columns) {
                             <tr>
                                 <td scope="col">@column</td>
-                                <td>@Model.Balance[column].Count</td>
+                                <td>
+                                    <a href="">@Model.Balance[column].Count</a>
+                                </td>
                                 <td>@Model.Balance[column].Sum</td>
                             </tr>
                         }

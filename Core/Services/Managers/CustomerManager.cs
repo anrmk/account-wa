@@ -78,16 +78,16 @@ namespace Core.Services.Managers {
                                                     "WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO " +
                                                     "group by[Customer_Id]) AS INV " +
                                                     "ON CUS.[Id] = INV.[Customer_Id] " +
-                                                    "WHERE CUS.[Company_Id] = @COMPANY_ID";
+                                                    "WHERE CUS.[Company_Id] = @COMPANYID";
 
             try {
                 using(var connection = context.Database.GetDbConnection()) {
                     using(var command = connection.CreateCommand()) {
                         command.CommandText = query;
-                        command.Parameters.Add(new SqlParameter("@COMPANY_ID", System.Data.SqlDbType.BigInt));
+                        command.Parameters.Add(new SqlParameter("@COMPANYID", System.Data.SqlDbType.BigInt));
                         command.Parameters.Add(new SqlParameter("@DATE_FROM", System.Data.SqlDbType.Date));
                         command.Parameters.Add(new SqlParameter("@DATE_TO", System.Data.SqlDbType.Date));
-                        command.Parameters["@COMPANY_ID"].Value = companyId;
+                        command.Parameters["@COMPANYID"].Value = companyId;
                         command.Parameters["@DATE_FROM"].Value = from;
                         command.Parameters["@DATE_TO"].Value = to;
 
