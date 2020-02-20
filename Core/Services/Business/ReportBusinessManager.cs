@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Core.Data.Dto;
-using Core.Data.Entities;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
@@ -28,18 +27,18 @@ namespace Core.Services.Business {
             _customerActivityManager = customerActivityManager;
         }
 
-        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
+        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods) {
             var company = await _companyManager.FindInclude(companyId);
             if(company == null)
                 return null;
 
             var customers = await _customerManager.FindByCompanyId(companyId, dateTo);
 
-            var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriod);
+            var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
 
             #region CREATE HEADERS
             var columns = new List<string>() { "Current" };
-            for(int i = 0; i < numberOfPeriod; i++) {
+            for(int i = 0; i < numberOfPeriods; i++) {
                 columns.Add($"{1 + i * daysPerPeriod}-{(i + 1) * daysPerPeriod}");
             }
             columns.Add("Total");
@@ -75,7 +74,7 @@ namespace Core.Services.Business {
                     if(diffDate <= 0) {
                         summary["Current"] += diffPay;
                     } else {
-                        for(var i = 0; i < numberOfPeriod; i++) {
+                        for(var i = 0; i < numberOfPeriods; i++) {
                             int from = i * daysPerPeriod;
                             int to = (i + 1) * daysPerPeriod;
                             string key = $"{from + 1}-{to}";
@@ -86,7 +85,7 @@ namespace Core.Services.Business {
                         }
                     }
                 } else {
-                     Console.WriteLine($"{invoice.CustomerId} Pay more that should {diffPay}");
+                    Console.WriteLine($"{invoice.CustomerId} Pay more that should {diffPay}");
                 }
             }
 
@@ -106,6 +105,8 @@ namespace Core.Services.Business {
                 CompanyId = companyId,
                 CompanyName = company.Name,
                 Date = dateTo,
+                DaysPerPeriod = daysPerPeriod,
+                NumberOfPeriods = numberOfPeriods,
                 Columns = columns.ToArray(),
                 Data = report.Select(x => x.Value).ToList(),
                 Balance = balance,

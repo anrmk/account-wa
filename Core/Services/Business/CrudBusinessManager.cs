@@ -36,7 +36,7 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
         Task<List<InvoiceDto>> GetUnpaidInvoicesByCompanyId(long companyId, DateTime from, DateTime to);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
@@ -326,20 +326,44 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceDto>>(entities);
         }
 
-        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, string search, string sort, string order, int offset = 0, int limit = 10) {
-            var c = companyId;
-            var b = date;
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? dateTo, int? daysPerPeriod, int? numberOfPeriod, string search, string sort, string order, int offset = 0, int limit = 10) {
+            DateTime? dateFrom = null;
+            if(dateTo.HasValue && daysPerPeriod.HasValue && numberOfPeriod.HasValue)
+                dateFrom = dateTo.HasValue ? dateTo.Value.AddDays(daysPerPeriod.Value * numberOfPeriod.Value * -1) : (DateTime?)null;
 
-            
+            //var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
+            //var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
+
             Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Subtotal.ToString().Contains(search.ToLower()))
-                && (companyId.HasValue ? x.Company.Id == companyId.Value : true)
-                );
+                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower()) || x.Customer.Name.ToLower().Contains(search.ToLower())))
+                && ((companyId == null) || x.CompanyId == companyId)
+                && ((dateTo == null || dateFrom == null) || (x.DueDate >= dateFrom.Value && x.Date <= dateTo.Value))
+                ;
+
+            //&& (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Subtotal.ToString().Contains(search.ToLower()))
+            // && (companyId.HasValue ? x.CompanyId == companyId.Value &&  x.DueDate >= dateFrom.Value && x.Date <= dateTo.Value : true)
+
+            //&& (dateTo.HasValue ? x.Payments.Any(s => s.Date <= dateTo): true)
+            // && (dateFrom.HasValue ? x.DueDate >= dateFrom && x.Date <= dateTo : true)
+            //);
+
             //|| (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
             //|| (x.Customer.Name.ToLower().Contains(search.ToLower()))
             //|| (x.Company.Name.ToLower().Contains(search.ToLower()))
             //|| (x.Company.No.ToLower().Contains(search.ToLower())));
+
+            //var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
+            //    "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
+            //    "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized, " +
+            //    "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
+            //    "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
+            //    "FROM[accountWa].[dbo].[Invoices] AS INV  " +
+            //    "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
+            //    "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
+            //    "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
+            //    "WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " +
+            //    "ORDER BY CUS.[AccountNumber] DESC";
 
             #region Sort
             var orderPredicate = GetExpression<InvoiceEntity>(sort ?? "No"); ;

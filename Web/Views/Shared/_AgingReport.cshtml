@@ -48,7 +48,7 @@
                             <tr>
                                 <td scope="col">@column</td>
                                 <td>
-                                    <a href="">@Model.Balance[column].Count</a>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods  })">@Model.Balance[column].Count</a>
                                 </td>
                                 <td>@Model.Balance[column].Sum</td>
                             </tr>

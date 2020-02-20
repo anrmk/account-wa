@@ -19,11 +19,11 @@ namespace Web.ViewModels {
         [MaxLength(16)]
         public string No { get; set; }
 
-        [Display(Name = "Payment Amount")]
+        [Display(Name = "Payment amount")]
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
         public decimal Amount { get; set; }
 
-        [Display(Name = "Payment Date")]
+        [Display(Name = "Payment date")]
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.Now;
@@ -33,7 +33,7 @@ namespace Web.ViewModels {
         //[Column(TypeName = "decimal(18, 3)")]
         //public double TaxRate { get; set; }
 
-        [Display(Name = "Invoice Amount")]
+        [Display(Name = "Invoice amount")]
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
         public decimal InvoiceAmount { get; set; }
 

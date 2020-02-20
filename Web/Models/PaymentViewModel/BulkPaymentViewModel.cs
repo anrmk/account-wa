@@ -31,7 +31,7 @@ namespace Web.ViewModels {
         [DataType(DataType.Date)]
         public DateTime PaymentDateTo { get; set; } = DateTime.Now.LastDayOfMonth();
 
-
+        [Display(Name = "Payments")]
         public virtual List<PaymentViewModel> Payments { get; set; }
     }
 }

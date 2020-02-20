@@ -24,6 +24,8 @@ $.extend($.fn.bootstrapTable.defaults, {
     toolbar: '#toolbar',
     showPaginationSwitch: false,
     search: true,
+    idField: "id",
+    //showSearchButton: true,
     searchOnEnterKey: true,
     showRefresh: true,
     showColumns: true,

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Data.Entities;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ namespace Core.Services.Managers {
 
         [Obsolete]
         public async Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
-            var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " + 
+            var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
                         "DATEDIFF(DAY, INV.[DueDate], @PERIOD) AS DiffDate " +
                         "FROM[accountWa].[dbo].[Invoices] AS INV " +
                         "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY " +
@@ -118,6 +119,7 @@ namespace Core.Services.Managers {
                         }
 
                         using(var reader = await command.ExecuteReaderAsync()) {
+
                             while(reader.Read()) {
                                 var invoice = new InvoiceEntity() {
                                     Id = (long)reader["Id"],

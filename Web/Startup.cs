@@ -81,11 +81,12 @@ namespace Web {
             });
 
             ServicesConfig.Configuration(services);
+
             services.AddTransient<IViewRenderService, ViewRenderService>();
+            services.AddDbContext<Core.Context.ApplicationContext>();
 
             MapperConfig.Register(services);
 
-            services.AddDbContext<Core.Context.ApplicationContext>();
 
             services.AddControllersWithViews();
         }

@@ -52,7 +52,11 @@ namespace Core.Context {
             _contentRootPath = environment.ContentRootPath;
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+        //protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+        protected override void OnConfiguring(DbContextOptionsBuilder options) {
+            options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
+            options.EnableSensitiveDataLogging(); //For debugging
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);

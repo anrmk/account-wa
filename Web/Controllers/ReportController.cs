@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 
 using Core.Context;
+using Core.Extension;
 using Core.Services.Business;
 
 using CsvHelper;
@@ -21,6 +22,8 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class ReportController: BaseController<ReportController> {
+        private readonly int _daysPerPeriod = 30;
+
         private readonly IMemoryCache _memoryCache;
         public ICrudBusinessManager _crudBusinessManager;
         public IReportBusinessManager _businessManager;
@@ -35,16 +38,16 @@ namespace Web.Controllers.Mvc {
             var companies = await _crudBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            return View(new ReportViewModel() {
-
+            return View(new ReportFilterViewModel() {
+                Date = DateTime.Now.LastDayOfMonth()
             });
         }
 
         [HttpPost]
-        public async Task<IActionResult> ExportToCsv(ReportViewModel model) {
+        public async Task<IActionResult> ExportToCsv(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, model.DaysPerPeriod, model.NumberOfPeriod);
+                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, _daysPerPeriod, model.NumberOfPeriods);
 
                     var mem = new MemoryStream();
                     var writer = new StreamWriter(mem);
@@ -108,19 +111,14 @@ namespace Web.Controllers.Api {
             _crudBusinessManager = crudBusinessManager;
         }
 
-        //[HttpGet]
-        //public async Task<string> GetString(long id) {
-        //    return await Task.Run(() => { return $"HelLLO {id}"; });
-        //}
-
         [HttpPost("aging", Name = "Aging")]
-        public async Task<IActionResult> PostRunAgingReport(ReportViewModel model) {
+        public async Task<IActionResult> PostRunAgingReport(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                     _memoryCache.Set("_ReportViewModel", model, cacheEntryOptions);
 
-                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, model.DaysPerPeriod, model.NumberOfPeriod);
+                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, 30, model.NumberOfPeriods);
                     string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
 
                     return Ok(html);
@@ -131,13 +129,13 @@ namespace Web.Controllers.Api {
             return null;
         }
 
-        [HttpGet]
-        [Route("test")]
-        public async Task<IActionResult> GetTestReport() {
-            var result = await _businessManager.GetAgingReport(1, new DateTime(2019, 12, 31), 30, 4);
-            //string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
-            return Ok(result);
+        //[HttpGet]
+        //[Route("test")]
+        //public async Task<IActionResult> GetTestReport() {
+        //    var result = await _businessManager.GetAgingReport(1, new DateTime(2019, 12, 31), 30, 4);
+        //    //string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
+        //    return Ok(result);
 
-        }
+        //}
     }
 }

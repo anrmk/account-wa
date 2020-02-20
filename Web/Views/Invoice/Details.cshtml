@@ -86,9 +86,9 @@
                                     <td scope="row"><label asp-for="Amount"></label></td>
                                     <td>@Model.Amount</td>
                                 </tr>
-                                @if(Model.Payment != null && Model.Payment.Count > 0) {
+                                @if(Model.Payments != null && Model.Payments.Count > 0) {
                                     <tr>
-                                        <td scope="row"><label asp-for="Payment"></label></td>
+                                        <td scope="row"><label asp-for="Payments"></label></td>
                                         <td>@Model.PaymentAmount</td>
                                     </tr>
                                 }
@@ -102,7 +102,7 @@
     <div class="col-4">
         <h4>Payments</h4>
         <div class="list-group">
-            @foreach(var item in Model.Payment) {
+            @foreach(var item in Model.Payments) {
                 <a asp-action="Details" asp-controller="Payment" asp-route-id="@item.Id" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
                         <div><strong>Reference no:</strong> @item.No</div>

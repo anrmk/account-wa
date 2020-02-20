@@ -16,7 +16,7 @@ namespace Web.ViewModels {
         public decimal Subtotal { get; set; }
 
         [Range(0, 100)]
-        [Display(Name = "Tax Rate")]
+        [Display(Name = "Tax rate")]
         public decimal TaxRate { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
@@ -28,10 +28,10 @@ namespace Web.ViewModels {
 
         [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         [DataType(DataType.Date)]
-        [Display(Name = "Due Date")]
+        [Display(Name = "Due date")]
         public DateTime DueDate { get; set; }
 
-        public List<PaymentViewModel> Payment { get; set; }
+        public List<PaymentViewModel> Payments { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
         public decimal PaymentAmount { get; set; }

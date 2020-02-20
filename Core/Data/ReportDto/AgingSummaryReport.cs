@@ -6,6 +6,8 @@ namespace Core.Data.Dto {
         public long CompanyId { get; set; }
         public string CompanyName { get; set; }
         public DateTime Date { get; set; }
+        public int DaysPerPeriod { get; set; }
+        public int NumberOfPeriods { get; set; } //Количество периодово
 
         public int TotalCustomers { get; set; }
 

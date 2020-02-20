@@ -1,4 +1,4 @@
-﻿@model Web.ViewModels.ReportViewModel
+﻿@model Web.ViewModels.ReportFilterViewModel
 
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
@@ -11,8 +11,7 @@
         <form asp-controller="Report" asp-action="ExportToCsv" method="post" id="test">
             <input type="hidden" name="CompanyId" id="printCompanyId" />
             <input type="hidden" name="Date" id="printDate" />
-            <input type="hidden" name="DaysPerPeriod" id="printDaysPerPeriod" />
-            <input type="hidden" name="NumberOfPeriod" id="printNumberOfPeriod" />
+            <input type="hidden" name="NumberOfPeriods" id="printNumberOfPeriods" />
             <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>
         </form>
     </li>
@@ -44,14 +43,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label asp-for="DaysPerPeriod"></label>
-                            <input asp-for="DaysPerPeriod" type="number" step="1" class="form-control" min="30" required />
-                            <span asp-validation-for="DaysPerPeriod" class="form-text text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="NumberOfPeriod"></label>
-                            <input id="numberOfPeriod" asp-for="NumberOfPeriod" type="number" step="1" class="form-control" min="0" required />
-                            <span asp-validation-for="NumberOfPeriod" class="form-text text-danger"></span>
+                            <label asp-for="NumberOfPeriods"></label>
+                            <input id="numberOfPeriods" asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" required />
+                            <span asp-validation-for="NumberOfPeriods" class="form-text text-danger"></span>
                         </div>
                     </div>
                     <div class="card-footer">
@@ -108,8 +102,7 @@
             var data = $('#filterReportForm').serializeJSON();
             $('#printCompanyId').val(data.CompanyId);
             $('#printDate').val(data.Date);
-            $('#printDaysPerPeriod').val(data.DaysPerPeriod);
-            $('#printNumberOfPeriod').val(data.NumberOfPeriod);
+            $('#printNumberOfPeriods').val(data.NumberOfPeriods);
         }
     </script>
 }

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class ReportViewModel {
+    public class ReportFilterViewModel {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
@@ -15,6 +15,6 @@ namespace Web.ViewModels {
         public int DaysPerPeriod { get; set; } = 30;
 
         [Display(Name = "Number of periods")]
-        public int NumberOfPeriod { get; set; } = 4;
+        public int NumberOfPeriods { get; set; } = 4;
     }
 }

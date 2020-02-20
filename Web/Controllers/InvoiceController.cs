@@ -34,6 +34,21 @@ namespace Web.Controllers.Mvc {
             });
         }
 
+        // GET: Invoice using Aging filter
+        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int daysPerPeriod, int numberOfPeriods) {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var filter = new InvoiceFilterViewModel() {
+                CompanyId = companyId,
+                Date = date,
+                DaysPerPeriod = daysPerPeriod,
+                NumberOfPeriods = numberOfPeriods
+            };
+
+            return View("Index", filter);
+        }
+
         // GET: Invoice/Details/5
         public async Task<ActionResult> Details(long id) {
             var item = await _businessManager.GetInvoice(id);
@@ -195,7 +210,7 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         public async Task<Pager<InvoiceListViewModel>> GetInvoices([FromQuery] InvoiceFilterViewModel model) {
-            var result = await _businessManager.GetInvoicePage(model.CompanyId, model.Date, model.Search, model.Sort, model.Order, model.Offset, model.Limit);
+            var result = await _businessManager.GetInvoicePage(model.CompanyId, model.Date, model.DaysPerPeriod, model.NumberOfPeriods, model.Search, model.Sort, model.Order, model.Offset, model.Limit);
             var pager = new Pager<InvoiceListViewModel>(_mapper.Map<List<InvoiceListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
         }
