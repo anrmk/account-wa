@@ -19,8 +19,11 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class InvoiceController: BaseController<InvoiceController> {
+        public INsiBusinessManager _nsiBusinessManager;
         public ICrudBusinessManager _businessManager;
-        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+
+        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context, INsiBusinessManager nsiBusinessManager, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            _nsiBusinessManager = nsiBusinessManager;
             _businessManager = businessManager;
         }
 
@@ -29,21 +32,30 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            var periods = await _nsiBusinessManager.GetReportPeriods();
+            ViewBag.Periods = periods.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(new InvoiceFilterViewModel() {
 
             });
         }
 
         // GET: Invoice using Aging filter
-        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int daysPerPeriod, int numberOfPeriods) {
+        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, string period) {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var periods = await _nsiBusinessManager.GetReportPeriods();
+            ViewBag.Periods = periods.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var selectedPeriod = periods.Where(x => x.Code == period).FirstOrDefault();
 
             var filter = new InvoiceFilterViewModel() {
                 CompanyId = companyId,
                 Date = date,
-                DaysPerPeriod = daysPerPeriod,
-                NumberOfPeriods = numberOfPeriods
+                //DaysPerPeriod = daysPerPeriod,
+                NumberOfPeriods = numberOfPeriods,
+                PeriodId = selectedPeriod?.Id
             };
 
             return View("Index", filter);
@@ -210,9 +222,8 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         public async Task<Pager<InvoiceListViewModel>> GetInvoices([FromQuery] InvoiceFilterViewModel model) {
-            var result = await _businessManager.GetInvoicePage(model.CompanyId, model.Date, model.DaysPerPeriod, model.NumberOfPeriods, model.Search, model.Sort, model.Order, model.Offset, model.Limit);
-            var pager = new Pager<InvoiceListViewModel>(_mapper.Map<List<InvoiceListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
-            return pager;
+            var result = await _businessManager.GetInvoicePage(_mapper.Map<InvoiceFilterDto>(model));
+            return new Pager<InvoiceListViewModel>(_mapper.Map<List<InvoiceListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
         }
 
         [HttpGet]

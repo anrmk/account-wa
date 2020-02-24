@@ -20,6 +20,7 @@ $.fn.getBulkInvoices = function (id, from, to) {
 }
 
 
+
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
     var fieldset = this.find('fieldset');
@@ -44,4 +45,10 @@ $.fn.ajaxSubmit = function (opt, callback) {
 
 $.fn.close = function () {
     $(this).closest('.card').fadeOut();
+}
+
+$.fn.randomDate = function (from, to) {
+    const fromTime = from.getTime();
+    const toTime = to.getTime();
+    return new Date(fromTime + Math.random() * (toTime - fromTime));
 }

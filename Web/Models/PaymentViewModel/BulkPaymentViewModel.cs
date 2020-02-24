@@ -22,7 +22,6 @@ namespace Web.ViewModels {
         [Display(Name = "Invoices")]
         public List<long> Invoices { get; set; }
 
-
         [Display(Name = "Date from")]
         [DataType(DataType.Date)]
         public DateTime PaymentDateFrom { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);

@@ -36,14 +36,17 @@
                             @(i + 1)
                             <input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
                             <input type="hidden" name="Payments[][No]" value="@item.No" />
-                            <input type="hidden" name="Payments[][Amount]" value="@item.Amount" />
+                            @*<input type="hidden" name="Payments[][Amount]" value="@item.Amount" />*@
                             <input type="hidden" name="Payments[][InvoiceId]" value="@item.InvoiceId" />
-                            <input type="hidden" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
                         </td>
                         <td>@item.No</td>
                         <td>@item.InvoiceNo</td>
-                        <td>@item.Amount</td>
-                        <td>@item.Date.ToString("MMM/dd/yyyy")</td>
+                        <td>
+                             <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" />
+                        </td>
+                        <td>
+                            <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                        </td>
                     </tr>
                 }
             </tbody>

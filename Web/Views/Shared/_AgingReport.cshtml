@@ -48,7 +48,7 @@
                             <tr>
                                 <td scope="col">@column</td>
                                 <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods  })">@Model.Balance[column].Count</a>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, period=column })">@Model.Balance[column].Count</a>
                                 </td>
                                 <td>@Model.Balance[column].Sum</td>
                             </tr>
@@ -63,6 +63,7 @@
                 <caption>@DateTime.Now.ToString("MMM dd, yyyy - HH:mm")</caption>
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
                         @foreach(var header in Model.Columns) {
@@ -71,8 +72,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(var summary in Model.Data) {
+                    @for(var i=0; i< Model.Data.Count(); i++) {
+                        var summary = Model.Data[i];
                         <tr>
+                            <td>@(i+1)</td>
                             <td scope="row">@summary.AccountNumber</td>
                             <td scope="row">@summary.CustomerName</td>
                             @foreach(var column in Model.Columns) {

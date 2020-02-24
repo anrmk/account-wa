@@ -4,6 +4,7 @@ using Core.Context;
 using Core.Extensions;
 using Core.Services.Business;
 using Core.Services.Managers;
+using Core.Services.Managers.Nsi;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -25,6 +26,7 @@ namespace Core.Services {
             ///Extension Service
             services.AddTransient<IViewRenderService, ViewRenderService>();
 
+
             ///Managers
             services.AddTransient<IReportManager, ReportManager>();
             services.AddTransient<ICompanyManager, CompanyManager>();
@@ -36,12 +38,14 @@ namespace Core.Services {
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();
 
+            ///NSI
+            services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
+
             ///Business
+            services.AddTransient<INsiBusinessManager, NsiBusinessManager>();
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();
-
-
         }
     }
 }

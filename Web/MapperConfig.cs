@@ -80,7 +80,10 @@ namespace Web {
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
                 .ForMember(d => d.Amount, o => o.MapFrom(s => (s.Subtotal * (1 + s.TaxRate / 100)).ToString("0.##")))
-                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()));
+                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()))
+                .ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payments.LastPaymentDate()));
+
+            CreateMap<InvoiceFilterViewModel, InvoiceFilterDto>().ReverseMap();
             #endregion
 
             #region PAYMENT

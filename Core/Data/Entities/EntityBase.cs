@@ -35,4 +35,14 @@ namespace Core.Data.Entities {
         [ScaffoldColumn(false)]
         public string UpdatedBy { get; set; } = "system";
     }
+
+    public interface INsiEntity {
+        string Name { get; set; }
+        string Code { get; set; }
+    }
+
+    public abstract class NsiEntity<T>: EntityBase<T>, INsiEntity {
+        public string Name { get; set; }
+        public string Code { get; set; }
+    }
 }

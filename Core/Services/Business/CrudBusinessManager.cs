@@ -36,7 +36,9 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<InvoiceDto>> GetInvoicePage(InvoiceFilterDto filter);
+
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
         Task<List<InvoiceDto>> GetUnpaidInvoicesByCompanyId(long companyId, DateTime from, DateTime to);
         Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto);
@@ -64,11 +66,14 @@ namespace Core.Services.Business {
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
 
+        public readonly IReportManager _reportManager;
+        public readonly INsiBusinessManager _nsiBusinessManager;
+
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICompanyAddressMananger companyAddressManager,
             ICompanySummaryRangeManager companySummaryManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
-            IInvoiceManager invoiceManager, IPaymentManager paymentManager) {
+            IInvoiceManager invoiceManager, IPaymentManager paymentManager, IReportManager reportManager, INsiBusinessManager nsiBusinessManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
@@ -77,6 +82,8 @@ namespace Core.Services.Business {
             _customerActivityManager = customerActivityManager;
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
+            _reportManager = reportManager;
+            _nsiBusinessManager = nsiBusinessManager;
         }
 
         #region COMPANY
@@ -326,10 +333,84 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceDto>>(entities);
         }
 
-        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? dateTo, int? daysPerPeriod, int? numberOfPeriod, string search, string sort, string order, int offset = 0, int limit = 10) {
-            DateTime? dateFrom = null;
-            if(dateTo.HasValue && daysPerPeriod.HasValue && numberOfPeriod.HasValue)
-                dateFrom = dateTo.HasValue ? dateTo.Value.AddDays(daysPerPeriod.Value * numberOfPeriod.Value * -1) : (DateTime?)null;
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(InvoiceFilterDto filter) {
+            DateTime? dateFrom = filter.Date?.AddDays(30 * filter.NumberOfPeriods * -1);
+            var selectedPeriod = filter.PeriodId.HasValue ? await _nsiBusinessManager.GetReportPeriodById(filter.PeriodId.Value) : null;
+
+            #region Filter
+            Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
+                  (true)
+               && (string.IsNullOrEmpty(filter.Search) || (x.No.ToLower().Contains(filter.Search.ToLower()) || x.Customer.Name.ToLower().Contains(filter.Search.ToLower())))
+               && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
+               && ((filter.Date == null || filter.Date == null) || (x.DueDate >= dateFrom.Value && x.Date <= filter.Date.Value))
+               && ((filter.Date == null || dateFrom == null) || ((x.Payments.Count == 0) || (x.Payments.Count != 0 && !x.Payments.Any(s => s.Date <= filter.Date.Value))))
+               && ((filter.Date == null || dateFrom == null || selectedPeriod == null) ||
+                        (x.Date <= filter.Date.Value.AddDays((selectedPeriod.From + 30) * -1) &&
+                        x.Date >= filter.Date.Value.AddDays((selectedPeriod.To + 30) * -1))
+                )
+               && ((filter.Date == null || dateFrom == null) || ((x.Subtotal * (1 + x.TaxRate / 100)) - ((x.Payments.Count == 0) ? 0 : x.Payments.Sum(x => x.Amount))) >= 0)
+               ;
+            #endregion
+
+            #region Sort
+            Expression<Func<InvoiceEntity, string>> orderPredicate = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
+            #endregion
+
+            string[] include = new string[] { "Company", "Customer", "Payments" };
+
+            Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<InvoiceDto>(new List<InvoiceDto>(), 0, filter.Offset, filter.Limit);
+
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+
+            var result = _mapper.Map<List<InvoiceDto>>(list);
+            return new Pager<InvoiceDto>(result, count, page, filter.Limit);
+        }
+
+        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? dateTo, int? daysPerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10) {
+            DateTime? dateFrom = dateTo.HasValue ? dateTo.Value.AddDays(daysPerPeriod.Value * numberOfPeriod.Value * -1) : (DateTime?)null;
+            var selectedPeriod = await _nsiBusinessManager.GetReportPeriodById(period ?? 0);
+
+            #region AGING FILTER
+            /*
+            if(dateTo.HasValue && daysPerPeriod.HasValue && numberOfPeriod.HasValue) {
+                var selectedPeriod = await _nsiBusinessManager.GetReportPeriodById(period.Value);
+                
+
+                var inv = await _reportManager.GetAgingInvoices(companyId.Value, dateTo.Value, daysPerPeriod.Value, numberOfPeriod.Value);
+                var invoiceList = new List<InvoiceEntity>();
+                foreach(var invoice in inv) {
+                    var diffDate = (dateTo.Value - invoice.DueDate).Days;
+                    var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
+                    var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
+                    if(diffPay > 0) {
+                        if(period.HasValue) {
+                            var pv = period.Value;
+                            if(pv == 1) {
+                                if(diffDate <= 0) {
+                                    invoiceList.Add(invoice);
+                                }
+                            } else {
+                                //int from = (pv - 2) * daysPerPeriod.Value;
+                                //int to = (pv - 1) * daysPerPeriod.Value;
+                                if(diffDate > selectedPeriod.From && diffDate <= selectedPeriod.To) {
+                                    invoiceList.Add(invoice);
+                                }
+                            }
+
+                        } else {
+                            invoiceList.Add(invoice);
+                        }
+                    }
+                }
+                return new Pager<InvoiceDto>(_mapper.Map<List<InvoiceDto>>(invoiceList), invoiceList.Count, 1, invoiceList.Count);
+            }*/
+            #endregion
 
             //var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
             //var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
@@ -339,19 +420,15 @@ namespace Core.Services.Business {
                 && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower()) || x.Customer.Name.ToLower().Contains(search.ToLower())))
                 && ((companyId == null) || x.CompanyId == companyId)
                 && ((dateTo == null || dateFrom == null) || (x.DueDate >= dateFrom.Value && x.Date <= dateTo.Value))
+                && ((dateTo == null || dateFrom == null) || ((x.Payments.Count == 0) || (x.Payments.Count != 0 && !x.Payments.Any(s => s.Date <= dateTo.Value))))
+                && ((dateTo == null || dateFrom == null) || (
+                        //EntityFunctions.DiffMonths(i.FromDate, i.ToDate)
+                        (dateTo.Value - x.DueDate).Days > selectedPeriod.From &&
+                        (dateTo.Value - x.DueDate).Days <= selectedPeriod.From)
+                        )
+
+                //--&& ((dateTo == null || dateFrom == null) || ((x.Subtotal * (1 + x.TaxRate / 100)) - ((x.Payments.Count == 0) ? 0 : x.Payments.Sum(x => x.Amount))) > 0)
                 ;
-
-            //&& (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Subtotal.ToString().Contains(search.ToLower()))
-            // && (companyId.HasValue ? x.CompanyId == companyId.Value &&  x.DueDate >= dateFrom.Value && x.Date <= dateTo.Value : true)
-
-            //&& (dateTo.HasValue ? x.Payments.Any(s => s.Date <= dateTo): true)
-            // && (dateFrom.HasValue ? x.DueDate >= dateFrom && x.Date <= dateTo : true)
-            //);
-
-            //|| (x.Customer.AccountNumber.ToLower().Contains(search.ToLower()))
-            //|| (x.Customer.Name.ToLower().Contains(search.ToLower()))
-            //|| (x.Company.Name.ToLower().Contains(search.ToLower()))
-            //|| (x.Company.No.ToLower().Contains(search.ToLower())));
 
             //var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
             //    "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
@@ -366,12 +443,18 @@ namespace Core.Services.Business {
             //    "ORDER BY CUS.[AccountNumber] DESC";
 
             #region Sort
-            var orderPredicate = GetExpression<InvoiceEntity>(sort ?? "No"); ;
+            //var orderPredicate = GetExpression<InvoiceEntity>(sort ?? "No"); 
+            //var orderPredicate = new Expression<Func<InvoiceEntity, Guid>>(x => Guid.NewGuid);
+            //Expression<Func<InvoiceEntity, string>> orderPredicate = x => Guid.NewGuid().ToString(); //работает
+
+            Expression<Func<InvoiceEntity, string>> orderPredicate = sort.Equals("random") ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(sort ?? "No");
+
             #endregion
 
             string[] include = new string[] { "Company", "Customer", "Payments" };
 
             Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, offset, limit, include);
+
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -493,6 +576,8 @@ namespace Core.Services.Business {
             int result = await _paymentManager.Delete(entity);
             return result != 0;
         }
+
+
         #endregion
     }
 }

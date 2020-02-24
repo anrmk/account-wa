@@ -15,16 +15,18 @@ namespace Core.Services.Business {
         private readonly ICompanyManager _companyManager;
         private readonly ICustomerManager _customerManager;
         private readonly ICustomerActivityManager _customerActivityManager;
+        private readonly ICrudBusinessManager _businessManager;
 
         public ReportBusinessManager(IReportManager reportManager,
             ICompanyManager companyManager,
             ICustomerManager customerManager,
-            ICustomerActivityManager customerActivityManager
-            ) {
+            ICustomerActivityManager customerActivityManager,
+            ICrudBusinessManager businessManager) {
             _reportManager = reportManager;
             _companyManager = companyManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
+            _businessManager = businessManager;
         }
 
         public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods) {
@@ -34,7 +36,19 @@ namespace Core.Services.Business {
 
             var customers = await _customerManager.FindByCompanyId(companyId, dateTo);
 
+            //TODO: Заменить на эту функцию
+            #region NEW
+            var filter = new InvoiceFilterDto() {
+                CompanyId = companyId,
+                Date = dateTo,
+                NumberOfPeriods = numberOfPeriods
+            };
+
+            //var result = await _businessManager.GetInvoicePage(filter);
+            #endregion
+
             var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+            //Console.WriteLine("Report invoice count: " + result.Count);
 
             #region CREATE HEADERS
             var columns = new List<string>() { "Current" };

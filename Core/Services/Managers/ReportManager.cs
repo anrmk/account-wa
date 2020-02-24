@@ -17,8 +17,11 @@ namespace Core.Services.Managers {
 
     public class ReportManager: IReportManager {
         private readonly ApplicationContext _context;
-        public ReportManager(ApplicationContext context) {
+        private readonly IInvoiceManager _invoiceManager;
+
+        public ReportManager(ApplicationContext context, IInvoiceManager invoiceManager) {
             _context = context;
+            _invoiceManager = invoiceManager;
         }
 
         [Obsolete]
@@ -96,7 +99,12 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
                         "WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " +
-                        "ORDER BY CUS.[AccountNumber] DESC";
+                        "ORDER BY CUS.[AccountNumber] DESC ";
+
+            //if(offset.HasValue && limit.HasValue) {
+            //    query += "OFFSET @PAGESIZE * (@PAGENUMBER - 1) ROWS " +
+            //            "FETCH NEXT @PAGESIZE ROWS ONLY OPTION(RECOMPILE) ";
+            //}
 
             var result = new List<InvoiceEntity>();
 

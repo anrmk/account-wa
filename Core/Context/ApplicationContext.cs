@@ -5,8 +5,8 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 
 using Core.Data.Entities;
+using Core.Data.Entities.Nsi;
 
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -28,9 +28,9 @@ namespace Core.Context {
         private readonly IConfiguration _configuration;
         private readonly ClaimsPrincipal _principal;
 
-        private readonly string _contentRootPath = "";
-
         #region DbSet
+        public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
+
         public DbSet<CompanyEntity> Companies { get; set; }
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
         public DbSet<CompanySummaryRangeEntity> CompanySummaryRanges { get; set; }
@@ -38,7 +38,6 @@ namespace Core.Context {
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
         public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
-        //public DbSet<CustomerBulkEntity> CustomersBulk { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
@@ -46,17 +45,12 @@ namespace Core.Context {
 
         public Database ApplicationDatabase { get; private set; }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, IPrincipal principal, IHostingEnvironment environment) : base(options) {
+        public ApplicationContext(DbContextOptions<ApplicationContext> options, IConfiguration configuration, IPrincipal principal) : base(options) {
             _configuration = configuration;
             _principal = principal as ClaimsPrincipal;
-            _contentRootPath = environment.ContentRootPath;
         }
 
-        //protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
-        protected override void OnConfiguring(DbContextOptionsBuilder options) {
-            options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection"));
-            options.EnableSensitiveDataLogging(); //For debugging
-        }
+        protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);

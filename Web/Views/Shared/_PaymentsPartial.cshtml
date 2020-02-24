@@ -1,0 +1,72 @@
+﻿@model Web.ViewModels.BulkPaymentViewModel
+@{
+    Layout = null;
+}
+
+<div class="mb-3" role="toolbar">
+    <button class="btn btn-sm btn-outline-primary" onclick="generateRandomDate('@Model.DateFrom', '@Model.DateTo')">Random</button>
+</div>
+<form id="paymentsPartialForm" class="mb-3" action="/api/payment/create" method="post">
+    <fieldset>
+        <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+        <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Payment No</th>
+                    <th>Invoice No</th>
+                    <th>Invoice Amount</th>
+                    <th >Payment</th>
+                    <th>Date</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                @for(var i = 0; i < Model.Payments.Count; i++) {
+                    var item = Model.Payments[i];
+                <tr>
+                    <td>
+                        @(i + 1)
+                        <input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
+                        <input type="hidden" name="Payments[][No]" value="@item.No" />
+                        <input type="hidden" name="Payments[][InvoiceId]" value="@item.InvoiceId" />
+                    </td>
+                    <td>@item.No</td>
+                    <td>@item.InvoiceNo</td>
+                    <td>@item.InvoiceAmount</td>
+                    <td>
+                        <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" />
+                    </td>
+                    <td>
+                        <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </fieldset>
+</form>
+<script type="text/javascript">
+    $(document).ready(e => {
+        $('#paymentsPartialForm').on('submit', e => {
+            e.preventDefault();
+            var $target = $(e.target);
+            $target.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                if (status === 'success') {
+                    window.modal.modal('hide');
+                }
+            });
+        });
+
+    });
+
+    function generateRandomDate(from, to) {
+        $('#paymentsPartialForm input[type=date]').each((index, element) => {
+            var d = $.fn.randomDate(new Date(from), new Date(to));
+            $(element).val(d.toISOString().slice(0, 10));
+        });
+    }
+</script>

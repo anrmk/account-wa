@@ -5,6 +5,7 @@
 --  [IsActive]
 --) SELECT [Id], [CreatedDate], 'True' FROM [accountWa].[dbo].[Customers] where [Company_Id] = 1
 
+
 /***** AGING REPORT SELECT ****/
 DECLARE @DATETO DATETIME;
 DECLARE @DATEFROM DATETIME;
@@ -17,7 +18,8 @@ SET @numberOfPeriod	= 4;
 
 SET @DATETO = '2019-12-31';
 SET @DATEFROM = DATEADD(day, @daysPerPeriod*@numberOfPeriod*-1,  @DATETO);
-SET @COMPANYID = 1;
+SET @COMPANYID = 10002;
+
 
 SELECT 
   CUS.[AccountNumber], CUS.[Name], 
@@ -34,7 +36,7 @@ ON CUS.[Id] = INV.[Customer_Id]
 LEFT JOIN [accountWa].[dbo].Companies as COM
 ON COM.[Id] = INV.[Customer_Id]
 WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO
-ORDER BY INV.[Subtotal] DESC
+ORDER BY [DiffDate] DESC
 
 
 --delete [accountWa].[dbo].[Invoices] where IsDraft =1

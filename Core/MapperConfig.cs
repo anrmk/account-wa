@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 
 using Core.Data.Dto;
+using Core.Data.Dto.Nsi;
 using Core.Data.Entities;
+using Core.Data.Entities.Nsi;
 using Core.Extension;
 
 namespace Core {
@@ -26,6 +28,7 @@ namespace Core {
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
+                .ForMember(d => d.AccountNumber, o => o.MapFrom(s => "test"))
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
@@ -40,6 +43,7 @@ namespace Core {
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Payments, o => o.Ignore())
                 .ReverseMap();
+           
             #endregion
 
             #region PAYMENT
@@ -48,6 +52,10 @@ namespace Core {
                 .ReverseMap()
                 .ForMember(d => d.InvoiceNo, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.No : ""))
                 .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null));
+            #endregion
+
+            #region NSI
+            CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
             #endregion
         }
     }

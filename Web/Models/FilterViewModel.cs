@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {
-    public class SearchViewModel {
+    public class FilterViewModel {
         [FromQuery(Name = "search")]
         public string Search { get; set; } = "";
 

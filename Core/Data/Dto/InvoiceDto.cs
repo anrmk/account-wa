@@ -14,9 +14,9 @@ namespace Core.Data.Dto {
         public virtual CompanyDto Company { get; set; }
 
         public long? CustomerId { get; set; }
-        public virtual CustomerDto Customer { get; set; }
+        public CustomerDto Customer { get; set; }
 
-        public virtual List<PaymentDto> Payments { get; set; }
+        public List<PaymentDto> Payments { get; set; }
 
         public bool IsDraft { get; set; }
 
