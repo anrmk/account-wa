@@ -111,8 +111,8 @@ namespace Web.Controllers.Mvc {
             }).ToList();
 
             var model = new BulkPaymentViewModel() {
-                DateFrom = DateTime.Now.LastDayOfMonth(),
-                DateTo = DateTime.Now.FirstDayOfMonth(),
+                DateFrom = DateTime.Now.FirstDayOfMonth(),
+                DateTo = DateTime.Now.LastDayOfMonth(),
                 CompanyId = 0,
                 Payments = payments,
                 Invoices = ids

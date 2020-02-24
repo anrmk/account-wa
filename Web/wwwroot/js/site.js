@@ -30,7 +30,7 @@ $.fn.dialog = function (header, callback) {
         }).on('hidden.bs.modal', (e) => {
             this.empty();
         })
-    ).done(callback($('.modal')));
+    ).done(callback(window.modal));
     return window.modal;
 }
 

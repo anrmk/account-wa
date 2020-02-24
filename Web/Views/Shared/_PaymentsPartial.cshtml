@@ -3,13 +3,29 @@
     Layout = null;
 }
 
-<div class="mb-3" role="toolbar">
-    <button class="btn btn-sm btn-outline-primary" onclick="generateRandomDate('@Model.DateFrom', '@Model.DateTo')">Random</button>
-</div>
+
 <form id="paymentsPartialForm" class="mb-3" action="/api/payment/create" method="post">
     <fieldset>
+        <div class="mb-3" role="toolbar">
+            <div class="form-row align-items-end">
+                <div class="col">
+                    <label for="DateFrom">Date from</label>
+                    <input type="date" class="form-control" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col">
+                    <label for="DateTo">Date to</label>
+                    <input type="date" class="form-control" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary" onclick="generateRandomDate()">Random</button>
+                </div>
+            </div>
+        </div>
+
+        @*Не учавствуют в формировании инвойсов
+        можно будет удалить если убрать функционал BulkPayment*@
         <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
-        <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" /> 
         <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
 
         <table class="table">
@@ -19,31 +35,30 @@
                     <th>Payment No</th>
                     <th>Invoice No</th>
                     <th>Invoice Amount</th>
-                    <th >Payment</th>
+                    <th>Payment</th>
                     <th>Date</th>
-
                 </tr>
             </thead>
             <tbody>
                 @for(var i = 0; i < Model.Payments.Count; i++) {
                     var item = Model.Payments[i];
-                <tr>
-                    <td>
-                        @(i + 1)
-                        <input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
-                        <input type="hidden" name="Payments[][No]" value="@item.No" />
-                        <input type="hidden" name="Payments[][InvoiceId]" value="@item.InvoiceId" />
-                    </td>
-                    <td>@item.No</td>
-                    <td>@item.InvoiceNo</td>
-                    <td>@item.InvoiceAmount</td>
-                    <td>
-                        <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" />
-                    </td>
-                    <td>
-                        <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
-                    </td>
-                </tr>
+                    <tr>
+                        <td>
+                            @(i + 1)
+                            <input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
+                            <input type="hidden" name="Payments[][No]" value="@item.No" />
+                            <input type="hidden" name="Payments[][InvoiceId]" value="@item.InvoiceId" />
+                        </td>
+                        <td>@item.No</td>
+                        <td>@item.InvoiceNo</td>
+                        <td>@item.InvoiceAmount</td>
+                        <td>
+                            <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" />
+                        </td>
+                        <td>
+                            <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                        </td>
+                    </tr>
                 }
             </tbody>
         </table>
@@ -63,8 +78,11 @@
 
     });
 
-    function generateRandomDate(from, to) {
-        $('#paymentsPartialForm input[type=date]').each((index, element) => {
+    function generateRandomDate() {
+        var from = $('#paymentsPartialForm input[name=DateFrom]').val();
+        var to = $('#paymentsPartialForm input[name=DateTo]').val();
+
+        $('#paymentsPartialForm table input[type=date]').each((index, element) => {
             var d = $.fn.randomDate(new Date(from), new Date(to));
             $(element).val(d.toISOString().slice(0, 10));
         });

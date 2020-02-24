@@ -28,7 +28,6 @@ namespace Core {
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
-                .ForMember(d => d.AccountNumber, o => o.MapFrom(s => "test"))
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
