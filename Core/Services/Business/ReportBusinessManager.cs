@@ -17,16 +17,17 @@ namespace Core.Services.Business {
         private readonly ICustomerActivityManager _customerActivityManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public ReportBusinessManager(IReportManager reportManager,
-            ICompanyManager companyManager,
+        public ReportBusinessManager(ICompanyManager companyManager,
             ICustomerManager customerManager,
             ICustomerActivityManager customerActivityManager,
-            ICrudBusinessManager businessManager) {
-            _reportManager = reportManager;
+            ICrudBusinessManager businessManager,
+            IReportManager reportManager
+            ) {
             _companyManager = companyManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
             _businessManager = businessManager;
+            _reportManager = reportManager;
         }
 
         public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods) {
@@ -38,23 +39,24 @@ namespace Core.Services.Business {
 
             //TODO: Заменить на эту функцию
             #region NEW
-            var filter = new InvoiceFilterDto() {
-                CompanyId = companyId,
-                Date = dateTo,
-                NumberOfPeriods = numberOfPeriods
-            };
+            //var filter = new InvoiceFilterDto() {
+            //    CompanyId = companyId,
+            //    Date = dateTo,
+            //    NumberOfPeriods = numberOfPeriods
+            //};
 
-            //var result = await _businessManager.GetInvoicePage(filter);
+            //var pagerResult = await _businessManager.GetInvoicePage(filter);
+            //var result = pagerResult.Items;
             #endregion
 
             var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
-            //Console.WriteLine("Report invoice count: " + result.Count);
 
             #region CREATE HEADERS
             var columns = new List<string>() { "Current" };
             for(int i = 0; i < numberOfPeriods; i++) {
                 columns.Add($"{1 + i * daysPerPeriod}-{(i + 1) * daysPerPeriod}");
             }
+            columns.Add($"{1 + numberOfPeriods * daysPerPeriod} +");
             columns.Add("Total");
             #endregion
 
@@ -66,7 +68,7 @@ namespace Core.Services.Business {
                 if(!report.ContainsKey(recordKey)) {
                     report.Add(recordKey, new AgingSummaryData() {
                         CustomerName = invoice.Customer.Name,
-                        AccountNumber = invoice.Customer.AccountNumber,
+                        AccountNo = invoice.Customer.No,
                         Data = new Dictionary<string, decimal>()
                     });
                 }
@@ -82,10 +84,10 @@ namespace Core.Services.Business {
                 var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
 
                 if(diffPay > 0) {
-                    var diffDate = (dateTo - invoice.DueDate).Days;
+                    var diffDays = (dateTo - invoice.DueDate).Days;
 
                     //Add amount to Current fiedl if DiffDate negativ 
-                    if(diffDate <= 0) {
+                    if(diffDays <= 0) {
                         summary["Current"] += diffPay;
                     } else {
                         for(var i = 0; i < numberOfPeriods; i++) {
@@ -93,8 +95,10 @@ namespace Core.Services.Business {
                             int to = (i + 1) * daysPerPeriod;
                             string key = $"{from + 1}-{to}";
 
-                            if(diffDate > from && diffDate <= to) {
+                            if(diffDays > from && diffDays <= to) {
                                 summary[key] += diffPay;
+                            } else if(diffDays >= 1 + numberOfPeriods * daysPerPeriod) {
+                                summary[$"{1 + numberOfPeriods * daysPerPeriod} +"] += diffPay;
                             }
                         }
                     }
@@ -109,11 +113,18 @@ namespace Core.Services.Business {
 
             var balance = new Dictionary<string, AgingSummaryBalance>();
             foreach(var c in columns) {
-                balance.Add(c, new AgingSummaryBalance {
-                    Sum = report.Values.Sum(x => x.Data[c]),
-                    Count = report.Values.Count(x => x.Data[c] != 0)
-                });
+                if(!c.Equals("Total")) {
+                    balance.Add(c, new AgingSummaryBalance {
+                        Sum = report.Values.Sum(x => x.Data[c]),
+                        Count = report.Values.Count(x => x.Data[c] != 0)
+                    });
+                }
             }
+
+            balance.Add("Total", new AgingSummaryBalance {
+                Sum = report.Values.Sum(x => x.Data["Total"]),
+                Count = balance.Values.Sum(x => x.Count)
+            });
 
             return new AgingSummaryReport() {
                 CompanyId = companyId,

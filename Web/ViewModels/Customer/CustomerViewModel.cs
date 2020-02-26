@@ -9,7 +9,7 @@ namespace Web.ViewModels {
         [Required]
         [Display(Name = "Account Number")]
         [MaxLength(16)]
-        public string AccountNumber { get; set; }
+        public string No { get; set; }
 
         [Required]
         [MaxLength(256)]

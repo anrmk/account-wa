@@ -20,6 +20,8 @@ namespace Core.Services.Business {
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
 
+        Task<bool> GetCompanyExportSettings(long id);
+
         Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id);
         Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId);
         Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto);
@@ -36,7 +38,7 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomer(long id);
 
         Task<InvoiceDto> GetInvoice(long id);
-        Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10);
+        //Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10);
         Task<Pager<InvoiceDto>> GetInvoicePage(InvoiceFilterDto filter);
 
         Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId);
@@ -65,8 +67,8 @@ namespace Core.Services.Business {
         public readonly ICustomerActivityManager _customerActivityManager;
         public readonly IInvoiceManager _invoiceManager;
         public readonly IPaymentManager _paymentManager;
-
         public readonly IReportManager _reportManager;
+
         public readonly INsiBusinessManager _nsiBusinessManager;
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
@@ -82,8 +84,8 @@ namespace Core.Services.Business {
             _customerActivityManager = customerActivityManager;
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
-            _reportManager = reportManager;
             _nsiBusinessManager = nsiBusinessManager;
+            _reportManager = reportManager;
         }
 
         #region COMPANY
@@ -201,6 +203,11 @@ namespace Core.Services.Business {
             var entity = await _companySummaryManager.Create(newEntity);
             return _mapper.Map<CompanySummaryRangeDto>(entity);
         }
+
+        public async Task<bool> GetCompanyExportSettings(long id) {
+            return false;
+        }
+
         #endregion
 
         #region CUSTOMER
@@ -214,7 +221,7 @@ namespace Core.Services.Business {
                    (true)
                 && (string.IsNullOrEmpty(search)
                     || x.Name.ToLower().Contains(search.ToLower())
-                    || x.AccountNumber.ToLower().Contains(search.ToLower())
+                    || x.No.ToLower().Contains(search.ToLower())
                     || x.Description.ToLower().Contains(search.ToLower()));
 
             #region Sort
@@ -337,28 +344,58 @@ namespace Core.Services.Business {
             DateTime? dateFrom = filter.Date?.AddDays(30 * filter.NumberOfPeriods * -1);
             var selectedPeriod = filter.PeriodId.HasValue ? await _nsiBusinessManager.GetReportPeriodById(filter.PeriodId.Value) : null;
 
-            #region Filter
-            Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
-                  (true)
-               && (string.IsNullOrEmpty(filter.Search) || (x.No.ToLower().Contains(filter.Search.ToLower()) || x.Customer.Name.ToLower().Contains(filter.Search.ToLower())))
-               && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
-               && ((filter.Date == null || filter.Date == null) || (x.DueDate >= dateFrom.Value && x.Date <= filter.Date.Value))
-               && ((filter.Date == null || dateFrom == null) || ((x.Payments.Count == 0) || (x.Payments.Count != 0 && !x.Payments.Any(s => s.Date <= filter.Date.Value))))
-               && ((filter.Date == null || dateFrom == null || selectedPeriod == null) ||
-                        (x.Date <= filter.Date.Value.AddDays((selectedPeriod.From + 30) * -1) &&
-                        x.Date >= filter.Date.Value.AddDays((selectedPeriod.To + 30) * -1))
-                )
-               && ((filter.Date == null || dateFrom == null) || ((x.Subtotal * (1 + x.TaxRate / 100)) - ((x.Payments.Count == 0) ? 0 : x.Payments.Sum(x => x.Amount))) >= 0)
-               ;
-            #endregion
-
             #region Sort
             Expression<Func<InvoiceEntity, string>> orderPredicate = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
             #endregion
 
-            string[] include = new string[] { "Company", "Customer", "Payments" };
+            Tuple<List<InvoiceEntity>, int> tuple;
 
-            Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+            if(filter.Date != null && dateFrom != null) {
+                var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
+                invoices = invoices.Where(x =>
+                    true &&
+                    (selectedPeriod == null) ||
+                    ((filter.Date.Value - x.DueDate).Days >= selectedPeriod.From
+                        && (filter.Date.Value - x.DueDate).Days <= selectedPeriod.To
+                        && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0)
+                ).OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+
+                var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
+
+                tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());
+
+            } else {
+                #region Filter
+                Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
+                      (true)
+                   && (string.IsNullOrEmpty(filter.Search) || (x.No.ToLower().Contains(filter.Search.ToLower()) || x.Customer.Name.ToLower().Contains(filter.Search.ToLower())))
+                   && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
+
+                #region MUST BE UNIVERSAL LINQ REQUEST
+                   //&& ((filter.Date == null || dateFrom == null) || (/*x.DueDate >= dateFrom.Value &&*/ x.Date <= filter.Date.Value))
+                   //&& ((filter.Date == null || dateFrom == null) || ((x.Payments.Count == 0) || (!x.Payments.Any(s => s.Date <= filter.Date.Value))))
+                   //&& ((filter.Date == null || dateFrom == null || selectedPeriod == null) ||
+                   //        (x.Date <= filter.Date.Value.AddDays((selectedPeriod.From + 30) * -1) &&
+                   //        x.Date >= filter.Date.Value.AddDays((selectedPeriod.To + 30) * -1))
+                   //)
+                   /*&& ((filter.Date == null || dateFrom == null) || (x.Payments.Count == 0)
+
+                   && (
+                        (filter.Date == null || dateFrom == null) ||
+                        ((x.Subtotal * (1 + x.TaxRate / 100) - (x.Payments.Count > 0 ? x.Payments.Sum(d => d.Amount) : 0 )) >= 0)
+                        //(((x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments.Sum(d => (d.Date < filter.Date.Value ? 0 : d.Amount)))) < 0)
+                   )
+
+                    )*/
+                   //: x.Payments.Sum(x => (x.Date < filter.Date.Value) ? 0 : x.Amount))) >= 0)
+                   ;
+                #endregion
+                #endregion
+
+                string[] include = new string[] { "Company", "Customer", "Payments" };
+
+                tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+            }
 
             var list = tuple.Item1;
             var count = tuple.Item2;
@@ -370,101 +407,6 @@ namespace Core.Services.Business {
 
             var result = _mapper.Map<List<InvoiceDto>>(list);
             return new Pager<InvoiceDto>(result, count, page, filter.Limit);
-        }
-
-        public async Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? dateTo, int? daysPerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10) {
-            DateTime? dateFrom = dateTo.HasValue ? dateTo.Value.AddDays(daysPerPeriod.Value * numberOfPeriod.Value * -1) : (DateTime?)null;
-            var selectedPeriod = await _nsiBusinessManager.GetReportPeriodById(period ?? 0);
-
-            #region AGING FILTER
-            /*
-            if(dateTo.HasValue && daysPerPeriod.HasValue && numberOfPeriod.HasValue) {
-                var selectedPeriod = await _nsiBusinessManager.GetReportPeriodById(period.Value);
-                
-
-                var inv = await _reportManager.GetAgingInvoices(companyId.Value, dateTo.Value, daysPerPeriod.Value, numberOfPeriod.Value);
-                var invoiceList = new List<InvoiceEntity>();
-                foreach(var invoice in inv) {
-                    var diffDate = (dateTo.Value - invoice.DueDate).Days;
-                    var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
-                    var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
-                    if(diffPay > 0) {
-                        if(period.HasValue) {
-                            var pv = period.Value;
-                            if(pv == 1) {
-                                if(diffDate <= 0) {
-                                    invoiceList.Add(invoice);
-                                }
-                            } else {
-                                //int from = (pv - 2) * daysPerPeriod.Value;
-                                //int to = (pv - 1) * daysPerPeriod.Value;
-                                if(diffDate > selectedPeriod.From && diffDate <= selectedPeriod.To) {
-                                    invoiceList.Add(invoice);
-                                }
-                            }
-
-                        } else {
-                            invoiceList.Add(invoice);
-                        }
-                    }
-                }
-                return new Pager<InvoiceDto>(_mapper.Map<List<InvoiceDto>>(invoiceList), invoiceList.Count, 1, invoiceList.Count);
-            }*/
-            #endregion
-
-            //var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
-            //var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
-
-            Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
-                   (true)
-                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower()) || x.Customer.Name.ToLower().Contains(search.ToLower())))
-                && ((companyId == null) || x.CompanyId == companyId)
-                && ((dateTo == null || dateFrom == null) || (x.DueDate >= dateFrom.Value && x.Date <= dateTo.Value))
-                && ((dateTo == null || dateFrom == null) || ((x.Payments.Count == 0) || (x.Payments.Count != 0 && !x.Payments.Any(s => s.Date <= dateTo.Value))))
-                && ((dateTo == null || dateFrom == null) || (
-                        //EntityFunctions.DiffMonths(i.FromDate, i.ToDate)
-                        (dateTo.Value - x.DueDate).Days > selectedPeriod.From &&
-                        (dateTo.Value - x.DueDate).Days <= selectedPeriod.From)
-                        )
-
-                //--&& ((dateTo == null || dateFrom == null) || ((x.Subtotal * (1 + x.TaxRate / 100)) - ((x.Payments.Count == 0) ? 0 : x.Payments.Sum(x => x.Amount))) > 0)
-                ;
-
-            //var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
-            //    "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
-            //    "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized, " +
-            //    "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
-            //    "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
-            //    "FROM[accountWa].[dbo].[Invoices] AS INV  " +
-            //    "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
-            //    "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
-            //    "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
-            //    "WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " +
-            //    "ORDER BY CUS.[AccountNumber] DESC";
-
-            #region Sort
-            //var orderPredicate = GetExpression<InvoiceEntity>(sort ?? "No"); 
-            //var orderPredicate = new Expression<Func<InvoiceEntity, Guid>>(x => Guid.NewGuid);
-            //Expression<Func<InvoiceEntity, string>> orderPredicate = x => Guid.NewGuid().ToString(); //работает
-
-            Expression<Func<InvoiceEntity, string>> orderPredicate = sort.Equals("random") ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(sort ?? "No");
-
-            #endregion
-
-            string[] include = new string[] { "Company", "Customer", "Payments" };
-
-            Tuple<List<InvoiceEntity>, int> tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, offset, limit, include);
-
-            var list = tuple.Item1;
-            var count = tuple.Item2;
-
-            if(count == 0)
-                return new Pager<InvoiceDto>(new List<InvoiceDto>(), 0, offset, limit);
-
-            var page = (offset + limit) / limit;
-
-            var result = _mapper.Map<List<InvoiceDto>>(list);
-            return new Pager<InvoiceDto>(result, count, page, limit);
         }
 
         public async Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId) {

@@ -6,16 +6,29 @@
 }
 
 @section Toolbar {
-<ul class="nav justify-content-end">
-    <li class="nav-item">
-        <form asp-controller="Report" asp-action="ExportToCsv" method="post" id="test">
-            <input type="hidden" name="CompanyId" id="printCompanyId" />
-            <input type="hidden" name="Date" id="printDate" />
-            <input type="hidden" name="NumberOfPeriods" id="printNumberOfPeriods" />
-            <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>
-        </form>
-    </li>
-</ul>
+    <ul class="nav justify-content-end">
+        <li class="nav-item">
+            <form id="exportReportForm" asp-controller="Report" asp-action="ExportToCsv" method="post">
+                <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+                <input type="hidden" name="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="NumberOfPeriods" value="@Model.NumberOfPeriods" />
+            </form>
+            @*<button id="exportBtn" class="btn btn-sm btn-outline-secondary">Export</button>*@
+            @*<button type="submit" class="btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>*@
+
+            <div class="dropdown dropleft">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Export
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                    <h6 class="dropdown-header">Export CSV</h6>
+                    <button id="defaultExportBtn" type="submit" class="dropdown-item" form="exportReportForm">Default settings</button>
+                    <button id="customExportBtn" type="button" class="dropdown-item">Custom settings</button>
+                </div>
+            </div>
+
+        </li>
+    </ul>
 }
 
 <div class="row">
@@ -67,42 +80,42 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
-            var $form = $('#filterReportForm');
-            $form.on('submit', e => {
-                $form.ajaxSubmit({}, (target, data, status) => {
+
+
+            //On Export Button click
+            $customExportBtn = $('#customExportBtn').click(_ => {
+                var companyId = $('#companyId').val();
+                var options = {
+                    'type': 'post',
+                    'url': `/report/getexportsettings/` + companyId,
+                    //'data': { id: $('#companyId').val() }
+                };
+                $.ajax(options).done((data, status, jqXHR) => {
+                    $(data).dialog('Export data');
+                });
+
+            });
+
+            // Generate report
+            $filterReportForm = $('#filterReportForm').on('submit', e => {
+                $filterReportForm.ajaxSubmit({}, (target, data, status) => {
                     status === 'success' ? $('#content').html(data) : $('#content').empty();
+
+                    var data = target.serializeJSON();
+                    $exportReportForm.find('input[name=CompanyId]').val(data.CompanyId);
+                    $exportReportForm.find('input[name=Date]').val(data.Date);
+                    $exportReportForm.find('input[name=NumberOfPeriods]').val(data.NumberOfPeriods);
                 });
                 e.preventDefault();
             });
+
+            $exportReportForm = $('#exportReportForm').on('submit', e => {
+                $exportReportForm.ajaxSubmit({}, (target, data, status) => {
+                    alert(status)
+                    //status === 'success' ? $('#content').html(data) : $('#content').empty();
+                });
+                e.preventDefault();
+            })
         });
-        //function runReport(e) {
-        //    var form = $('#filterReportForm');
-        //    var fieldset = form.find('fieldset');
-        //    var data = JSON.stringify(form.serializeJSON({ parseNumbers: true }));
-
-        //    var options = {
-        //        'url': '/api/report/aging',
-        //        'type': 'POST',
-        //        'data': data,
-        //        'processData': false,
-        //        'contentType': 'application/json; charset=utf-8'
-        //    };
-
-        //    fieldset.attr('disabled', 'disabled');
-        //    $.ajax(options).done((data, status, jqXHR) => {
-        //        fieldset.removeAttr('disabled');
-        //        $('#content').html(data);
-        //    }).fail((jqXHR, status) => {
-        //        fieldset.removeAttr('disabled');
-        //        alert(status)
-        //    });
-        //}
-
-        function submitExportToCvs() {
-            var data = $('#filterReportForm').serializeJSON();
-            $('#printCompanyId').val(data.CompanyId);
-            $('#printDate').val(data.Date);
-            $('#printNumberOfPeriods').val(data.NumberOfPeriods);
-        }
     </script>
 }

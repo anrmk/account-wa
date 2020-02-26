@@ -76,7 +76,7 @@
                         var summary = Model.Data[i];
                         <tr>
                             <td>@(i+1)</td>
-                            <td scope="row">@summary.AccountNumber</td>
+                            <td scope="row">@summary.AccountNo</td>
                             <td scope="row">@summary.CustomerName</td>
                             @foreach(var column in Model.Columns) {
                                 @if(summary.Data.ContainsKey(column)) {

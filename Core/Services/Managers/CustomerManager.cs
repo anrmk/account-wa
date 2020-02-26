@@ -72,7 +72,7 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
             var result = new List<CustomerBulkEntity>();
-            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber], CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
+            var query = "SELECT CUS.[Id], INV.[Total], CUS.[No], CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
                                                     "FROM[dbo].[Customers] AS CUS " +
                                                     "LEFT JOIN(SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] " +
                                                     "WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO " +
@@ -100,7 +100,7 @@ namespace Core.Services.Managers {
                                 result.Add(new CustomerBulkEntity() {
                                     Id = (long)reader["Id"],
                                     Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,
-                                    AccountNumber = reader["AccountNumber"] as string,
+                                    No = reader["No"] as string,
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,
                                     Terms = reader["Terms"] as string,

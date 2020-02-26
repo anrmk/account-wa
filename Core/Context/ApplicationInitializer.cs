@@ -75,12 +75,12 @@ namespace Core.Context {
         private void CustomerInitializer(string fileUrl) {
             var _context = _serviceProvider.GetRequiredService<ApplicationContext>();
             var customers = _context.Customers.ToList();
-            var customersIds = customers.Select(x => x.AccountNumber);
+            var customersIds = customers.Select(x => x.No);
 
             var JSON = System.IO.File.ReadAllText(fileUrl);
             var customerList = JsonConvert.DeserializeObject<List<CustomerEntity>>(JSON);
 
-            var diffCustomers = customerList.Where(x => !customersIds.Contains(x.AccountNumber));
+            var diffCustomers = customerList.Where(x => !customersIds.Contains(x.No));
             if(diffCustomers.Count() > 0) {
                 _context.Customers.AddRange(diffCustomers);
                 _context.SaveChanges();
@@ -105,7 +105,7 @@ namespace Core.Context {
             var diffInvoices = 0;
             foreach(var i in invoiceList) {
                 if(i.Subtotal != 0) {
-                    var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
+                    var customer = _context.Customers.Where(x => x.No.Equals(i.CustomerAccountNumber)).FirstOrDefault();
 
                     if(customer != null) {
                         var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();
@@ -143,7 +143,7 @@ namespace Core.Context {
             //diffInvoiceList.AddRange(noInSecondInvoiceList);
 
             foreach(var i in diffInvoiceList) {
-                var customer = _context.Customers.Where(x => x.AccountNumber.Equals(i.CustomerAccountNumber)).FirstOrDefault();
+                var customer = _context.Customers.Where(x => x.No.Equals(i.CustomerAccountNumber)).FirstOrDefault();
                 if(customer != null) {
                     var random = new Random();
                     var invoice = _context.Invoices.Where(x => x.CustomerId.Equals(customer.Id) && x.Subtotal.Equals(i.Subtotal)).FirstOrDefault();

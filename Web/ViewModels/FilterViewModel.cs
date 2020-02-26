@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {
+    /// <summary>
+    /// Filter for list paggination
+    /// </summary>
     public class FilterViewModel {
         [FromQuery(Name = "search")]
         public string Search { get; set; } = "";

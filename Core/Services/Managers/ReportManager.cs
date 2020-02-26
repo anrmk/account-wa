@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Core.Context;
-using Core.Data.Dto;
 using Core.Data.Entities;
 
 using Microsoft.Data.SqlClient;
@@ -11,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Managers {
     public interface IReportManager {
-        Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod);
+        //Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod);
         Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod);
     }
 
@@ -24,6 +23,7 @@ namespace Core.Services.Managers {
             _invoiceManager = invoiceManager;
         }
 
+        /*
         [Obsolete]
         public async Task<List<ReportDataDto>> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT CUS.[AccountNumber], CUS.[Name] AS CustomerName, INV.[Customer_Id] AS CustomerId, INV.[Id], INV.[No], CAST(INV.[Subtotal] * (1+INV.[TaxRate]/100) as decimal(10,2)) AS Amount, INV.[Date], INV.[DueDate], PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
@@ -86,7 +86,7 @@ namespace Core.Services.Managers {
                 Console.WriteLine(e.Message);
             }
             return result;
-        }
+        }*/
 
         public async Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
@@ -94,12 +94,13 @@ namespace Core.Services.Managers {
                         "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized, " +
                         "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
                         "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
-                        "FROM[accountWa].[dbo].[Invoices] AS INV  " +
-                        "LEFT JOIN[accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
+                        "FROM [accountWa].[dbo].[Invoices] AS INV  " +
+                        "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
-                        "WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " +
-                        "ORDER BY CUS.[AccountNumber] DESC ";
+                        "WHERE INV.[Company_Id] = @COMPANYID AND INV.[Date] <= @DATETO " +
+                        //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
+                        "ORDER BY INV.[No] DESC ";
 
             //if(offset.HasValue && limit.HasValue) {
             //    query += "OFFSET @PAGESIZE * (@PAGENUMBER - 1) ROWS " +
@@ -142,7 +143,7 @@ namespace Core.Services.Managers {
                                 if(reader["CustomerId"] != DBNull.Value) {
                                     var customer = new CustomerEntity() {
                                         Id = (long)reader["CustomerId"],
-                                        AccountNumber = reader["CustomerAccountNumber"] as string,
+                                        No = reader["CustomerAccountNumber"] as string,
                                         Name = reader["CustomerName"] as string,
                                         PhoneNumber = reader["CustomerPhoneNumber"] as string,
                                         Terms = reader["CustomerTerms"] as string,

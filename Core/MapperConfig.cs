@@ -22,27 +22,28 @@ namespace Core {
             CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
             #endregion
 
-            #region CUSTOMER
-            CreateMap<CustomerDto, CustomerEntity>()
-                .ForMember(d => d.Company, o => o.Ignore())
-                .ForMember(d => d.Invoices, o => o.Ignore())
-                .ForMember(d => d.Activities, o => o.Ignore())
-                .ReverseMap()
-                .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
-            ;
-            CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
-            CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
-
-            CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();
-            #endregion
-
             #region INVOICE
             CreateMap<InvoiceDto, InvoiceEntity>()
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Payments, o => o.Ignore())
                 .ReverseMap();
-           
+
+            #endregion
+
+            #region CUSTOMER
+            CreateMap<CustomerDto, CustomerEntity>()
+                .ForMember(d => d.Company, o => o.Ignore())
+                .ForMember(d => d.Invoices, o => o.Ignore())
+                .ForMember(d => d.Activities, o => o.Ignore())
+                .ReverseMap()
+                // .ForMember(d => d.AccountNumber, o => o.MapFrom(s => s.AccountNumber))
+                .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
+            ;
+            CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
+            CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
+
+            CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();
             #endregion
 
             #region PAYMENT

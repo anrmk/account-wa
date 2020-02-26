@@ -101,9 +101,9 @@ namespace Web.Controllers.Mvc {
             Random rd = new Random();
 
             var payments = invoices.Select(x => new PaymentViewModel() {
-                No = string.Format("PMNT_{0}", rd.NextLong(11111,99999).ToString()),
+                No = string.Format("PMNT_{0}", rd.NextLong(11111, 99999).ToString()),
                 Amount = x.Subtotal - x.Payments.TotalAmount(),
-                CustomerId = x.CustomerId ?? 0,
+                CustomerId = x.CustomerId,
                 Date = DateTime.Now,
                 InvoiceId = x.Id,
                 InvoiceNo = x.No,

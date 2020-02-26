@@ -3,7 +3,7 @@
 namespace Web.ViewModels {
     public class CustomerListViewModel {
         public long Id { get; set; }
-        public string AccountNumber { get; set; }
+        public string No { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public string Terms { get; set; }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -24,13 +25,16 @@ namespace Web.Controllers.Mvc {
     public class ReportController: BaseController<ReportController> {
         private readonly int _daysPerPeriod = 30;
 
+        private readonly INsiBusinessManager _nsiBusinessManager;
         private readonly IMemoryCache _memoryCache;
-        public ICrudBusinessManager _crudBusinessManager;
-        public IReportBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _crudBusinessManager;
+        private readonly IReportBusinessManager _businessManager;
+
         public ReportController(IMemoryCache memoryCache, ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager) : base(logger, mapper, context) {
+            INsiBusinessManager nsiBusinessManager, ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager) : base(logger, mapper, context) {
             _memoryCache = memoryCache;
             _crudBusinessManager = crudBusinessManager;
+            _nsiBusinessManager = nsiBusinessManager;
             _businessManager = businessManager;
         }
 
@@ -43,11 +47,38 @@ namespace Web.Controllers.Mvc {
             });
         }
 
+
+        public async Task<IActionResult> GetExportSettings(long id) {
+            var item = await _crudBusinessManager.GetCompany(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var periods = await _nsiBusinessManager.GetReportPeriods();
+
+            var fields = new List<ExportSettingsFieldValueViewModel>();
+            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Account Number", Value = "New Name" });
+            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Business Name", Value = "Business Name" });
+            periods.ForEach(x =>
+                fields.Add(new ExportSettingsFieldValueViewModel() { Name = x.Name, Value = x.Name })
+            );
+            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Total", Value = "Total" });
+
+            var settings = new ExportSettingsViewModel() {
+                CompanyId = id,
+                ShowEmptyRows = true,
+                Title = "Some Title",
+                Fields = fields
+            };
+
+            return View("_ExportSettingsPartial", settings);
+        }
+
         [HttpPost]
         public async Task<IActionResult> ExportToCsv(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, _daysPerPeriod, model.NumberOfPeriods);
+                    var result = await _businessManager.GetAgingReport(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods);
 
                     var mem = new MemoryStream();
                     var writer = new StreamWriter(mem);
@@ -57,7 +88,7 @@ namespace Web.Controllers.Mvc {
                     //csvWriter.Configuration.HasHeaderRecord = true;
                     //csvWriter.Configuration.AutoMap<ExpandoObject>();
 
-                    csvWriter.WriteField("AccountNumber");
+                    csvWriter.WriteField("No");
                     csvWriter.WriteField("CustomerName");
                     foreach(var header in result.Columns) {
                         csvWriter.WriteField(header);
@@ -65,7 +96,7 @@ namespace Web.Controllers.Mvc {
                     csvWriter.NextRecord();
 
                     foreach(var summary in result.Data) {
-                        csvWriter.WriteField(summary.AccountNumber);
+                        csvWriter.WriteField(summary.AccountNo);
                         csvWriter.WriteField(summary.CustomerName);
                         foreach(var column in result.Columns) {
                             csvWriter.WriteField(summary.Data.ContainsKey(column) ? summary.Data[column].ToString() : "");
@@ -118,8 +149,8 @@ namespace Web.Controllers.Api {
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                     _memoryCache.Set("_ReportViewModel", model, cacheEntryOptions);
 
-                    var result = await _businessManager.GetAgingReport(model.CompanyId ?? 0, model.Date, 30, model.NumberOfPeriods);
-                    string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
+                    var result = await _businessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods);
+                    string html = _viewRenderService.RenderToStringAsync("_AgingReportPartial", result).Result;
 
                     return Ok(html);
                 }
@@ -128,14 +159,5 @@ namespace Web.Controllers.Api {
             }
             return null;
         }
-
-        //[HttpGet]
-        //[Route("test")]
-        //public async Task<IActionResult> GetTestReport() {
-        //    var result = await _businessManager.GetAgingReport(1, new DateTime(2019, 12, 31), 30, 4);
-        //    //string html = _viewRenderService.RenderToStringAsync("_AgingReport", result).Result;
-        //    return Ok(result);
-
-        //}
     }
 }

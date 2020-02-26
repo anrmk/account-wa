@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Core.Extension {
+﻿namespace Core.Extension {
     class NumberExtension {
     }
     public static class NumberExtensionMethods {
