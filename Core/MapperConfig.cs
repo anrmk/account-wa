@@ -20,6 +20,10 @@ namespace Core {
                 ;
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
             CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
+            CreateMap<CompanyExportSettingsDto, CompanyExportSettingsEntity>()
+                .ForMember(d => d.Fields, o => o.Ignore())
+                .ReverseMap();
+            CreateMap<CompanyExportSettingsFieldDto, CompanyExportSettingsFieldEntity>().ReverseMap();
             #endregion
 
             #region INVOICE

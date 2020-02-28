@@ -3,10 +3,6 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "bootstrap-table@1.16.0",
-      "destination": "wwwroot/lib/bootstrap-table/"
-    },
-    {
       "library": "font-awesome@5.11.2",
       "destination": "wwwroot/lib/font-awesome/"
     },
@@ -40,6 +36,10 @@
     {
       "library": "bootstrap-table@1.16.0",
       "destination": "wwwroot/lib/bootstrap-table/"
+    },
+    {
+      "library": "Sortable@1.10.1",
+      "destination": "wwwroot/lib/sortable"
     }
   ]
 }

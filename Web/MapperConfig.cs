@@ -43,6 +43,9 @@ namespace Web {
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
             CreateMap<CompanySummaryRangeViewModel, CompanySummaryRangeDto>();
+
+            CreateMap<CompanyExportSettingsViewModel, CompanyExportSettingsDto>().ReverseMap();
+            CreateMap<CompanyExportSettingsFieldViewModel, CompanyExportSettingsFieldDto>().ReverseMap();
             #endregion
 
             #region CUSTOMER

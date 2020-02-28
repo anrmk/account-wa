@@ -1,0 +1,107 @@
+﻿@model Web.ViewModels.CompanyExportSettingsViewModel
+
+@{
+    ViewData["Title"] = "Edit company export settings";
+}
+
+@section Toolbar  {
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
+                <input asp-for="Id" type="hidden" />
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </form>
+        </div>
+    </div>
+}
+<div class="card">
+    <div class="card-body">
+        <form id="createForm" method="POST" asp-action="EditExportSettings">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="CompanyId" type="hidden" />
+            <div class="form-row mb-3">
+                <div class="col-8">
+                    <label asp-for="Title"></label>
+                    <input asp-for="Title" class="form-control" required>
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="ShowEmptyRows"></label>
+                    <select asp-for="ShowEmptyRows" type="checkbox" class="form-control">
+                        <option value="true">Display</option>
+                        <option value="false">Hide</option>
+                    </select>
+                    <span asp-validation-for="ShowEmptyRows" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <a id="createBtn" asp-controller="Company" asp-action="CreateExportSettingsField" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Fields"></label>
+                <div id="exportSettingsFieldsList" class="list-group">
+                    @if(Model.Fields != null && Model.Fields.Count > 0) {
+                        @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
+
+                            <partial name="_CompanyExportSettingsFieldPartial" model="field" />
+                        }
+                    } else {
+                        <div>No matching records found</div>
+                    }
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-sm btn-outline-primary" form="createForm">Save</button>
+            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-sm btn-link">Cancel</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(e => {
+            var $exportSettingsFieldsList = $('#exportSettingsFieldsList');
+            var $createBtn = $('#createBtn').on('click', e => {
+                e.preventDefault();
+                var options = {
+                    'type': 'get',
+                    'url': $(e.target).attr('href')
+                }
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    $exportSettingsFieldsList.append(data);
+                }).fail((jqXHR, status) => {
+                    alert(status)
+                });
+            });
+
+            //$('#exportSettingsFieldsList')
+            var $sortable = new Sortable(exportSettingsFieldsList, {
+                //handle: '.handle', // handle's class
+                filter: '.disabled',
+                draggable: '.list-group-item',
+                ghostClass: 'list-group-item-info',
+                animation: 150,
+                onSort: function (e) {
+                    //var elements = e.to;
+                    // alert(e.newIndex)
+                    var sort = this.toArray();
+                    for (var i = 0; i < sort.length; i++) {
+                        var index = sort[i];
+                        var field = $(e.to).find(`#sort_${index}`);
+                        field.val(i)
+                    }
+
+                }
+            })
+            window.sortable = $sortable;
+            var sortIndexes = $sortable.toArray();
+            //alert(sortIndexes)
+        })
+    </script>
+}

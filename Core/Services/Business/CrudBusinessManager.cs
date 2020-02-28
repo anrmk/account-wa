@@ -20,7 +20,15 @@ namespace Core.Services.Business {
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
 
-        Task<bool> GetCompanyExportSettings(long id);
+        Task<CompanyExportSettingsDto> GetCompanyExportSettings(long id);
+        Task<List<CompanyExportSettingsDto>> GetCompanyAllExportSettings(long companyId);
+        Task<CompanyExportSettingsDto> CreateCompanyExportSettings(CompanyExportSettingsDto dto);
+        Task<CompanyExportSettingsDto> UpdateCompanyExportSettings(long id, CompanyExportSettingsDto dto);
+        Task<bool> DeleteCompanyExportSettings(long id);
+
+        Task<CompanyExportSettingsFieldDto> GetCompanyExportSettingsField(long id);
+        Task<CompanyExportSettingsFieldDto> CreateCompanyExportSettingsField(CompanyExportSettingsFieldDto dto);
+        Task<bool> DeleteCompanyExportSettingsField(long id);
 
         Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id);
         Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId);
@@ -59,27 +67,33 @@ namespace Core.Services.Business {
     }
 
     public class CrudBusinessManager: BaseBusinessManager, ICrudBusinessManager {
-        public readonly IMapper _mapper;
-        public readonly ICompanyManager _companyManager;
-        public readonly ICompanyAddressMananger _companyAddressManager;
-        public readonly ICompanySummaryRangeManager _companySummaryManager;
-        public readonly ICustomerManager _customerManager;
-        public readonly ICustomerActivityManager _customerActivityManager;
-        public readonly IInvoiceManager _invoiceManager;
-        public readonly IPaymentManager _paymentManager;
-        public readonly IReportManager _reportManager;
+        private readonly IMapper _mapper;
+        private readonly ICompanyManager _companyManager;
+        private readonly ICompanyAddressMananger _companyAddressManager;
+        private readonly ICompanySummaryRangeManager _companySummaryManager;
+        private readonly ICompanyExportSettingsManager _companyExportSettingsManager;
+        private readonly ICompanyExportSettingsFieldManager _companyExportSettingsFieldManager;
+        private readonly ICustomerManager _customerManager;
+        private readonly ICustomerActivityManager _customerActivityManager;
+        private readonly IInvoiceManager _invoiceManager;
+        private readonly IPaymentManager _paymentManager;
+        private readonly IReportManager _reportManager;
 
-        public readonly INsiBusinessManager _nsiBusinessManager;
+        private readonly INsiBusinessManager _nsiBusinessManager;
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICompanyAddressMananger companyAddressManager,
             ICompanySummaryRangeManager companySummaryManager,
+            ICompanyExportSettingsManager companyExportSettingsManager,
+            ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager, IReportManager reportManager, INsiBusinessManager nsiBusinessManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
             _companySummaryManager = companySummaryManager;
+            _companyExportSettingsManager = companyExportSettingsManager;
+            _companyExportSettingsFieldManager = companyExportSettingsFieldManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
             _invoiceManager = invoiceManager;
@@ -173,6 +187,7 @@ namespace Core.Services.Business {
             return result != 0;
         }
 
+        #region COMPANY SUMMARY RANGE
         /// <summary>
         /// Получить ценовую группу по идунтификатору
         /// </summary>
@@ -204,9 +219,88 @@ namespace Core.Services.Business {
             return _mapper.Map<CompanySummaryRangeDto>(entity);
         }
 
-        public async Task<bool> GetCompanyExportSettings(long id) {
-            return false;
+        #endregion
+
+        #region COMPANY EXPORT SETTINGS
+        public async Task<CompanyExportSettingsDto> GetCompanyExportSettings(long id) {
+            var result = await _companyExportSettingsManager.FindInclude(id);
+            return _mapper.Map<CompanyExportSettingsDto>(result);
         }
+
+        public async Task<List<CompanyExportSettingsDto>> GetCompanyAllExportSettings(long companyId) {
+            var result = await _companyExportSettingsManager.FindAllByCompanyId(companyId);
+            return _mapper.Map<List<CompanyExportSettingsDto>>(result);
+        }
+
+        public async Task<CompanyExportSettingsDto> CreateCompanyExportSettings(CompanyExportSettingsDto dto) {
+            var company = await _companyManager.Find(dto.CompanyId);
+            if(company == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map<CompanyExportSettingsEntity>(dto);
+            var entity = await _companyExportSettingsManager.Create(newEntity);
+            return _mapper.Map<CompanyExportSettingsDto>(entity);
+        }
+
+        public async Task<CompanyExportSettingsDto> UpdateCompanyExportSettings(long id, CompanyExportSettingsDto dto) {
+            var entity = await _companyExportSettingsManager.FindInclude(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _companyExportSettingsManager.Update(newEntity);
+
+            #region UPDATE FiELDS LIST
+            foreach(var fieldDto in dto.Fields) {
+                var field = await _companyExportSettingsFieldManager.Find(fieldDto.Id);
+                if(field != null) {
+                    var fieldEntity = _mapper.Map(fieldDto, field);
+                    fieldEntity = await _companyExportSettingsFieldManager.Update(fieldEntity);
+                }
+            }
+            #endregion
+
+            return _mapper.Map<CompanyExportSettingsDto>(entity);
+        }
+
+        public async Task<bool> DeleteCompanyExportSettings(long id) {
+            var entity = await _companyExportSettingsManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _companyExportSettingsManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
+
+        #region EXPORT SETTINGS FIELD
+        public async Task<CompanyExportSettingsFieldDto> GetCompanyExportSettingsField(long id) {
+            var result = await _companyExportSettingsFieldManager.Find(id);
+            return _mapper.Map<CompanyExportSettingsFieldDto>(result);
+        }
+
+        public async Task<CompanyExportSettingsFieldDto> CreateCompanyExportSettingsField(CompanyExportSettingsFieldDto dto) {
+            var settings = await _companyExportSettingsManager.Find(dto.ExportSettingsId);
+            if(settings == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map<CompanyExportSettingsFieldEntity>(dto);
+            var entity = await _companyExportSettingsFieldManager.Create(newEntity);
+            return _mapper.Map<CompanyExportSettingsFieldDto>(entity);
+        }
+
+        public async Task<bool> DeleteCompanyExportSettingsField(long id) {
+            var entity = await _companyExportSettingsFieldManager.Find(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _companyExportSettingsFieldManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
 
         #endregion
 

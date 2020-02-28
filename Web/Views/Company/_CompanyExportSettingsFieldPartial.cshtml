@@ -1,0 +1,35 @@
+﻿@model Web.ViewModels.CompanyExportSettingsFieldViewModel
+@{
+    Layout = null;
+    var index = Model.Sort;
+}
+
+<div class="list-group-item " data-id="@index" id="sortable_@Model.Id">
+    <div class="form-row">
+        <div class="col">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <div class="input-group-text disabled">
+                        <input asp-for="IsActive" name="Fields[@index][IsActive]" />
+                    </div>
+                </div>
+                <input name="Fields[@index][Name]" class="form-control" value="@Model.Name" required>
+            </div>
+        </div>
+
+        <div class="col">
+            <input name="Fields[@index][Value]" class="form-control" value="@Model.Value" required>
+        </div>
+
+        <div class="col-1 text-right">
+            <form method="post" class="col-auto text-nowrap text-right" asp-controller="ExportSettingsFieldDelete" asp->
+                <input asp-for="Id" type="hidden" />
+                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </form>
+        </div>
+    </div>
+
+    <input type="hidden" name="Fields[@index][ExportSettingsId]" value="@Model.ExportSettingsId" />
+    <input type="hidden" name="Fields[@index][Id]" value="@Model.Id" />
+    <input type="hidden" id="sort_@index" name="Fields[@index][Sort]" value="@Model.Sort" />
+</div>

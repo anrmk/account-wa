@@ -63,5 +63,6 @@ namespace Web.ViewModels {
 
         public IList<long> Customers { get; set; }
 
+        public IList<CompanyExportSettingsViewModel> ExportSettings { get; set; }
     }
 }

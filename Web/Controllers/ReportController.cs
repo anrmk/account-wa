@@ -56,19 +56,19 @@ namespace Web.Controllers.Mvc {
 
             var periods = await _nsiBusinessManager.GetReportPeriods();
 
-            var fields = new List<ExportSettingsFieldValueViewModel>();
-            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Account Number", Value = "New Name" });
-            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Business Name", Value = "Business Name" });
-            periods.ForEach(x =>
-                fields.Add(new ExportSettingsFieldValueViewModel() { Name = x.Name, Value = x.Name })
-            );
-            fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Total", Value = "Total" });
+            //var fields = new List<ExportSettingsFieldValueViewModel>();
+            //fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Account Number", Value = "New Name" });
+            //fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Business Name", Value = "Business Name" });
+            //periods.ForEach(x =>
+            //    fields.Add(new ExportSettingsFieldValueViewModel() { Name = x.Name, Value = x.Name })
+            //);
+            //fields.Add(new ExportSettingsFieldValueViewModel() { Name = "Total", Value = "Total" });
 
-            var settings = new ExportSettingsViewModel() {
+            var settings = new CompanyExportSettingsViewModel() {
                 CompanyId = id,
                 ShowEmptyRows = true,
                 Title = "Some Title",
-                Fields = fields
+               // Fields = fields
             };
 
             return View("_ExportSettingsPartial", settings);

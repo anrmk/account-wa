@@ -85,7 +85,18 @@ namespace Web.Controllers.Mvc {
             var summary = await _businessManager.GetCompanyAllSummaryRange(item.Id);
             ViewBag.Summary = summary;
 
+            var exportSetting = await _businessManager.GetCompanyAllExportSettings(item.Id);
+            ViewBag.ExportSettings = exportSetting;
+
             var model = _mapper.Map<CompanyViewModel>(item);
+            //model.ExportSettings = new List<CompanyExportSettingsViewModel>() {
+            //    new CompanyExportSettingsViewModel() {
+            //    Title = string.Format("Report_{0}.csv", item.Name),
+            //    CompanyId = item.Id
+
+            //    }
+            //};
+
             return View(model);
         }
 
@@ -100,7 +111,7 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-                    return RedirectToAction(nameof(Index));
+                    model = _mapper.Map<CompanyViewModel>(item);
                 }
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
@@ -132,6 +143,7 @@ namespace Web.Controllers.Mvc {
             }
         }
 
+        #region SUMMARY RANGE
         [Route("{id}/createSummaryRange")]
         public async Task<ActionResult> CreateSummaryRange(long id) {
             var item = await _businessManager.GetCompany(id);
@@ -139,6 +151,8 @@ namespace Web.Controllers.Mvc {
             if(item == null) {
                 return NotFound();
             }
+            ViewBag.CompanyName = item.Name;
+
             var model = new CompanySummaryRangeViewModel() {
                 CompanyId = id
             };
@@ -146,7 +160,7 @@ namespace Web.Controllers.Mvc {
         }
 
         [HttpPost]
-        [Route("{id}/createSummaryRange")]
+        [Route("{id}/createsummaryrange")]
         public async Task<ActionResult> CreateSummaryRange(CompanySummaryRangeViewModel model) {
             try {
                 if(ModelState.IsValid) {
@@ -163,6 +177,109 @@ namespace Web.Controllers.Mvc {
 
             return View(model);
         }
+        #endregion
+
+        #region EXPORT SETTINGS
+        [Route("{id}/ExportSettings/Create")]
+        public async Task<ActionResult> CreateExportSettings(long id) {
+            var item = await _businessManager.GetCompany(id);
+
+            if(item == null) {
+                return NotFound();
+            }
+
+            var dto = new CompanyExportSettingsDto() {
+                CompanyId = id,
+                Title = string.Format("Report-{0}.csv", item.Name),
+                ShowEmptyRows = false
+            };
+
+            dto = await _businessManager.CreateCompanyExportSettings(dto);
+
+            return RedirectToAction(nameof(EditExportSettings), new { Id = dto.Id });
+        }
+
+        [Route("ExportSettings/{id}")]
+        public async Task<ActionResult> EditExportSettings(long id) {
+            var dto = await _businessManager.GetCompanyExportSettings(id);
+            if(dto == null) {
+                return NotFound();
+            }
+
+            return View(_mapper.Map<CompanyExportSettingsViewModel>(dto));
+        }
+
+        [HttpPost]
+        [Route("ExportSettings/{id}")]
+        public async Task<ActionResult> EditExportSettings(long id, CompanyExportSettingsViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateCompanyExportSettings(id, _mapper.Map<CompanyExportSettingsDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                    return RedirectToAction(nameof(EditExportSettings), new { Id = model.Id });
+                } else {
+                    var message = string.Join(" | ", ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage));
+                    _logger.LogError(message);
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("ExportSettings/{id}/Delete")]
+        public async Task<ActionResult> DeleteExportSettings(long id) {
+            var item = await _businessManager.GetCompanyExportSettings(id);
+            if(item == null) {
+                return BadRequest();
+            }
+
+            await _businessManager.DeleteCompanyExportSettings(id);
+
+            return RedirectToAction(nameof(Edit), new { Id = item.CompanyId });
+        }
+
+        [Route("ExportSettingsField/{id}/Create")]
+        public async Task<ActionResult> CreateExportSettingsField(long id) {
+            var item = await _businessManager.GetCompanyExportSettings(id);
+
+            if(item == null) {
+                return NotFound();
+            }
+
+            var dto = new CompanyExportSettingsFieldDto() {
+                Name = "Name",
+                Value = "Value",
+                ExportSettingsId = item.Id,
+                IsActive = true,
+                IsEditable = true,
+                Sort = item.Fields?.Count ?? 0
+            };
+
+            dto = await _businessManager.CreateCompanyExportSettingsField(dto);
+
+            return View("_CompanyExportSettingsFieldPartial", _mapper.Map<CompanyExportSettingsFieldViewModel>(dto));
+        }
+
+        [HttpPost]
+        [Route("ExportSettingsField/{id}/Delete")]
+        public async Task<ActionResult> DeleteExportSettingsField(long id) {
+            var item = await _businessManager.GetCompanyExportSettingsField(id);
+            if(item == null) {
+                return BadRequest();
+            }
+
+            await _businessManager.DeleteCompanyExportSettingsField(id);
+
+            return RedirectToAction(nameof(EditExportSettings), new { Id = item.ExportSettingsId });
+        }
+        #endregion
     }
 }
 
