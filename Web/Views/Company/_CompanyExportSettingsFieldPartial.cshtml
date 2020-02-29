@@ -10,7 +10,7 @@
             <div class="input-group">
                 <div class="input-group-prepend">
                     <div class="input-group-text disabled">
-                        <input asp-for="IsActive" name="Fields[@index][IsActive]" />
+                        <input asp-for="IsActive" name="Fields[@index][IsActive]" id="Fields[@index][IsActive]" />
                     </div>
                 </div>
                 <input name="Fields[@index][Name]" class="form-control" value="@Model.Name" required>
@@ -21,15 +21,16 @@
             <input name="Fields[@index][Value]" class="form-control" value="@Model.Value" required>
         </div>
 
-        <div class="col-1 text-right">
-            <form method="post" class="col-auto text-nowrap text-right" asp-controller="ExportSettingsFieldDelete" asp->
-                <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+        @*Сделать удаление записи
+            <div class="col-1 text-right">
+            <form id="deleteForm_@index" method="post" class="col-auto text-nowrap text-right" asp-action="ExportSettingsFieldDelete" asp-route-id="@Model.Id">
+                <input asp-for="Id" type="hidden" id="Id[@index]" />
+                <button type="submit" class="btn btn-outline-danger" form="deleteForm_@index"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
-        </div>
+        </div>*@
     </div>
 
     <input type="hidden" name="Fields[@index][ExportSettingsId]" value="@Model.ExportSettingsId" />
-    <input type="hidden" name="Fields[@index][Id]" value="@Model.Id" />
+    <input type="hidden" name="Fields[@index][Id]" id="Fields[@index][Id]" value="@Model.Id" />
     <input type="hidden" id="sort_@index" name="Fields[@index][Sort]" value="@Model.Sort" />
 </div>

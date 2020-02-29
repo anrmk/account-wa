@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
@@ -8,6 +7,10 @@ namespace Web.ViewModels {
 
         [Display(Name = "Company")]
         public long CompanyId { get; set; }
+
+        [Required]
+        [Display(Name = "Name")]
+        public string Name { get; set; }
 
         [Display(Name = "File Title")]
         public string Title { get; set; }

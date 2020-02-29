@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using AutoMapper;
 using Core.Data.Dto;
 using Core.Services.Managers;
 
@@ -11,18 +11,20 @@ namespace Core.Services.Business {
         Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod);
     }
     public class ReportBusinessManager: IReportBusinessManager {
+        private readonly IMapper _mapper;
         private readonly IReportManager _reportManager;
         private readonly ICompanyManager _companyManager;
         private readonly ICustomerManager _customerManager;
         private readonly ICustomerActivityManager _customerActivityManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public ReportBusinessManager(ICompanyManager companyManager,
+        public ReportBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICustomerManager customerManager,
             ICustomerActivityManager customerActivityManager,
             ICrudBusinessManager businessManager,
             IReportManager reportManager
             ) {
+            _mapper = mapper;
             _companyManager = companyManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
@@ -49,24 +51,25 @@ namespace Core.Services.Business {
             //var result = pagerResult.Items;
             #endregion
 
-            var result = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+            var invoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
 
             #region CREATE HEADERS
             var columns = new List<string>() { "Current" };
             for(int i = 0; i < numberOfPeriods; i++) {
                 columns.Add($"{1 + i * daysPerPeriod}-{(i + 1) * daysPerPeriod}");
             }
-            columns.Add($"{1 + numberOfPeriods * daysPerPeriod} +");
+            columns.Add($"{1 + numberOfPeriods * daysPerPeriod}+");
             columns.Add("Total");
             #endregion
 
             var report = new Dictionary<long, AgingSummaryData>();
 
-            foreach(var invoice in result) {
+            foreach(var invoice in invoices) {
                 var recordKey = invoice.CustomerId ?? 0;
 
                 if(!report.ContainsKey(recordKey)) {
                     report.Add(recordKey, new AgingSummaryData() {
+                        Customer = _mapper.Map<CustomerDto>(invoice.Customer),
                         CustomerName = invoice.Customer.Name,
                         AccountNo = invoice.Customer.No,
                         Data = new Dictionary<string, decimal>()
@@ -86,19 +89,21 @@ namespace Core.Services.Business {
                 if(diffPay > 0) {
                     var diffDays = (dateTo - invoice.DueDate).Days;
 
-                    //Add amount to Current fiedl if DiffDate negativ 
+                    //Add amount to Current field if DiffDate negative
                     if(diffDays <= 0) {
                         summary["Current"] += diffPay;
                     } else {
                         for(var i = 0; i < numberOfPeriods; i++) {
                             int from = i * daysPerPeriod;
                             int to = (i + 1) * daysPerPeriod;
+                            int upTo = 1 + numberOfPeriods * daysPerPeriod;
+
                             string key = $"{from + 1}-{to}";
 
                             if(diffDays > from && diffDays <= to) {
                                 summary[key] += diffPay;
-                            } else if(diffDays >= 1 + numberOfPeriods * daysPerPeriod) {
-                                summary[$"{1 + numberOfPeriods * daysPerPeriod} +"] += diffPay;
+                            } else if(diffDays >= upTo) {
+                                summary[$"{upTo}+"] += diffPay;
                             }
                         }
                     }
@@ -111,6 +116,7 @@ namespace Core.Services.Business {
                 d.Value.Data["Total"] = d.Value.Data.Sum(x => x.Value);
             }
 
+            #region BALANCE
             var balance = new Dictionary<string, AgingSummaryBalance>();
             foreach(var c in columns) {
                 if(!c.Equals("Total")) {
@@ -125,6 +131,7 @@ namespace Core.Services.Business {
                 Sum = report.Values.Sum(x => x.Data["Total"]),
                 Count = balance.Values.Sum(x => x.Count)
             });
+            #endregion
 
             return new AgingSummaryReport() {
                 CompanyId = companyId,

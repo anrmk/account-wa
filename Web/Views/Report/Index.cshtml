@@ -8,15 +8,15 @@
 @section Toolbar {
     <ul class="nav justify-content-end">
         <li class="nav-item">
-            <form id="exportReportForm" asp-controller="Report" asp-action="ExportToCsv" method="post">
+            <form id="exportReportForm" asp-controller="Report" asp-action="GetExportSettings" method="post">
                 <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
                 <input type="hidden" name="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
                 <input type="hidden" name="NumberOfPeriods" value="@Model.NumberOfPeriods" />
+                <button type="submit"  class="btn btn-outline-secondary">Export</button>
             </form>
-            @*<button id="exportBtn" class="btn btn-sm btn-outline-secondary">Export</button>*@
-            @*<button type="submit" class="btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>*@
+            @*<button type="submit" class=" btn btn-sm btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>*@
 
-            <div class="dropdown dropleft">
+            @*<div class="dropdown dropleft">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Export
                 </button>
@@ -25,7 +25,7 @@
                     <button id="defaultExportBtn" type="submit" class="dropdown-item" form="exportReportForm">Default settings</button>
                     <button id="customExportBtn" type="button" class="dropdown-item">Custom settings</button>
                 </div>
-            </div>
+            </div>*@
 
         </li>
     </ul>
@@ -57,7 +57,7 @@
                         </div>
                         <div class="form-group">
                             <label asp-for="NumberOfPeriods"></label>
-                            <input id="numberOfPeriods" asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" required />
+                            <input id="numberOfPeriods" asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="1" max="10" required />
                             <span asp-validation-for="NumberOfPeriods" class="form-text text-danger"></span>
                         </div>
                     </div>
@@ -81,9 +81,8 @@
     <script type="text/javascript">
         $(document).ready(e => {
 
-
             //On Export Button click
-            $customExportBtn = $('#customExportBtn').click(_ => {
+            $exportBtn = $('#exportBtn').click(_ => {
                 var companyId = $('#companyId').val();
                 var options = {
                     'type': 'post',
@@ -91,7 +90,7 @@
                     //'data': { id: $('#companyId').val() }
                 };
                 $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog('Export data');
+                    
                 });
 
             });
@@ -111,7 +110,7 @@
 
             $exportReportForm = $('#exportReportForm').on('submit', e => {
                 $exportReportForm.ajaxSubmit({}, (target, data, status) => {
-                    alert(status)
+                    $(data).dialog('Export data');
                     //status === 'success' ? $('#content').html(data) : $('#content').empty();
                 });
                 e.preventDefault();

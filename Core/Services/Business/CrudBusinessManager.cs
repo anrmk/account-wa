@@ -134,7 +134,7 @@ namespace Core.Services.Business {
 
         public async Task<List<CompanyDto>> GetCompanies() {
             var result = await _companyManager.AllInclude();
-            var map = _mapper.Map<List<CompanyDto>>(result);
+            var map = _mapper.Map<List<CompanyDto>>(result.OrderBy(x => x.Name));
             return map;
         }
 

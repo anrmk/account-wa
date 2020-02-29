@@ -136,7 +136,7 @@
                     <div id="exportSettingsFieldsList" class="list-group">
                         @foreach(var setting in ViewBag.ExportSettings) {
                         <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@setting.Title</span>
+                            <span>@setting.Name</span>
                             <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
                         </div>
                         }

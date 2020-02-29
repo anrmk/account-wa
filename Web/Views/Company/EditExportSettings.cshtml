@@ -8,7 +8,7 @@
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group mr-2">
             <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
-                <input asp-for="Id" type="hidden" />
+                <input asp-for="Id" type="hidden" id="deleteId" />
                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
@@ -20,7 +20,12 @@
             <input asp-for="Id" type="hidden" />
             <input asp-for="CompanyId" type="hidden" />
             <div class="form-row mb-3">
-                <div class="col-8">
+                <div class="col-4">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control" required>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="col-4">
                     <label asp-for="Title"></label>
                     <input asp-for="Title" class="form-control" required>
                     <span asp-validation-for="Title" class="text-danger"></span>
@@ -66,6 +71,24 @@
     <script type="text/javascript">
         $(document).ready(e => {
             var $exportSettingsFieldsList = $('#exportSettingsFieldsList');
+
+            var $sortable = new Sortable(exportSettingsFieldsList, {
+                //handle: '.handle', // handle's class
+                filter: '.disabled',
+                draggable: '.list-group-item',
+                ghostClass: 'list-group-item-info',
+                animation: 150,
+                onSort: function (e) {
+                    var sort = this.toArray();
+                    for (var i = 0; i < sort.length; i++) {
+                        var index = sort[i];
+                        var field = $(e.to).find(`#sort_${index}`);
+                        field.val(i)
+                    }
+
+                }
+            })
+
             var $createBtn = $('#createBtn').on('click', e => {
                 e.preventDefault();
                 var options = {
@@ -80,28 +103,7 @@
                 });
             });
 
-            //$('#exportSettingsFieldsList')
-            var $sortable = new Sortable(exportSettingsFieldsList, {
-                //handle: '.handle', // handle's class
-                filter: '.disabled',
-                draggable: '.list-group-item',
-                ghostClass: 'list-group-item-info',
-                animation: 150,
-                onSort: function (e) {
-                    //var elements = e.to;
-                    // alert(e.newIndex)
-                    var sort = this.toArray();
-                    for (var i = 0; i < sort.length; i++) {
-                        var index = sort[i];
-                        var field = $(e.to).find(`#sort_${index}`);
-                        field.val(i)
-                    }
-
-                }
-            })
-            window.sortable = $sortable;
-            var sortIndexes = $sortable.toArray();
-            //alert(sortIndexes)
+            //window.sortable = $sortable;
         })
     </script>
 }

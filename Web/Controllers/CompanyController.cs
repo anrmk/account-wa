@@ -190,6 +190,7 @@ namespace Web.Controllers.Mvc {
 
             var dto = new CompanyExportSettingsDto() {
                 CompanyId = id,
+                Name = "Default Name",
                 Title = string.Format("Report-{0}.csv", item.Name),
                 ShowEmptyRows = false
             };

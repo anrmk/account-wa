@@ -19,12 +19,12 @@ $.fn.dialog = function (header, callback) {
         //$('.modal .modal-footer').empty().html(footer),
 
         window.modal.modal('show').on('shown.bs.modal', (e) => {
-            var form = $('.modal form');
-            var submitBtn = $('.modal #modalSubmitBtn');
-            if (form.length > 0) {
-                submitBtn.attr('form', form.attr('id')).show();
+            var form = $('.modal .modal-content form');
+            var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
+            if (form.length == 1) {
+                submitBtn.attr('form', form.attr('id')).removeAttr('hidden');
             } else {
-                submitBtn.hide();
+                submitBtn.attr('hidden', 'hidden');
             }
             //$(e.currentTarget).find('select.chosen-select').chosen();
         }).on('hidden.bs.modal', (e) => {
