@@ -192,7 +192,7 @@ namespace Web.Controllers.Mvc {
                 CompanyId = id,
                 Name = "Default Name",
                 Title = string.Format("Report-{0}.csv", item.Name),
-                ShowEmptyRows = false
+                HideSummaryReport = false
             };
 
             dto = await _businessManager.CreateCompanyExportSettings(dto);

@@ -22,6 +22,8 @@ using Web.Extension;
 using Web.ViewModels;
 
 using Core.Extension;
+using Core.Data.Dto;
+using System.Text.RegularExpressions;
 
 namespace Web.Controllers.Mvc {
     public class ReportController: BaseController<ReportController> {
@@ -67,7 +69,7 @@ namespace Web.Controllers.Mvc {
 
             return View("_ExportSettingsPartial", model);
         }
-        
+
         [HttpPost]
         [Route("Export/{id}")]
         public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
@@ -93,41 +95,65 @@ namespace Web.Controllers.Mvc {
                     //csvWriter.Configuration.HasHeaderRecord = true;
                     //csvWriter.Configuration.AutoMap<ExpandoObject>();
 
+                    var columns = new List<CompanyExportSettingsFieldDto>();
 
-                    var fields = settings.Fields.OrderBy(x => x.Sort);
+                    if(!settings.HideSummaryReport) {
+                        columns = result.Columns.Where(x => !settings.Fields.Any(y => x.Equals(y.Name))).Select(x => new CompanyExportSettingsFieldDto() {
+                            Name = x,
+                            Value = x,
+                            IsActive = true,
+                            IsEditable = true,
+                            ExportSettingsId = settings.Id,
+                            Sort = 100
+                        }).ToList();
+                    } 
+
+                    var fields = settings.Fields.OrderBy(x => x.Sort).Concat(columns);
                     foreach(var field in fields) {
                         if(field.IsActive) {
-                            csvWriter.WriteField(field.Value);
+                            csvWriter.WriteField<string>(field.Value);
                         }
                     }
                     csvWriter.NextRecord();
 
+
                     foreach(var summary in result.Data) {
                         foreach(var field in fields) {
-                            var CustomerName = ObjectExtension.GetPropValue<string>(summary, field.Name);
+                            if(field.IsActive) {
+                                var value = ObjectExtension.GetPropValue(summary, field.Name);
+                                //if(obj == null) { obj = default(T); }
+                                //var value = ObjectExtension.GetPropValue<string>(summary, field.Name);
+                                var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
+                                csvWriter.WriteField(data ?? "");
+                            }
                         }
-                       // csvWriter.WriteField(summary.AccountNo);
-                        //csvWriter.WriteField(summary.CustomerName);
-                        //foreach(var column in result.Columns) {
-                        //    csvWriter.WriteField(summary.Data.ContainsKey(column) ? summary.Data[column].ToString() : "");
-                        //}
 
-                        //csvWriter.NextRecord();
+                        csvWriter.NextRecord();
                     }
 
-
                     writer.Flush();
-                    //var res = Encoding.UTF8.GetString(mem.ToArray());
                     mem.Position = 0;
 
+                    var fileDate = Regex.Replace(DateTime.Now.ToString("d",DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+
                     FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
-                    fileStreamResult.FileDownloadName = $"{result.CompanyName}_Report_{DateTime.Now.ToShortTimeString()}.csv";
+                    fileStreamResult.FileDownloadName = fileDate;
                     return fileStreamResult;
                 }
             } catch(Exception er) {
                 Console.Write(er.Message);
             }
             return BadRequest();
+        }
+
+        class CompanyExportSettingsFieldComparer: IEqualityComparer<CompanyExportSettingsFieldDto> {
+            public bool Equals(CompanyExportSettingsFieldDto p1, CompanyExportSettingsFieldDto p2) {
+                return p1.Name == p2.Name;
+            }
+
+            public int GetHashCode(CompanyExportSettingsFieldDto p) {
+                return (int)p.Id;
+            }
         }
 
         #region OLD EXPORT

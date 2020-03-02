@@ -92,15 +92,17 @@ namespace Core.Services.Managers {
             var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
                         "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
                         "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized, " +
+                        "ADDR.[Id] as CustomerAddressId, ADDR.[Address] as CustomerAddress, ADDR.[Address2] as CustomerAddress2, ADDR.[City] as CustomerCity, ADDR.[State] as CustomerState, ADDR.[ZipCode] as CustomerZipCode, ADDR.[Country] as CustomerCountry, " +
                         "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
                         "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
                         "FROM [accountWa].[dbo].[Invoices] AS INV  " +
                         "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
+                        "LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
-                        "WHERE INV.[Company_Id] = @COMPANYID AND INV.[Date] <= @DATETO " +
+                        "WHERE INV.[Company_Id] = @COMPANYID AND INV.[Date] <= @DATETO ";
                         //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
-                        "ORDER BY INV.[No] DESC ";
+                        //"ORDER BY INV.[No] DESC ";
 
             //if(offset.HasValue && limit.HasValue) {
             //    query += "OFFSET @PAGESIZE * (@PAGENUMBER - 1) ROWS " +
@@ -151,9 +153,26 @@ namespace Core.Services.Managers {
                                         CreditUtilized = reader["CustomerCreditUtilized"] != DBNull.Value ? (decimal)reader["CustomerCreditUtilized"] : (decimal?)null
                                     };
 
+                                    if(reader["CustomerAddressId"] != DBNull.Value) {
+                                        var address = new CustomerAddressEntity() {
+                                            Id = (long)reader["CustomerAddressId"],
+                                            Address = reader["CustomerAddress"] as string,
+                                            Address2 = reader["CustomerAddress2"] as string,
+                                            City = reader["CustomerCity"] as string,
+                                            State = reader["CustomerState"] as string,
+                                            ZipCode = reader["CustomerZipCode"] as string,
+                                            Country = reader["CustomerCountry"] as string,
+                                        };
+                                        
+                                        customer.AddressId = (long)reader["CustomerAddressId"];
+                                        customer.Address = address;
+                                    }
+
                                     invoice.CustomerId = (long)reader["CustomerId"];
                                     invoice.Customer = customer;
                                 }
+
+                                
 
                                 if(reader["CompanyId"] != DBNull.Value) {
                                     invoice.CompanyId = (long)reader["CompanyId"];

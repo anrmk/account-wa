@@ -15,8 +15,8 @@ namespace Web.ViewModels {
         [Display(Name = "File Title")]
         public string Title { get; set; }
 
-        [Display(Name = "Show blank invoices")]
-        public bool ShowEmptyRows { get; set; }
+        [Display(Name = "Hide summary report")]
+        public bool HideSummaryReport { get; set; }
 
         [Display(Name = "Fields")]
         public List<CompanyExportSettingsFieldViewModel> Fields { get; set; }

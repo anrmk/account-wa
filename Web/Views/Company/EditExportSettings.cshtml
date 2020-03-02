@@ -31,12 +31,12 @@
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
                 <div class="col-4">
-                    <label asp-for="ShowEmptyRows"></label>
-                    <select asp-for="ShowEmptyRows" type="checkbox" class="form-control">
-                        <option value="true">Display</option>
-                        <option value="false">Hide</option>
+                    <label asp-for="HideSummaryReport"></label>
+                    <select asp-for="HideSummaryReport" type="checkbox" class="form-control">
+                        <option value="false">Display</option>
+                        <option value="true">Hide</option>
                     </select>
-                    <span asp-validation-for="ShowEmptyRows" class="text-danger"></span>
+                    <span asp-validation-for="HideSummaryReport" class="text-danger"></span>
                 </div>
             </div>
 
@@ -49,7 +49,6 @@
                 <div id="exportSettingsFieldsList" class="list-group">
                     @if(Model.Fields != null && Model.Fields.Count > 0) {
                         @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
-
                             <partial name="_CompanyExportSettingsFieldPartial" model="field" />
                         }
                     } else {
