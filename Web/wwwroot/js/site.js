@@ -60,8 +60,6 @@ $.extend($.fn.bootstrapTable.defaults, {
     sortStable: true,
     pagination: true,
     maintainMetaData: true
-
-    
 });
 
 //$.extend($.fn.bootstrapTable.columnDefaults, {

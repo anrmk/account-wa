@@ -9,7 +9,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
                 <input asp-for="Id" type="hidden" id="deleteId" />
-                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
             </form>
         </div>
     </div>
@@ -61,7 +61,7 @@
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
             <button type="submit" class="btn btn-sm btn-outline-primary" form="createForm">Save</button>
-            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-sm btn-link">Cancel</a>
+            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-sm btn-link" >Cancel</a>
         </div>
     </div>
 </div>
@@ -102,7 +102,21 @@
                 });
             });
 
-            //window.sortable = $sortable;
+            //var $removeBtn = $exportSettingsFieldsList.find('a').on('click', e => {
+            //    e.preventDefault();
+
+            //    var target = $(e.currentTarget);
+            //    var options = {
+            //        'type': 'get',
+            //        'url': target.attr('href')
+            //    }
+
+            //    $.ajax(options).done((data, status, jqXHR) => {
+            //        $(target.data('target')).remove();
+            //    }).fail((jqXHR, status) => {
+            //        alert(status)
+            //    });
+            //})
         })
     </script>
 }

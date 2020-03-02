@@ -268,7 +268,7 @@ namespace Web.Controllers.Mvc {
             return View("_CompanyExportSettingsFieldPartial", _mapper.Map<CompanyExportSettingsFieldViewModel>(dto));
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("ExportSettingsField/{id}/Delete")]
         public async Task<ActionResult> DeleteExportSettingsField(long id) {
             var item = await _businessManager.GetCompanyExportSettingsField(id);
@@ -276,7 +276,7 @@ namespace Web.Controllers.Mvc {
                 return BadRequest();
             }
 
-            await _businessManager.DeleteCompanyExportSettingsField(id);
+           await _businessManager.DeleteCompanyExportSettingsField(id);
 
             return RedirectToAction(nameof(EditExportSettings), new { Id = item.ExportSettingsId });
         }
