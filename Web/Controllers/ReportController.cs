@@ -74,8 +74,7 @@ namespace Web.Controllers.Mvc {
                         return NotFound();
                     }
 
-                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods);
-
+                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods, settings.IncludeAllCustomers);
 
                     //var invoices = await _reportManager.GetAgingInvoices(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods);
                     //if(invoices == null || invoices.Count == 0) {
@@ -85,24 +84,27 @@ namespace Web.Controllers.Mvc {
                     var mem = new MemoryStream();
                     var writer = new StreamWriter(mem);
                     var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
                     //csvWriter.Configuration.Delimiter = ";";
                     //csvWriter.Configuration.HasHeaderRecord = true;
                     //csvWriter.Configuration.AutoMap<ExpandoObject>();
 
-                    var columns = new List<CompanyExportSettingsFieldDto>();
+                    
+                    //var columns = new List<CompanyExportSettingsFieldDto>();
 
-                    if(!settings.HideSummaryReport) {
-                        columns = result.Columns.Where(x => !settings.Fields.Any(y => x.Equals(y.Name))).Select(x => new CompanyExportSettingsFieldDto() {
-                            Name = x,
-                            Value = x,
-                            IsActive = true,
-                            IsEditable = true,
-                            ExportSettingsId = settings.Id,
-                            Sort = 100
-                        }).ToList();
-                    }
+                    //if(!settings.ShowAllCustomers) {
+                    //    columns = result.Columns.Where(x => !settings.Fields.Any(y => x.Equals(y.Name))).Select(x => new CompanyExportSettingsFieldDto() {
+                    //        Name = x,
+                    //        Value = x,
+                    //        IsActive = true,
+                    //        IsEditable = true,
+                    //        ExportSettingsId = settings.Id,
+                    //        Sort = 100
+                    //    }).ToList();
+                    //}
 
-                    var fields = settings.Fields.OrderBy(x => x.Sort).Concat(columns);
+                    var fields = settings.Fields.OrderBy(x => x.Sort);//.Concat(columns);
+
                     foreach(var field in fields) {
                         if(field.IsActive) {
                             csvWriter.WriteField<string>(field.Value);
@@ -110,15 +112,22 @@ namespace Web.Controllers.Mvc {
                     }
                     csvWriter.NextRecord();
 
+                    #region SORT BY ACCOUNT NUMBER/CUSTOMER BUSINESS NAME
+                    var sortedInvoices = result.Data;
+                    if(settings.Sort == 0) {
+                        sortedInvoices = sortedInvoices.OrderBy(x => x.AccountNo).ToList();
+                    } else {
+                        sortedInvoices = sortedInvoices.OrderBy(x => x.Customer.Name).ToList();
+                    }
+                    #endregion
 
-                    foreach(var summary in result.Data) {
+                    foreach(var summary in sortedInvoices) {
                         foreach(var field in fields) {
                             if(field.IsActive) {
                                 var value = ObjectExtension.GetPropValue(summary, field.Name);
-                                //if(obj == null) { obj = default(T); }
-                                //var value = ObjectExtension.GetPropValue<string>(summary, field.Name);
                                 var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
-                                csvWriter.WriteField(data ?? "");
+                  
+                                csvWriter.WriteField(data == null || data.Equals("0") ? "" : data);
                             }
                         }
 
@@ -128,7 +137,7 @@ namespace Web.Controllers.Mvc {
                     writer.Flush();
                     mem.Position = 0;
 
-                    var fileDate = Regex.Replace(DateTime.Now.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                    var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
 
                     FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
                     fileStreamResult.FileDownloadName = fileDate;
@@ -224,7 +233,7 @@ namespace Web.Controllers.Api {
                     var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                     _memoryCache.Set("_ReportViewModel", model, cacheEntryOptions);
 
-                    var result = await _businessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods);
+                    var result = await _businessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
                     string html = _viewRenderService.RenderToStringAsync("_AgingReportPartial", result).Result;
 
                     return Ok(html);

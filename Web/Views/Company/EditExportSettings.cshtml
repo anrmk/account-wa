@@ -25,18 +25,27 @@
                     <input asp-for="Name" class="form-control" required>
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
-                <div class="col-4">
+                <div class="col-8">
                     <label asp-for="Title"></label>
                     <input asp-for="Title" class="form-control" required>
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
+            </div>
+            
+            <div class="form-row mb-3">
                 <div class="col-4">
-                    <label asp-for="HideSummaryReport"></label>
-                    <select asp-for="HideSummaryReport" type="checkbox" class="form-control">
-                        <option value="false">Display</option>
-                        <option value="true">Hide</option>
+                    <label asp-for="Sort"></label>
+                    <select asp-for="Sort" class="form-control">
+                        <option value="0">Account Number</option>
+                        <option value="1">Business Name</option>
                     </select>
-                    <span asp-validation-for="HideSummaryReport" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="IncludeAllCustomers"></label>
+                    <select asp-for="IncludeAllCustomers" class="form-control">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
                 </div>
             </div>
 

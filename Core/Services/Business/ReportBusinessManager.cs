@@ -8,7 +8,7 @@ using Core.Services.Managers;
 
 namespace Core.Services.Business {
     public interface IReportBusinessManager {
-        Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod);
+        Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -32,7 +32,7 @@ namespace Core.Services.Business {
             _reportManager = reportManager;
         }
 
-        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods) {
+        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods, bool includeAllCustomers = true) {
             var company = await _companyManager.Find(companyId);
             if(company == null)
                 return null;
@@ -67,26 +67,26 @@ namespace Core.Services.Business {
             foreach(var invoice in invoices) {
                 var recordKey = invoice.CustomerId ?? 0;
 
-                if(!report.ContainsKey(recordKey)) {
-                    report.Add(recordKey, new AgingSummaryData() {
-                        Customer = _mapper.Map<CustomerDto>(invoice.Customer),
-                        CustomerName = invoice.Customer.Name,
-                        AccountNo = invoice.Customer.No,
-                        Data = new Dictionary<string, decimal>()
-                    });
-                }
-
-                var summary = report[recordKey].Data;
-                //init all column names
-                foreach(var c in columns) {
-                    if(!summary.ContainsKey(c))
-                        summary.Add(c, 0);
-                }
-
                 var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
                 var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
 
-                if(diffPay > 0) {
+                if(diffPay > 0 || includeAllCustomers) {
+                    if(!report.ContainsKey(recordKey)) {
+                        report.Add(recordKey, new AgingSummaryData() {
+                            Customer = _mapper.Map<CustomerDto>(invoice.Customer),
+                            CustomerName = invoice.Customer.Name,
+                            AccountNo = invoice.Customer.No,
+                            Data = new Dictionary<string, decimal>()
+                        });
+                    }
+
+                    var summary = report[recordKey].Data;
+                    //init all column names
+                    foreach(var c in columns) {
+                        if(!summary.ContainsKey(c))
+                            summary.Add(c, 0);
+                    }
+
                     var diffDays = (dateTo - invoice.DueDate).Days;
 
                     //Add amount to Current field if DiffDate negative

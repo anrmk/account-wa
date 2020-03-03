@@ -12,11 +12,14 @@ namespace Web.ViewModels {
         [Display(Name = "Name")]
         public string Name { get; set; }
 
-        [Display(Name = "File Title")]
+        [Display(Name = "File title")]
         public string Title { get; set; }
 
-        [Display(Name = "Hide summary report")]
-        public bool HideSummaryReport { get; set; }
+        [Display(Name = "Include all customers")]
+        public bool IncludeAllCustomers { get; set; }
+
+        [Display(Name = "Sort field")]
+        public CompanyExportSettingsSortBy Sort { get; set; } = CompanyExportSettingsSortBy.BUSINESS_NAME;
 
         [Display(Name = "Fields")]
         public List<CompanyExportSettingsFieldViewModel> Fields { get; set; }
@@ -40,5 +43,10 @@ namespace Web.ViewModels {
 
         [Display(Name = "Is editable")]
         public bool IsEditable { get; set; }
+    }
+
+    public enum CompanyExportSettingsSortBy {
+        ACCOUNT_NUMBER = 0,
+        BUSINESS_NAME =  1
     }
 }

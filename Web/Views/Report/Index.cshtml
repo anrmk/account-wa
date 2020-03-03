@@ -14,19 +14,6 @@
                 <input type="hidden" name="NumberOfPeriods" value="@Model.NumberOfPeriods" />
                 <button type="submit"  class="btn btn-outline-secondary">Export</button>
             </form>
-            @*<button type="submit" class=" btn btn-outline-secondary" onclick="submitExportToCvs()">Export CSV</button>*@
-
-            @*<div class="dropdown dropleft">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Export
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                    <h6 class="dropdown-header">Export CSV</h6>
-                    <button id="defaultExportBtn" type="submit" class="dropdown-item" form="exportReportForm">Default settings</button>
-                    <button id="customExportBtn" type="button" class="dropdown-item">Custom settings</button>
-                </div>
-            </div>*@
-
         </li>
     </ul>
 }
@@ -92,7 +79,6 @@
                 $.ajax(options).done((data, status, jqXHR) => {
                     
                 });
-
             });
 
             // Generate report
