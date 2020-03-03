@@ -26,7 +26,6 @@ namespace Core.Services {
             ///Extension Service
             services.AddTransient<IViewRenderService, ViewRenderService>();
 
-
             ///Managers
             services.AddTransient<IReportManager, ReportManager>();
             services.AddTransient<ICompanyManager, CompanyManager>();
@@ -41,6 +40,7 @@ namespace Core.Services {
 
             ///NSI
             services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
+            services.AddTransient<IReportFieldManager, ReportFieldManager>();
 
             ///Business
             services.AddTransient<INsiBusinessManager, NsiBusinessManager>();

@@ -10,7 +10,6 @@ using Core.Data.Dto;
 using Core.Extension;
 using Core.Extensions;
 using Core.Services.Business;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
@@ -22,7 +21,8 @@ namespace Web.Controllers.Mvc {
         public INsiBusinessManager _nsiBusinessManager;
         public ICrudBusinessManager _businessManager;
 
-        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context, INsiBusinessManager nsiBusinessManager, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context,
+            INsiBusinessManager nsiBusinessManager, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _nsiBusinessManager = nsiBusinessManager;
             _businessManager = businessManager;
         }

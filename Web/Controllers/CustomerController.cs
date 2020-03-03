@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -8,8 +9,8 @@ using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
-
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 
 using Web.ViewModels;
@@ -33,8 +34,11 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Customer/Create
-        public ActionResult Create() {
+        public async Task<ActionResult> Create() {
             var item = new CustomerViewModel();
+
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(item);
         }
@@ -49,7 +53,8 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return BadRequest();
                     }
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Edit), new { id = item.Id });
+                    //return RedirectToAction(nameof(Index));
                 }
 
             } catch(Exception er) {
@@ -65,6 +70,9 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(_mapper.Map<CustomerViewModel>(item));
         }
 
@@ -78,13 +86,16 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-
-                    return RedirectToAction(nameof(Index));
+                    model = _mapper.Map<CustomerViewModel>(item);
+                    return RedirectToAction(nameof(Edit), new { id = item.Id});
                 }
-
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
+
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(model);
         }
 

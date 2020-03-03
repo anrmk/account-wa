@@ -9,7 +9,6 @@ using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
@@ -66,6 +65,7 @@ namespace Web.Controllers.Mvc {
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
+
             var customers = await _businessManager.GetCustomers();
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
@@ -79,8 +79,8 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var customers = await _businessManager.GetUntiedCustomers(item.Id);
-            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            //var customers = await _businessManager.GetUntiedCustomers(item.Id);
+            //ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var summary = await _businessManager.GetCompanyAllSummaryRange(item.Id);
             ViewBag.Summary = summary;
@@ -89,13 +89,6 @@ namespace Web.Controllers.Mvc {
             ViewBag.ExportSettings = exportSetting;
 
             var model = _mapper.Map<CompanyViewModel>(item);
-            //model.ExportSettings = new List<CompanyExportSettingsViewModel>() {
-            //    new CompanyExportSettingsViewModel() {
-            //    Title = string.Format("Report_{0}.csv", item.Name),
-            //    CompanyId = item.Id
-
-            //    }
-            //};
 
             return View(model);
         }
@@ -276,7 +269,7 @@ namespace Web.Controllers.Mvc {
                 return BadRequest();
             }
 
-           await _businessManager.DeleteCompanyExportSettingsField(id);
+            await _businessManager.DeleteCompanyExportSettingsField(id);
 
             return RedirectToAction(nameof(EditExportSettings), new { Id = item.ExportSettingsId });
         }

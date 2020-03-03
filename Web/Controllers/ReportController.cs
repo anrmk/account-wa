@@ -3,27 +3,21 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 using AutoMapper;
-
 using Core.Context;
+using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
 using Core.Services.Managers;
 using CsvHelper;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-
 using Web.Extension;
 using Web.ViewModels;
-
-using Core.Extension;
-using Core.Data.Dto;
-using System.Text.RegularExpressions;
 
 namespace Web.Controllers.Mvc {
     public class ReportController: BaseController<ReportController> {
@@ -106,7 +100,7 @@ namespace Web.Controllers.Mvc {
                             ExportSettingsId = settings.Id,
                             Sort = 100
                         }).ToList();
-                    } 
+                    }
 
                     var fields = settings.Fields.OrderBy(x => x.Sort).Concat(columns);
                     foreach(var field in fields) {
@@ -134,7 +128,7 @@ namespace Web.Controllers.Mvc {
                     writer.Flush();
                     mem.Position = 0;
 
-                    var fileDate = Regex.Replace(DateTime.Now.ToString("d",DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                    var fileDate = Regex.Replace(DateTime.Now.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
 
                     FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
                     fileStreamResult.FileDownloadName = fileDate;
@@ -144,16 +138,6 @@ namespace Web.Controllers.Mvc {
                 Console.Write(er.Message);
             }
             return BadRequest();
-        }
-
-        class CompanyExportSettingsFieldComparer: IEqualityComparer<CompanyExportSettingsFieldDto> {
-            public bool Equals(CompanyExportSettingsFieldDto p1, CompanyExportSettingsFieldDto p2) {
-                return p1.Name == p2.Name;
-            }
-
-            public int GetHashCode(CompanyExportSettingsFieldDto p) {
-                return (int)p.Id;
-            }
         }
 
         #region OLD EXPORT

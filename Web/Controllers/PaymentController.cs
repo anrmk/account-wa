@@ -10,7 +10,6 @@ using Core.Data.Dto;
 using Core.Extension;
 using Core.Extensions;
 using Core.Services.Business;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,8 @@ namespace Web.Controllers.Mvc {
     public class PaymentController: BaseController<PaymentController> {
         public ICrudBusinessManager _businessManager;
 
-        public PaymentController(ILogger<PaymentController> logger, IMapper mapper, ApplicationContext context, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+        public PaymentController(ILogger<PaymentController> logger, IMapper mapper, ApplicationContext context,
+            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
         }
 

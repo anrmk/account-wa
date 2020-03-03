@@ -15,10 +15,15 @@
                     <input asp-for="No" type="text" class="form-control" required>
                     <span asp-validation-for="No" class="text-danger"></span>
                 </div>
-                <div class="col-8">
+                <div class="col-4">
                     <label asp-for="Name">Business Name</label>
                     <input asp-for="Name" type="text" class="form-control" required>
                     <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="col-4">
+                    <label asp-for="CompanyId"></label>
+                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker" data-live-search="true"></select>
+                    <span asp-validation-for="CompanyId" class="text-danger"></span>
                 </div>
             </div>
             <div class="form-row mb-3">

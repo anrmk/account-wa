@@ -1,18 +1,14 @@
 ﻿using System.Diagnostics;
-
-using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
+using Core.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 using Web.Models;
 
 namespace Web.Controllers {
-    [Authorize]
-    public class HomeController: Controller {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger) {
-            _logger = logger;
+    public class HomeController: BaseController<HomeController> {
+        public HomeController(ILogger<HomeController> logger, IMapper mapper, ApplicationContext context) : base(logger, mapper, context) {
         }
 
         public IActionResult Index() {

@@ -39,7 +39,8 @@ $.fn.dialog = function (header, callback) {
  * formatting Date
  */
 $.fn.bootstrapTable.formatDate = function (value, row, index) {
-    return value == null ? "" : moment(value, 'MM-DD-YYYY').format('MM-DD-YYYY');
+    return value == null ? "" : new Date(value).toLocaleDateString();
+    //return value == null ? "" : moment(value, 'MM-DD-YYYY').format('MM-DD-YYYY');
 };
 
 $.extend($.fn.bootstrapTable.defaults, {

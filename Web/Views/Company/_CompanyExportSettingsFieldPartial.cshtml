@@ -15,20 +15,24 @@
                     </div>
                 </div>
                 <input name="Fields[@index][Name]" class="form-control" value="@Model.Name" required>
+                <select asp-for="Fields[@index][Name]" asp-items="@ViewBag.Customers" class="form-control selectpicker"
+                        data-live-search="true"
+                        data-actions-box="true">
+                </select>
                 @*<select name="Fields[@index][Name]" class="form-control">
-                        <option value="Customer.No">Account Number</option>
-                        <option value="Customer.Name">Account Business Name</option>
-                        <option value="Customer.Phone">Account Phone Number</option>
-                        <option value="Customer.Address.Address">Account Address</option>
-                        <option value="Customer.Address.City">Account City</option>
-                        <option value="Customer.Address.State">Account State</option>
-                        <option value="Customer.Address.ZipCode">Account Zip Code</option>
-                        <option value="Customer.Address.Country">Account Country</option>
-                        <option value="Customer.CreditLimit">Credit Limit</option>
-                        <option value="Customer.CreditUtilized">Credit Utilized</option>
-                        <option value="Customer.Terms">Terms</option>
-                        <option value="Customer.CreatedDate">Account Created Date</option>
-                    </select>*@
+            <option value="Customer.No">Account Number</option>
+            <option value="Customer.Name">Account Business Name</option>
+            <option value="Customer.Phone">Account Phone Number</option>
+            <option value="Customer.Address.Address">Account Address</option>
+            <option value="Customer.Address.City">Account City</option>
+            <option value="Customer.Address.State">Account State</option>
+            <option value="Customer.Address.ZipCode">Account Zip Code</option>
+            <option value="Customer.Address.Country">Account Country</option>
+            <option value="Customer.CreditLimit">Credit Limit</option>
+            <option value="Customer.CreditUtilized">Credit Utilized</option>
+            <option value="Customer.Terms">Terms</option>
+            <option value="Customer.CreatedDate">Account Created Date</option>
+        </select>*@
             </div>
         </div>
 

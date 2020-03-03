@@ -33,7 +33,7 @@ namespace Core.Services.Business {
         }
 
         public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods) {
-            var company = await _companyManager.FindInclude(companyId);
+            var company = await _companyManager.Find(companyId);
             if(company == null)
                 return null;
 

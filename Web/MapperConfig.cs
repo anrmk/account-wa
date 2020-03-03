@@ -3,6 +3,7 @@
 using AutoMapper;
 
 using Core.Data.Dto;
+using Core.Data.Dto.Nsi;
 using Core.Extension;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -97,6 +98,8 @@ namespace Web {
                 .ReverseMap();
 
             #endregion
+
+            CreateMap<NsiViewModel, NsiDto>().ReverseMap();
         }
     }
 }

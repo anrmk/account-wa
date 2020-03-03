@@ -60,6 +60,7 @@ namespace Core {
 
             #region NSI
             CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
+            CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();
             #endregion
         }
     }

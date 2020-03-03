@@ -10,7 +10,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
     </div>
@@ -36,28 +36,33 @@
     <div class="card-body">
         <form class="tab-content" id="submitForm" method="POST" asp-action="Edit">
             <input asp-for="Id" type="hidden" />
-            <input asp-for="CompanyId" type="hidden" />
+
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                 <div class="form-row mb-3">
                     <div class="col-4">
-                        <label asp-for="No">Account Number</label>
+                        <label asp-for="No"></label>
                         <input asp-for="No" type="text" class="form-control" required>
                         <span asp-validation-for="No" class="text-danger"></span>
                     </div>
-                    <div class="col-8">
-                        <label asp-for="Name">Business Name</label>
+                    <div class="col-4">
+                        <label asp-for="Name"></label>
                         <input asp-for="Name" type="text" class="form-control" required>
                         <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="col-4">
+                        <label asp-for="CompanyId"></label>
+                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker" data-live-search="true"></select>
+                        <span asp-validation-for="CompanyId" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="form-row mb-3">
                     <div class="col-4">
-                        <label asp-for="PhoneNumber">Phone Number</label>
+                        <label asp-for="PhoneNumber"></label>
                         <input asp-for="PhoneNumber" type="text" class="form-control">
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
                     <div class="col-4">
-                        <label asp-for="Terms">Terms</label>
+                        <label asp-for="Terms"></label>
                         <input asp-for="Terms" type="text" class="form-control">
                         <span asp-validation-for="Terms" class="text-danger"></span>
                     </div>
@@ -78,16 +83,17 @@
                     </div>
                 </div>
             </div>
+            
             <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                 <input asp-for="AddressId" type="hidden" />
                 <div class="form-row mb-3">
                     <div class="col-8">
-                        <label asp-for="Address">Address</label>
+                        <label asp-for="Address"></label>
                         <input asp-for="Address" type="text" class="form-control">
                         <small asp-validation-for="Address" class="form-text text-danger"></small>
                     </div>
                     <div class="col-4">
-                        <label asp-for="City">City</label>
+                        <label asp-for="City"></label>
                         <input asp-for="City" type="text" class="form-control">
                         <small asp-validation-for="City" class="form-text text-danger"></small>
                     </div>
@@ -101,19 +107,19 @@
                 </div>
                 <div class="form-row mb-3">
                     <div class="col">
-                        <label asp-for="Country">Country</label>
+                        <label asp-for="Country"></label>
                         <input asp-for="Country" type="text" class="form-control">
                         <small asp-validation-for="Country" class="form-text text-danger"></small>
                     </div>
 
                     <div class="col">
-                        <label asp-for="State">State</label>
+                        <label asp-for="State"></label>
                         <input asp-for="State" type="text" class="form-control">
                         <small asp-validation-for="State" class="form-text text-danger"></small>
                     </div>
 
                     <div class="col">
-                        <label asp-for="ZipCode">Zip Code</label>
+                        <label asp-for="ZipCode"></label>
                         <input asp-for="ZipCode" type="text" class="form-control">
                         <small asp-validation-for="ZipCode" class="form-text text-danger"></small>
                     </div>
@@ -134,6 +140,7 @@
                     </div>
                 </div>
             </div>
+            
             <div id="activities" class="tab-pane fade">
                 <div class="form-row mb-3">
                     <div class="col">
@@ -160,7 +167,7 @@
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-sm btn-outline-primary" form="submitForm">Save</button>
+            <button type="submit" class="btn btn-outline-primary" form="submitForm">Save</button>
             <a asp-action="index" class="btn btn-link">Cancel</a>
         </div>
     </div>

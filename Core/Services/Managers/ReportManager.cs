@@ -101,8 +101,8 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
                         "WHERE INV.[Company_Id] = @COMPANYID AND INV.[Date] <= @DATETO ";
-                        //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
-                        //"ORDER BY INV.[No] DESC ";
+            //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
+            //"ORDER BY INV.[No] DESC ";
 
             //if(offset.HasValue && limit.HasValue) {
             //    query += "OFFSET @PAGESIZE * (@PAGENUMBER - 1) ROWS " +
@@ -163,7 +163,7 @@ namespace Core.Services.Managers {
                                             ZipCode = reader["CustomerZipCode"] as string,
                                             Country = reader["CustomerCountry"] as string,
                                         };
-                                        
+
                                         customer.AddressId = (long)reader["CustomerAddressId"];
                                         customer.Address = address;
                                     }
@@ -172,7 +172,7 @@ namespace Core.Services.Managers {
                                     invoice.Customer = customer;
                                 }
 
-                                
+
 
                                 if(reader["CompanyId"] != DBNull.Value) {
                                     invoice.CompanyId = (long)reader["CompanyId"];

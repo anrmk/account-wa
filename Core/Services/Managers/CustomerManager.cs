@@ -63,6 +63,7 @@ namespace Core.Services.Managers {
 
         public async Task<CustomerEntity> FindInclude(long id) {
             return await DbSet
+                .Include(x => x.Company)
                 .Include(x => x.Address)
                 .Include(x => x.Activities)
                .Where(x => x.Id == id)

@@ -12,6 +12,7 @@ namespace Web.ViewModels {
         public string No { get; set; }
 
         [Required]
+        [Display(Name = "Business Name")]
         [MaxLength(256)]
         public string Name { get; set; }
 
@@ -32,6 +33,7 @@ namespace Web.ViewModels {
         [Column(TypeName = "decimal(18, 2)")]
         public double CreditUtilized { get; set; }
 
+        [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
         [Display(Name = "Activity")]
@@ -44,6 +46,7 @@ namespace Web.ViewModels {
         [MaxLength(60)]
         public string Address { get; set; }
 
+        [Display(Name = "Address 2")]
         [MaxLength(60)]
         public string Address2 { get; set; }
 
@@ -53,6 +56,7 @@ namespace Web.ViewModels {
         [MaxLength(60)]
         public string State { get; set; }
 
+        [Display(Name = "Zip Code")]
         [MaxLength(10)]
         public string ZipCode { get; set; }
 

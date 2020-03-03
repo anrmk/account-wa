@@ -29,7 +29,10 @@ namespace Core.Context {
         private readonly ClaimsPrincipal _principal;
 
         #region DbSet
+        #region NSI
+        public DbSet<ReportFieldEntity> ReportFields { get; set; }
         public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
+        #endregion
 
         public DbSet<CompanyEntity> Companies { get; set; }
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
