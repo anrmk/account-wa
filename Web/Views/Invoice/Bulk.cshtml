@@ -89,7 +89,7 @@
                 $fieldset.attr('disabled', 'disabled');
                 $.when($.fn.getCompanySummaryRange(fd.CompanyId), $.fn.getBulkCustomers(fd.CompanyId, fd.DateFrom, fd.DateTo)).done((company, customers) => {
                     var opt = $.map(company[0], function (val, i) {
-                        return `<option value='${val.id}'>${val.summaryFrom} - ${val.summaryTo}</option>`
+                        return `<option value='${val.id}'>${val.from} - ${val.to}</option>`
                     });
                     $("#summaryRange").html(opt).selectpicker('refresh');
 
