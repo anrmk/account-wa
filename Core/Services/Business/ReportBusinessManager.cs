@@ -54,10 +54,31 @@ namespace Core.Services.Business {
             var invoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
 
             #region CREATE HEADERS
+            var _col = new List<AgingSummaryPeriod>() { new AgingSummaryPeriod() {
+                From = -31,
+                To = 0,
+                Name = "Current"
+            } };
+
             var columns = new List<string>() { "Current" };
             for(int i = 0; i < numberOfPeriods; i++) {
-                columns.Add($"{1 + i * daysPerPeriod}-{(i + 1) * daysPerPeriod}");
+                var from = 1 + i * daysPerPeriod;
+                var to = (i + 1) * daysPerPeriod;
+                columns.Add($"{from}-{to}");
+
+                _col.Add(new AgingSummaryPeriod() {
+                    From = from,
+                    To = to,
+                    Name = $"{from}-{to}"
+                });
             }
+            _col.Add(new AgingSummaryPeriod() { 
+                From = 1 + numberOfPeriods * daysPerPeriod,
+                Name = $"{1 + numberOfPeriods * daysPerPeriod}+"
+            });
+            _col.Add(new AgingSummaryPeriod() {
+                Name = "Total"
+            });
             columns.Add($"{1 + numberOfPeriods * daysPerPeriod}+");
             columns.Add("Total");
             #endregion
@@ -81,10 +102,9 @@ namespace Core.Services.Business {
                     }
 
                     var summary = report[recordKey].Data;
-                    //init all column names
-                    foreach(var c in columns) {
-                        if(!summary.ContainsKey(c))
-                            summary.Add(c, 0);
+                    foreach(var c in _col) {
+                        if(!summary.ContainsKey(c.Name))
+                            summary.Add(c.Name, 0);
                     }
 
                     var diffDays = (dateTo - invoice.DueDate).Days;
@@ -139,7 +159,7 @@ namespace Core.Services.Business {
                 Date = dateTo,
                 DaysPerPeriod = daysPerPeriod,
                 NumberOfPeriods = numberOfPeriods,
-                Columns = columns.ToArray(),
+                Columns = _col,
                 Data = report.Select(x => x.Value).ToList(),
                 Balance = balance,
                 TotalCustomers = customers.Count,

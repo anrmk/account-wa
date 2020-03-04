@@ -39,7 +39,7 @@ namespace Core.Services {
             services.AddTransient<IPaymentManager, PaymentManager>();
 
             ///NSI
-            services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
+            //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
             services.AddTransient<IReportFieldManager, ReportFieldManager>();
 
             ///Business

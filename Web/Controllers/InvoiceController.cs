@@ -32,8 +32,8 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var periods = await _nsiBusinessManager.GetReportPeriods();
-            ViewBag.Periods = periods.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            //var periods = await _nsiBusinessManager.GetReportPeriods();
+            //ViewBag.Periods = periods.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new InvoiceFilterViewModel() {
 
@@ -41,21 +41,18 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Invoice using Aging filter
-        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, string period) {
+        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, int? from, int? to) {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            var periods = await _nsiBusinessManager.GetReportPeriods();
-            ViewBag.Periods = periods.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            var selectedPeriod = periods.Where(x => x.Code == period).FirstOrDefault();
 
             var filter = new InvoiceFilterViewModel() {
                 CompanyId = companyId,
                 Date = date,
                 //DaysPerPeriod = daysPerPeriod,
                 NumberOfPeriods = numberOfPeriods,
-                PeriodId = selectedPeriod?.Id
+                //PeriodId = selectedPeriod?.Id,
+                From = from,
+                To = to
             };
 
             return View("Index", filter);

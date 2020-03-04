@@ -436,29 +436,32 @@ namespace Core.Services.Business {
 
         public async Task<Pager<InvoiceDto>> GetInvoicePage(InvoiceFilterDto filter) {
             DateTime? dateFrom = filter.Date?.AddDays(30 * filter.NumberOfPeriods * -1);
-            var selectedPeriod = filter.PeriodId.HasValue ? await _nsiBusinessManager.GetReportPeriodById(filter.PeriodId.Value) : null;
-
-            #region Sort
-            Expression<Func<InvoiceEntity, string>> orderPredicate = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
-            #endregion
 
             Tuple<List<InvoiceEntity>, int> tuple;
 
             if(filter.Date != null && dateFrom != null) {
                 var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
                 invoices = invoices.Where(x =>
-                    true &&
-                    (selectedPeriod == null) ||
-                    ((filter.Date.Value - x.DueDate).Days >= selectedPeriod.From
-                        && (filter.Date.Value - x.DueDate).Days <= selectedPeriod.To
-                        && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0)
+                    true && (filter.From.HasValue ? (filter.Date.Value - x.DueDate).Days >= filter.From : true)
+                         && (filter.To.HasValue ? (filter.Date.Value - x.DueDate).Days <= filter.To.Value : true)
+                         && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+
+                /*
+                (selectedPeriod == null) || (
+                  (filter.Date.Value - x.DueDate).Days >= selectedPeriod.From
+                  && (filter.Date.Value - x.DueDate).Days <= selectedPeriod.To
+                  && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                )*/
                 ).OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
-
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());
 
             } else {
+                #region Sort
+                Expression<Func<InvoiceEntity, string>> orderPredicate = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
+                #endregion
+
                 #region Filter
                 Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                       (true)

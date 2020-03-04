@@ -12,31 +12,31 @@ using Core.Services.Managers.Nsi;
 
 namespace Core.Services.Business {
     public interface INsiBusinessManager {
-        Task<ReportPeriodDto> GetReportPeriodById(long id);
-        Task<List<ReportPeriodDto>> GetReportPeriods();
+        //Task<ReportPeriodDto> GetReportPeriodById(long id);
+        //Task<List<ReportPeriodDto>> GetReportPeriods();
         //Task<List<NsiDto>> GetReportFields();
         Task<Pager<NsiDto>> GetReportFields(string search, string sort, string order, int offset = 0, int limit = 10);
     }
     public class NsiBusinessManager: BaseBusinessManager, INsiBusinessManager {
         private readonly IMapper _mapper;
-        private readonly IReportPeriodManager _reportPeriodManager;
+        //private readonly IReportPeriodManager _reportPeriodManager;
         private readonly IReportFieldManager _reportFieldManager;
 
-        public NsiBusinessManager(IMapper mapper, IReportPeriodManager reportPeriodManager, IReportFieldManager reportFieldManager) {
+        public NsiBusinessManager(IMapper mapper, IReportFieldManager reportFieldManager) {
             _mapper = mapper;
-            _reportPeriodManager = reportPeriodManager;
+            //_reportPeriodManager = reportPeriodManager;
             _reportFieldManager = reportFieldManager;
         }
 
-        public async Task<ReportPeriodDto> GetReportPeriodById(long id) {
-            var result = await _reportPeriodManager.Find(id);
-            return _mapper.Map<ReportPeriodDto>(result);
-        }
+        //public async Task<ReportPeriodDto> GetReportPeriodById(long id) {
+        //    var result = await _reportPeriodManager.Find(id);
+        //    return _mapper.Map<ReportPeriodDto>(result);
+        //}
 
-        public async Task<List<ReportPeriodDto>> GetReportPeriods() {
-            var result = await _reportPeriodManager.All();
-            return _mapper.Map<List<ReportPeriodDto>>(result);
-        }
+        //public async Task<List<ReportPeriodDto>> GetReportPeriods() {
+        //    var result = await _reportPeriodManager.All();
+        //    return _mapper.Map<List<ReportPeriodDto>>(result);
+        //}
 
         public async Task<Pager<NsiDto>> GetReportFields(string search, string sort, string order, int offset, int limit) {
             Expression<Func<ReportFieldEntity, bool>> wherePredicate = x =>

@@ -52,10 +52,14 @@
                                 <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" />
                             </div>
                             <div class="col">
-                                <label asp-for="PeriodId"></label>
-                                <select asp-for="PeriodId" asp-items="@ViewBag.Periods" class="form-control selectpicker">
-                                    <option value="">All</option>
-                                </select>
+                                <label asp-for="From"></label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fa fa-digital-tachograph"></i></span>
+                                    </div>
+                                    <input asp-for="From" aria-label="From" class="form-control" />
+                                    <input asp-for="To" aria-label="To" class="form-control" />
+                                </div>
                             </div>
                         </div>
                         <div class="form-group mb-3 form-check">
@@ -94,7 +98,6 @@
         </table>
     </div>
 </div>
-
 
 @section Scripts {
     <script type="text/javascript">

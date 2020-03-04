@@ -31,7 +31,7 @@ namespace Core.Context {
         #region DbSet
         #region NSI
         public DbSet<ReportFieldEntity> ReportFields { get; set; }
-        public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
+        //public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
         #endregion
 
         public DbSet<CompanyEntity> Companies { get; set; }

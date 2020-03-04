@@ -46,11 +46,11 @@
                     <tbody>
                         @foreach(var column in Model.Columns) {
                             <tr>
-                                <td scope="col">@column</td>
+                                <td scope="col">@column.Name</td>
                                 <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, period=column })">@Model.Balance[column].Count</a>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, from=column.From, to=column.To })">@Model.Balance[column.Name].Count</a>
                                 </td>
-                                <td>@Model.Balance[column].Sum</td>
+                                <td>@Model.Balance[column.Name].Sum</td>
                             </tr>
                         }
                     </tbody>
@@ -66,8 +66,11 @@
                         <th>#</th>
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
-                        @foreach(var header in Model.Columns) {
+                        @*@foreach(var header in Model.Columns) {
                             <th scope="col">@header</th>
+                        }*@
+                        @foreach(var column in Model.Columns) {
+                            <th scope="col">@column.Name</th>
                         }
                     </tr>
                 </thead>
@@ -76,11 +79,11 @@
                         var summary = Model.Data[i];
                         <tr>
                             <td>@(i+1)</td>
-                            <td scope="row">@summary.AccountNo</td>
-                            <td scope="row">@summary.CustomerName</td>
+                            <td scope="row">@summary.Customer.No</td>
+                            <td scope="row">@summary.Customer.Name</td>
                             @foreach(var column in Model.Columns) {
-                                @if(summary.Data.ContainsKey(column)) {
-                                    <td>@(summary.Data[column] == 0 ? "" : summary.Data[column].ToString())</td>
+                                @if(summary.Data.ContainsKey(column.Name)) {
+                                    <td>@(summary.Data[column.Name] == 0 ? "" : summary.Data[column.Name].ToString())</td>
                                 }
                             }
                         </tr>
