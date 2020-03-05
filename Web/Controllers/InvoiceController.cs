@@ -41,21 +41,28 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Invoice using Aging filter
-        public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, int? from, int? to) {
+        public async Task<ActionResult> IndexFilter([FromQuery] InvoiceFilterViewModel model) {
+        //public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, int? from, int? to) {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var filter = new InvoiceFilterViewModel() {
-                CompanyId = companyId,
-                Date = date,
-                //DaysPerPeriod = daysPerPeriod,
-                NumberOfPeriods = numberOfPeriods,
-                //PeriodId = selectedPeriod?.Id,
-                From = from,
-                To = to
-            };
+            //var filter = new InvoiceFilterViewModel() {
+            //    CompanyId = companyId,
+            //    Date = date,
+            //    NumberOfPeriods = numberOfPeriods,
+            //    From = from,
+            //    To = to
+            //};
 
-            return View("Index", filter);
+            return View("Index", model);
+        }
+
+        // GET: Filter Partial
+        public async Task<ActionResult> Filter([FromQuery] InvoiceFilterViewModel model) {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View("_FilterInvoicePartial", model);
         }
 
         // GET: Invoice/Details/5
@@ -305,5 +312,6 @@ namespace Web.Controllers.Api {
             }
             return Ok(result);
         }
+
     }
 }

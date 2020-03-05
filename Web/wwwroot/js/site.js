@@ -18,7 +18,7 @@ $.fn.dialog = function (header, callback) {
         $('.modal .modal-body').empty().html(this),
         //$('.modal .modal-footer').empty().html(footer),
 
-        window.modal.modal('show').on('shown.bs.modal', (e) => {
+        window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
             var form = $('.modal .modal-content form');
             var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
             if (form.length == 1) {
@@ -26,11 +26,16 @@ $.fn.dialog = function (header, callback) {
             } else {
                 submitBtn.attr('hidden', 'hidden');
             }
+            callback("shown.bs.modal", e, this);
             //$(e.currentTarget).find('select.chosen-select').chosen();
-        }).on('hidden.bs.modal', (e) => {
+        }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
+            callback("hidden.bs.modal", e, this);
+
             this.empty();
         })
-    ).done(callback(window.modal));
+    ).done((e) => {
+        callback("modal.on.load", e, this);
+    });
     return window.modal;
 }
 

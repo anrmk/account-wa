@@ -11,7 +11,7 @@ namespace Web.ViewModels {
         public DateTime? Date { get; set; }
 
         [Display(Name = "Number of periods")]
-        public int NumberOfPeriods { get; set; }
+        public int? NumberOfPeriods { get; set; }
 
         [Display(Name = "Random sort")]
         public bool RandomSort { get; set; } = false;
@@ -21,5 +21,7 @@ namespace Web.ViewModels {
 
         [Display(Name = "Period To")]
         public int? To { get; set; }
+
+     //   private List<Company>
     }
 }

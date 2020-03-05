@@ -73,7 +73,7 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
             var result = new List<CustomerBulkEntity>();
-            var query = "SELECT CUS.[Id], INV.[Total], CUS.[No], CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
+            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
                                                     "FROM[dbo].[Customers] AS CUS " +
                                                     "LEFT JOIN(SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] " +
                                                     "WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO " +
