@@ -42,17 +42,8 @@ namespace Web.Controllers.Mvc {
 
         // GET: Invoice using Aging filter
         public async Task<ActionResult> IndexFilter([FromQuery] InvoiceFilterViewModel model) {
-        //public async Task<ActionResult> IndexFilter(int? companyId, DateTime date, int numberOfPeriods, int? from, int? to) {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            //var filter = new InvoiceFilterViewModel() {
-            //    CompanyId = companyId,
-            //    Date = date,
-            //    NumberOfPeriods = numberOfPeriods,
-            //    From = from,
-            //    To = to
-            //};
 
             return View("Index", model);
         }
@@ -312,6 +303,5 @@ namespace Web.Controllers.Api {
             }
             return Ok(result);
         }
-
     }
 }

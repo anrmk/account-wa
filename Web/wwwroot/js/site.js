@@ -16,7 +16,6 @@ $.fn.dialog = function (header, callback) {
     $.when(
         $('.modal .modal-title').text(header),
         $('.modal .modal-body').empty().html(this),
-        //$('.modal .modal-footer').empty().html(footer),
 
         window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
             var form = $('.modal .modal-content form');
@@ -27,11 +26,9 @@ $.fn.dialog = function (header, callback) {
                 submitBtn.attr('hidden', 'hidden');
             }
             callback("shown.bs.modal", e, this);
-            //$(e.currentTarget).find('select.chosen-select').chosen();
         }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
-            callback("hidden.bs.modal", e, this);
-
             this.empty();
+            callback("hidden.bs.modal", e, this);
         })
     ).done((e) => {
         callback("modal.on.load", e, this);

@@ -8,62 +8,57 @@
     <fieldset>
         <div class="card mb-3">
             <div class="card-body">
-                <div class="row">
-                    <div class="col-lg-4 col">
-                        <div class="form-group">
-                            <label asp-for="CompanyId"></label>
-                            <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
-                                    required
-                                    data-live-search="true">
-                            </select>
-                            <span asp-validation-for="CompanyId" class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <label>Summary Range</label>
-                            <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control selectpicker"
-                                    required
-                                    data-live-search="true">
-                            </select>
-                            <span class="text-danger"></span>
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="DateFrom"></label>
-                            <input id="datefrom" asp-for="DateFrom" type="date" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="DateTo"></label>
-                            <input id="dateto" asp-for="DateTo" type="date" class="form-control" required>
-                        </div>
+                <div class="form-row mb-3">
+                    <div class="col">
+                        <label asp-for="CompanyId"></label>
+                        <select id="companies" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
+                                required
+                                data-live-search="true">
+                        </select>
                     </div>
-
-                    <div class="col-lg-8 col">
-                        <div class="form-group">
-                            <label>Customers</label>
-                            <table id="datatable" class="table table-striped table-sm" data-toggle="table"
-                                   data-id-field="id"
-                                   data-select-item-name="Customers[]"
-                                   data-click-to-select="true"
-                                   data-show-extended-pagination="true"
-                                   data-search="true"
-                                   data-pagination="false"
-                                   data-show-refresh="false"
-                                   data-show-columns="false"
-                                   data-show-toggle="false"
-                                   data-side-pagination="client"
-                                   data-search-on-enter-key="false" 
-                                   data-height="380">
-                                <thead>
-                                    <tr>
-                                        <th data-field="state" data-checkbox="true"></th>
-                                        <th data-field="no" scope="col" class="text-nowrap">No</th>
-                                        <th data-field="name" scope="col">Name</th>
-                                        <th data-field="total" scope="col">Total</th>
-                                        <th data-field="terms" scope="col">Terms</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
+                    <div class="col">
+                        <label asp-for="SummaryRangeId"></label>
+                        <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control selectpicker"
+                                required
+                                data-live-search="true">
+                        </select>
                     </div>
+                    <div class="col">
+                        <label asp-for="DateFrom"></label>
+                        <input id="datefrom" asp-for="DateFrom" type="date" class="form-control" required>
+                    </div>
+                    <div class="col">
+                        <label asp-for="DateTo"></label>
+                        <input id="dateto" asp-for="DateTo" type="date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div id="toolbar">
+                        <label>Customers</label>
+                    </div>
+                    <table id="datatable" class="table table-striped table-sm" data-toggle="table"
+                           data-id-field="id"
+                           data-select-item-name="Customers[]"
+                           data-click-to-select="true"
+                           data-show-extended-pagination="true"
+                           data-search="true"
+                           data-pagination="false"
+                           data-show-refresh="false"
+                           data-show-columns="false"
+                           data-show-toggle="false"
+                           data-side-pagination="client"
+                           data-search-on-enter-key="false"
+                           data-height="380">
+                        <thead>
+                            <tr>
+                                <th data-field="state" data-checkbox="true"></th>
+                                <th data-field="no" scope="col" class="text-nowrap">No</th>
+                                <th data-field="name" scope="col">Name</th>
+                                <th data-field="total" scope="col">Total</th>
+                                <th data-field="terms" scope="col">Terms</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
             <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
