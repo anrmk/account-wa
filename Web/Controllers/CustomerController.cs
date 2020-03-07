@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,19 +9,24 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
+using Core.Extensions;
 using Core.Services.Business;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
-
+using Newtonsoft.Json;
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
-        public ICrudBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _businessManager;
+        private readonly IViewRenderService _viewRenderService;
+
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
-             ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _viewRenderService = viewRenderService;
         }
 
         // GET: Customer
@@ -87,7 +93,7 @@ namespace Web.Controllers.Mvc {
                         return NotFound();
                     }
                     model = _mapper.Map<CustomerViewModel>(item);
-                    return RedirectToAction(nameof(Edit), new { id = item.Id});
+                    return RedirectToAction(nameof(Edit), new { id = item.Id });
                 }
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
@@ -115,6 +121,29 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
+
+        [HttpPost]
+        public async Task<ActionResult> Upload([FromForm] IFormCollection files) {
+            var customerList = new List<CustomerViewModel>();
+            //using(var memoryStream = new MemoryStream()) {
+            // await FileUpload.FormFile.CopyToAsync(memoryStream);
+            var html = "";
+            using(var reader = new System.IO.StreamReader(files.Files[0].OpenReadStream())) {
+                try {
+                    var result = await reader.ReadToEndAsync();
+
+                    var dtoList = JsonConvert.DeserializeObject<List<CustomerDto>>(result);
+                    customerList = _mapper.Map<List<CustomerViewModel>>(dtoList);
+                    
+                    html = _viewRenderService.RenderToStringAsync("_BulkCreatePartial", customerList).Result;
+
+                } catch (Exception e) {
+                    _logger.LogError(e, e.Message);
+                }
+            }
+            //return View("_BulkCreatePartial", customerList);
+            return Json(html);
+        }
     }
 }
 
@@ -123,24 +152,18 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class CustomerController: ControllerBase {
         private readonly IMapper _mapper;
+        private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
 
-        public CustomerController(IMapper mapper, ICrudBusinessManager businessManager) {
+        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, ICrudBusinessManager businessManager) {
             _mapper = mapper;
+            _viewRenderService = viewRenderService;
             _businessManager = businessManager;
         }
 
-        /// <summary>
-        /// Get list of Customers
-        /// </summary>
-        /// <param name="search"></param>
-        /// <param name="order"></param>
-        /// <param name="offset"></param>
-        /// <param name="limit"></param>
-        /// <returns></returns>
         [HttpGet]
-        public async Task<Pager<CustomerListViewModel>> GetCustomers(string search, string sort, string order, int offset = 0, int limit = 10) {
-            var result = await _businessManager.GetCustomersPage(search ?? "", sort, order, offset, limit);
+        public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] PagerFilterViewModel model) {
+            var result = await _businessManager.GetCustomersPage(_mapper.Map<PagerFilter>(model));
             var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
         }
@@ -157,6 +180,25 @@ namespace Web.Controllers.Api {
         public async Task<List<CustomerDto>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
             var reuslt = await _businessManager.GetBulkCustomers(Id, from, to);
             return reuslt;
+        }
+
+        [HttpPost]
+        [Route("upload")]
+        public async Task<ActionResult> Upload([FromForm] IFormCollection files) {
+            var customerList = new List<CustomerViewModel>();
+            using(var reader = new System.IO.StreamReader(files.Files[0].OpenReadStream())) {
+                try {
+                    var result = await reader.ReadToEndAsync();
+
+                    var dtoList = JsonConvert.DeserializeObject<List<CustomerDto>>(result);
+                    customerList = _mapper.Map<List<CustomerViewModel>>(dtoList);
+                } catch(Exception e) {
+                    //_logger.LogError(e, e.Message);
+                }
+            }
+
+            string html = _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", customerList).Result;
+            return Ok(html);
         }
     }
 }

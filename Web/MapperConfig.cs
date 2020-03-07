@@ -100,6 +100,8 @@ namespace Web {
             #endregion
 
             CreateMap<NsiViewModel, NsiDto>().ReverseMap();
+
+            CreateMap<PagerFilterViewModel, PagerFilter>().ReverseMap();
         }
     }
 }

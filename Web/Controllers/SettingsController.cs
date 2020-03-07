@@ -34,7 +34,7 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         [Route("exportfield")]
-        public async Task<Pager<NsiViewModel>> GenerateBulkInvoice([FromQuery] FilterViewModel model) {
+        public async Task<Pager<NsiViewModel>> GenerateBulkInvoice([FromQuery] PagerFilterViewModel model) {
             var result = await _nsiBusinessManager.GetReportFields(model.Search, model.Sort, model.Order, model.Offset, model.Limit);
             return new Pager<NsiViewModel>(_mapper.Map<List<NsiViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
         }

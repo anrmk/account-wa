@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class InvoiceFilterViewModel: FilterViewModel {
+    public class InvoiceFilterViewModel: PagerFilterViewModel {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 

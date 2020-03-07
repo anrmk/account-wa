@@ -36,7 +36,7 @@ namespace Core.Services.Business {
 
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
-        Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter);
         Task<List<CustomerDto>> GetUntiedCustomers(long? companyId);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
@@ -310,13 +310,14 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(result);
         }
 
-        public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
-            Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
+        public async Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter) {
+        //public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
+                Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search)
-                    || x.Name.ToLower().Contains(search.ToLower())
-                    || x.No.ToLower().Contains(search.ToLower())
-                    || x.Description.ToLower().Contains(search.ToLower()));
+                && (string.IsNullOrEmpty(filter.Search)
+                    || x.Name.ToLower().Contains(filter.Search.ToLower())
+                    || x.No.ToLower().Contains(filter.Search.ToLower())
+                    || x.Description.ToLower().Contains(filter.Search.ToLower()));
 
             #region Sort
             Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
@@ -324,17 +325,17 @@ namespace Core.Services.Business {
 
             string[] include = new string[] { "Company", "Address", "Activities" };
 
-            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
             if(count == 0)
-                return new Pager<CustomerDto>(new List<CustomerDto>(), 0, offset, limit);
+                return new Pager<CustomerDto>(new List<CustomerDto>(), 0, filter.Offset, filter.Limit);
 
-            var page = (offset + limit) / limit;
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
 
             var result = _mapper.Map<List<CustomerDto>>(list);
-            return new Pager<CustomerDto>(result, count, page, limit);
+            return new Pager<CustomerDto>(result, count, page, filter.Limit);
         }
 
         public async Task<List<CustomerDto>> GetCustomers() {

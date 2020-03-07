@@ -1,0 +1,55 @@
+﻿@model List<Web.ViewModels.CustomerViewModel>
+
+@{
+    Layout = null;
+}
+
+<form id="paymentsPartialForm" action="/api/payment/create" method="post">
+    <fieldset>
+        @*<div class="mb-3" role="toolbar">
+                <div class="form-row align-items-end">
+                    <div class="col">
+                        <label for="DateFrom">Date from</label>
+                        <input type="date" class="form-control" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col">
+                        <label for="DateTo">Date to</label>
+                        <input type="date" class="form-control" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-outline-primary" onclick="generateRandomDate()">Random</button>
+                    </div>
+                </div>
+            </div>*@
+
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Payment No</th>
+                    <th>Invoice No</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(var i = 0; i < Model.Count; i++) {
+                    var item = Model[i];
+                    <tr>
+                        <td>
+                            @(i + 1)
+                            @*<input type="hidden" name="Invoices[]" value="@item.InvoiceId" />
+                                <input type="hidden" name="Payments[][No]" value="@item.No" />
+                                <input type="hidden" name="Payments[][InvoiceId]" value="@item.InvoiceId" />*@
+                        </td>
+                        <td><input type="text" class="form-control" name="Customers[][No]" value="@item.No" /></td>
+                        <td><input type="text" class="form-control" name="Customers[][Name]" value="@item.Name" /></td>
+                        <td><input type="text" class="form-control" name="Customers[][Terms]" value="@item.Terms" /></td>
+                        @*<td>
+                                <input type="text" class="form-control" name="Customers[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                            </td>*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </fieldset>
+</form>

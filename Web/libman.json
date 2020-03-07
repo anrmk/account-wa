@@ -80,6 +80,10 @@
       "files": [
         "dist/jquery.loadJSON.min.js"
       ]
+    },
+    {
+      "library": "bootstrap-fileinput@5.0.8",
+      "destination": "wwwroot/lib/bootstrap-fileinput/"
     }
   ]
 }
