@@ -51,7 +51,7 @@
                     </div>
                     <div class="col-4">
                         <label asp-for="CompanyId"></label>
-                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker" data-live-search="true"></select>
+                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>
                         <span asp-validation-for="CompanyId" class="text-danger"></span>
                     </div>
                 </div>
