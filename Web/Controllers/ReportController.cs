@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Core.Context;
-using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
 using Core.Services.Managers;
@@ -89,7 +88,7 @@ namespace Web.Controllers.Mvc {
                     //csvWriter.Configuration.HasHeaderRecord = true;
                     //csvWriter.Configuration.AutoMap<ExpandoObject>();
 
-                    
+
                     //var columns = new List<CompanyExportSettingsFieldDto>();
 
                     //if(!settings.ShowAllCustomers) {
@@ -126,7 +125,7 @@ namespace Web.Controllers.Mvc {
                             if(field.IsActive) {
                                 var value = ObjectExtension.GetPropValue(summary, field.Name);
                                 var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
-                  
+
                                 csvWriter.WriteField(data == null || data.Equals("0") ? "" : data);
                             }
                         }

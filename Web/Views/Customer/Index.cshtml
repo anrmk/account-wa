@@ -37,29 +37,6 @@
 @section Scripts {
 
     <script type="text/javascript">
-        $(document).ready(() => {
-            $("#file-uploader").fileinput({
-                showRemove: false,
-                showPreview: false,
-                uploadUrl: "/customer/upload", // server upload action
-                uploadAsync: false,
-            });
-
-
-            $('#file-uploader').on('fileuploaded', function (event, previewId, index, fileId) {
-                console.log('File Uploaded', 'ID: ' + fileId + ', Thumb ID: ' + previewId);
-                alert('fileuploaded')
-            }).on('fileuploaderror', function (event, data, msg) {
-                console.log('File Upload Error', 'ID: ' + data.fileId + ', Thumb ID: ' + data.previewId);
-                alert('fileuploaderror')
-
-            }).on('filebatchuploadcomplete', function (event, preview, config, tags, extraData) {
-                console.log('File Batch Uploaded', preview, config, tags, extraData);
-                alert('filebatchuploadcomplete')
-
-            })
-        });
-
         function nameFormatter(value, row) {
             return `${value} <p class='text-muted'>${row.company}</p>`;
         }
@@ -71,5 +48,37 @@
         function actionFormatter(value, row) {
             return `<a href='/customer/edit/${row.id}' class='btn btn-outline-secondary mr-1' >Edit</a>`;
         }
+
+        $(document).ready(() => {
+            var $table = $('#datatable');
+
+            $("#file-uploader").fileinput({
+                showRemove: false,
+                showPreview: false,
+                uploadUrl: '/customer/upload', // server upload action
+                uploadAsync: false,
+                mergeAjaxCallbacks: true,
+                ajaxSettings: {
+                    success: function (data, textStatus, jqXHR) {
+                        $(data.html).dialog('Import customers', (action, evt, content) => {
+                            if (action === 'modal.on.load') {
+                                $(content).on('submit', e => {
+                                    e.preventDefault();
+
+                                    $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                                        if (status === 'success') {
+                                            $table.bootstrapTable('refresh');
+                                            window.modal.modal('hide');
+                                        } else if (status === 'error') {
+                                            alert(jqXHR.responseText);
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        });
     </script>
 }

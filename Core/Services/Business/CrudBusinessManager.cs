@@ -42,6 +42,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
+        Task<List<CustomerDto>> CreateCustomer(List<CustomerDto> list);
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
@@ -311,13 +312,13 @@ namespace Core.Services.Business {
         }
 
         public async Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter) {
-        //public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
-                Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
-                   (true)
-                && (string.IsNullOrEmpty(filter.Search)
-                    || x.Name.ToLower().Contains(filter.Search.ToLower())
-                    || x.No.ToLower().Contains(filter.Search.ToLower())
-                    || x.Description.ToLower().Contains(filter.Search.ToLower()));
+            //public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
+            Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
+               (true)
+            && (string.IsNullOrEmpty(filter.Search)
+                || x.Name.ToLower().Contains(filter.Search.ToLower())
+                || x.No.ToLower().Contains(filter.Search.ToLower())
+                || x.Description.ToLower().Contains(filter.Search.ToLower()));
 
             #region Sort
             Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
@@ -376,6 +377,21 @@ namespace Core.Services.Business {
             var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
 
             return _mapper.Map<CustomerDto>(entity);
+        }
+
+        public async Task<List<CustomerDto>> CreateCustomer(List<CustomerDto> list) {
+            var entities = _mapper.Map<List<CustomerEntity>>(list).AsEnumerable();
+            entities = await _customerManager.Create(entities);
+
+            var activities = entities.Select(x => new CustomerActivityEntity() {
+                CustomerId = x.Id,
+                IsActive = false,
+                CreatedDate = DateTime.Now,
+                Customer = x
+            });
+            await _customerActivityManager.Create(activities);
+
+            return _mapper.Map<List<CustomerDto>>(entities);
         }
 
         public async Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto) {
@@ -616,8 +632,6 @@ namespace Core.Services.Business {
             int result = await _paymentManager.Delete(entity);
             return result != 0;
         }
-
-
         #endregion
     }
 }

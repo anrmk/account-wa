@@ -26,7 +26,7 @@ $.fn.ajaxSubmit = function (opt, callback) {
     var options = $.extend({
         'url': this.attr('action'),
         'type': this.attr('method'),
-        'data': JSON.stringify(this.serializeJSON({ parseNumbers: true })),
+        'data': JSON.stringify(this.serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false })),
         'processData': false,
         'contentType': 'application/json; charset=utf-8'
     }, opt);

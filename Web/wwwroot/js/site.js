@@ -2,20 +2,6 @@
     $.fn.datepicker.defaults.format = "mm/dd/yyyy";
     window.modal = $('#modalBackdrop');
 
-    //$('input[type=file]').fileinput({
-    //   // uploadAsync: false,
-    //    theme: 'fa',
-    //    showPreview: false,
-    //    showCaption: false,
-    //    //showUpload: false,
-    //    showRemove: false,
-    //    showCancel: false,
-    //    allowedFileExtensions: ['csv', 'text', 'json'],
-    //    browseClass: 'btn btn-outline-secondary',
-    //    browseIcon: '<i class=\"fa fa-file-upload\"></i> ',
-    //    maxFileCount: 1,
-    //});
-
     var settings = {
         validClass: "is-valid",
         errorClass: "is-invalid"
@@ -23,7 +9,9 @@
     $.validator.setDefaults(settings);
     $.validator.unobtrusive.options = settings;
 
-});
+}).ajaxError((e, jqxhr, settings, thrownError) => {
+    window.console.log("Error", jqxhr);
+});;
 
 $.fn.dialog = function (header, callback) {
     callback = callback || function () { };

@@ -22,6 +22,6 @@ namespace Web.ViewModels {
         [Display(Name = "Period To")]
         public int? To { get; set; }
 
-     //   private List<Company>
+        //   private List<Company>
     }
 }

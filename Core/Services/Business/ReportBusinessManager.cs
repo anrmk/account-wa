@@ -72,7 +72,7 @@ namespace Core.Services.Business {
                     Name = $"{from}-{to}"
                 });
             }
-            _col.Add(new AgingSummaryPeriod() { 
+            _col.Add(new AgingSummaryPeriod() {
                 From = 1 + numberOfPeriods * daysPerPeriod,
                 Name = $"{1 + numberOfPeriods * daysPerPeriod}+"
             });

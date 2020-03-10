@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Core.Extensions {
     public interface IViewRenderService {
+        Task<string> RenderToStringAsync(string viewName, object model, ViewDataDictionary viewDictionary);
         Task<string> RenderToStringAsync(string viewName, object model);
     }
 
@@ -27,7 +28,7 @@ namespace Core.Extensions {
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<string> RenderToStringAsync(string viewName, object model) {
+        public async Task<string> RenderToStringAsync(string viewName, object model, ViewDataDictionary viewDictionary) {
             var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
             var actionContext = new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
 
@@ -38,9 +39,7 @@ namespace Core.Extensions {
                     throw new ArgumentNullException($"{viewName} does not match any available view");
                 }
 
-                var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                    Model = model
-                };
+                viewDictionary.Model = model;
 
                 var viewContext = new ViewContext(actionContext, viewResult.View, viewDictionary,
                     new TempDataDictionary(actionContext.HttpContext, _tempDataProvider),
@@ -50,6 +49,13 @@ namespace Core.Extensions {
                 await viewResult.View.RenderAsync(viewContext);
                 return sw.ToString();
             }
+        }
+
+        public async Task<string> RenderToStringAsync(string viewName, object model) {
+            var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                // Model = model
+            };
+            return await RenderToStringAsync(viewName, model, viewDictionary);
         }
     }
 }
