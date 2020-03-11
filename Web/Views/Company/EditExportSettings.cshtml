@@ -5,14 +5,14 @@
 }
 
 @section Toolbar  {
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group mr-2">
-            <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
-                <input asp-for="Id" type="hidden" id="deleteId" />
-                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
-            </form>
-        </div>
+<div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group mr-2">
+        <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
+            <input asp-for="Id" type="hidden" id="deleteId" />
+            <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
+        </form>
     </div>
+</div>
 }
 <div class="card">
     <div class="card-body">
@@ -31,7 +31,7 @@
                     <span asp-validation-for="Title" class="text-danger"></span>
                 </div>
             </div>
-            
+
             <div class="form-row mb-3">
                 <div class="col-4">
                     <label asp-for="Sort"></label>
@@ -54,14 +54,31 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="Fields"></label>
+                <label asp-for="Fields">
+                    Fields  <a id="popoverFields" href="#" data-placement="bottom" title="Fields names"><i class="fa fa-question-circle"></i></a>
+                    <div id="popoverFieldsContentWrapper" style="display: none">
+                        <ul class="list-unstyled">
+                            <li><strong>Customer.No</strong> - Account Number</li>
+                            <li><strong>Customer.Name</strong> - Business Name</li>
+                            <li><strong>Customer.Address.Address</strong> - Address</li>
+                            <li><strong>Customer.Address.Address2</strong> - Address2</li>
+                            <li><strong>Customer.Address.City</strong> - City</li>
+                            <li><strong>Customer.Address.ZipCode</strong> - Postal Code</li>
+                            <li><strong>Address.Country</strong> - Country</li>
+                            <li><strong>Customer.CreditUtilized</strong> - High Credit Utilized</li>
+                            <li><strong>Customer.CreditLimit</strong> - Credit Limit</li>
+                            <li><strong>Current</strong> - Aging Current / Future</li>
+                            <li><strong>1-30</strong> - Past Dues 1-30</li>
+                        </ul>
+                    </div>
+                </label>
                 <div id="exportSettingsFieldsList" class="list-group">
                     @if(Model.Fields != null && Model.Fields.Count > 0) {
-                        @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
-                            <partial name="_CompanyExportSettingsFieldPartial" model="field" />
-                        }
+                    @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
+                    <partial name="_CompanyExportSettingsFieldPartial" model="field" />
+                    }
                     } else {
-                        <div>No matching records found</div>
+                    <div>No matching records found</div>
                     }
                 </div>
             </div>
@@ -70,13 +87,13 @@
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
             <button type="submit" class="btn btn-outline-primary" form="createForm">Save</button>
-            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-link" >Cancel</a>
+            <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-link">Cancel</a>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script type="text/javascript">
+<script type="text/javascript">
         $(document).ready(e => {
             var $exportSettingsFieldsList = $('#exportSettingsFieldsList');
 
@@ -111,21 +128,12 @@
                 });
             });
 
-            //var $removeBtn = $exportSettingsFieldsList.find('a').on('click', e => {
-            //    e.preventDefault();
-
-            //    var target = $(e.currentTarget);
-            //    var options = {
-            //        'type': 'get',
-            //        'url': target.attr('href')
-            //    }
-
-            //    $.ajax(options).done((data, status, jqXHR) => {
-            //        $(target.data('target')).remove();
-            //    }).fail((jqXHR, status) => {
-            //        alert(status)
-            //    });
-            //})
+            $('#popoverFields').popover({
+                html : true,
+                content: function() {
+                  return $('#popoverFieldsContentWrapper').html();
+                }
+            });
         })
-    </script>
+</script>
 }

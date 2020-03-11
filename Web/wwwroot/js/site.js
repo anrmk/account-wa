@@ -1,6 +1,7 @@
 ﻿$(document).ready(() => {
     $.fn.datepicker.defaults.format = "mm/dd/yyyy";
     window.modal = $('#modalBackdrop');
+    $('[data-toggle=popover]').popover();
 
     var settings = {
         validClass: "is-valid",
