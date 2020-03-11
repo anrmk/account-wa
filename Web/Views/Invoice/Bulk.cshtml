@@ -39,23 +39,26 @@
                     <table id="datatable" class="table table-striped table-sm" data-toggle="table"
                            data-id-field="id"
                            data-select-item-name="Customers[]"
+                           data-filter-control="true"
+                           data-show-search-clear-button="true"
                            data-click-to-select="true"
                            data-show-extended-pagination="true"
                            data-search="true"
-                           data-pagination="false"
+                           
                            data-show-refresh="false"
                            data-show-columns="false"
                            data-show-toggle="false"
                            data-side-pagination="client"
                            data-search-on-enter-key="false"
-                           data-height="380">
+                          >
                         <thead>
                             <tr>
                                 <th data-field="state" data-checkbox="true"></th>
-                                <th data-field="no" scope="col" class="text-nowrap">No</th>
+                                <th data-field="no" scope="col" class="text-nowrap" data-halign="left">No</th>
                                 <th data-field="name" scope="col">Name</th>
-                                <th data-field="total" scope="col">Total</th>
-                                <th data-field="terms" scope="col">Terms</th>
+                                <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
+                                <th data-field="total" scope="col" data-width="10" data-width-unit="%">Total</th>
+                                <th data-field="terms" scope="col" data-width="10" data-width-unit="%">Terms</th>
                             </tr>
                         </thead>
                     </table>

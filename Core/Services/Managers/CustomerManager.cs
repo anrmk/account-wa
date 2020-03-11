@@ -75,12 +75,13 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
             var result = new List<CustomerBulkEntity>();
-            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id] " +
-                                                    "FROM[dbo].[Customers] AS CUS " +
-                                                    "LEFT JOIN(SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] " +
-                                                    "WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO " +
-                                                    "group by[Customer_Id]) AS INV " +
+            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id], CUS.[CustomerType_Id], " +
+                                                    "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode " +
+                                                    "FROM [dbo].[Customers] AS CUS " +
+                                                    "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
                                                     "ON CUS.[Id] = INV.[Customer_Id] " +
+                                                    "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
+                                                    "ON CUS.[CustomerType_Id] = CUST.[Id] " +
                                                     "WHERE CUS.[Company_Id] = @COMPANYID";
 
             try {
@@ -100,6 +101,15 @@ namespace Core.Services.Managers {
 
                         using(var reader = await command.ExecuteReaderAsync()) {
                             while(reader.Read()) {
+
+                                var customerType = reader["CustomerType_Id"] != DBNull.Value ? new Data.Entities.Nsi.CustomerTypeEntity() {
+                                    Id = (long)reader["CustomerType_Id"],
+                                    Code = reader["CustomerTypeCode"] as string,
+                                    Name = reader["CustomerTypeName"] as string
+                                } : null;
+                                
+                                //var typeId = reader["CustomerType_Id"] != DBNull.Value ? (long)reader["CustomerType_Id"] : (long?)null;
+
                                 result.Add(new CustomerBulkEntity() {
                                     Id = (long)reader["Id"],
                                     Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,
@@ -107,7 +117,9 @@ namespace Core.Services.Managers {
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,
                                     Terms = reader["Terms"] as string,
-                                    CompanyId = (long)reader["Company_Id"]
+                                    CompanyId = (long)reader["Company_Id"],
+                                    TypeId = customerType != null ? customerType.Id : (long?)null,
+                                    Type = customerType
                                 });
                             }
                         }

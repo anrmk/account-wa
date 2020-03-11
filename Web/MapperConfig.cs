@@ -55,6 +55,7 @@ namespace Web {
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.Company, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
+                .ForMember(d => d.Type, o => o.MapFrom(s => (s.Type != null) ? s.Type.Name : ""))
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
             CreateMap<CustomerViewModel, CustomerDto>()

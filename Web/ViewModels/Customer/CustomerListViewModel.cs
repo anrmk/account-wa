@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
     public class CustomerListViewModel {
@@ -19,7 +20,11 @@ namespace Web.ViewModels {
         public long TypeId { get; set; }
         public string Type { get; set; }
 
+        [Display(Name = "Is active")]
         public bool IsActive { get; set; }
+
+        [Display(Name = "Total Invoice")]
+        public int Total { get; set; }
 
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }

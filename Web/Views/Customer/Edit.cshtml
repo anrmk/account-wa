@@ -51,6 +51,7 @@
                     </div>
                     <div class="col-4">
                         <label asp-for="CompanyId"></label>
+                        <input asp-for="CompanyId" type="hidden" >
                         <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>
                     </div>
                 </div>

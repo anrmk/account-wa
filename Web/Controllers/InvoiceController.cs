@@ -135,7 +135,7 @@ namespace Web.Controllers.Mvc {
             ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.From} - {x.To}", Value = x.Id.ToString() });
 
             var customers = await _businessManager.GetBulkCustomers(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
-            ViewBag.Customers = customers;
+            ViewBag.Customers = _mapper.Map<List<CustomerListViewModel>>(customers);
 
             return View(model);
         }
