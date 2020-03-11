@@ -108,8 +108,6 @@ namespace Core.Services.Managers {
                                     Name = reader["CustomerTypeName"] as string
                                 } : null;
                                 
-                                //var typeId = reader["CustomerType_Id"] != DBNull.Value ? (long)reader["CustomerType_Id"] : (long?)null;
-
                                 result.Add(new CustomerBulkEntity() {
                                     Id = (long)reader["Id"],
                                     Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,

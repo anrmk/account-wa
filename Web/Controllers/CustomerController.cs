@@ -143,6 +143,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            //TODO: Сделать отображение атрибута Display 
             ViewBag.CustomerFields = typeof(CustomerViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
                 .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
 
@@ -218,13 +219,15 @@ namespace Web.Controllers.Mvc {
             private readonly IMapper _mapper;
             private readonly IViewRenderService _viewRenderService;
             private readonly ICrudBusinessManager _businessManager;
+            private readonly INsiBusinessManager _nsiManager;
             private readonly IMemoryCache _memoryCache;
 
-            public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager) {
+            public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager, INsiBusinessManager nsiManager) {
                 _mapper = mapper;
                 _viewRenderService = viewRenderService;
                 _memoryCache = memoryCache;
                 _businessManager = businessManager;
+                _nsiManager = nsiManager;
             }
 
             [HttpGet]
@@ -259,6 +262,8 @@ namespace Web.Controllers.Mvc {
                         var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
                         model.Rows = cacheModel?.Rows;
 
+                        var customerTypes = await _nsiManager.GetCustomerTypes();
+
                         for(var i = 0; i < model.Rows?.Count(); i++) {
                             var row = model.Rows[i];
                             var customer = new CustomerViewModel() {
@@ -271,6 +276,11 @@ namespace Web.Controllers.Mvc {
                                     var property = customer.GetType().GetProperty(column.Name);
 
                                     if(property != null && property.CanWrite) {
+                                        /*if(property.PropertyType == typeof(long)) {
+                                            if(long.TryParse(row[j].Value, out long longValue)) {
+                                                property.SetValue(customer, longValue);
+                                            }
+                                        } else*/
                                         if(property.PropertyType == typeof(double)) {
                                             if(double.TryParse(row[j].Value, out double doubleVal)) {
                                                 property.SetValue(customer, doubleVal);
@@ -288,7 +298,15 @@ namespace Web.Controllers.Mvc {
                                                 property.SetValue(customer, boolVal);
                                             }
                                         } else {
-                                            property.SetValue(customer, row[j].Value);
+                                            if(property.Name.Equals("TypeId")) {
+                                                var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
+                                                if(ctype != null) {
+                                                    var propertyTypeId = customer.GetType().GetProperty("TypeId");
+                                                    propertyTypeId.SetValue(customer, ctype.Id);
+                                                }
+                                            } else {
+                                                property.SetValue(customer, row[j].Value);
+                                            }
                                         }
                                     }
                                 }
@@ -306,7 +324,8 @@ namespace Web.Controllers.Mvc {
 
                     var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
                     var result = await _businessManager.CreateCustomer(invoiceList);
-                    return Ok(_mapper.Map<List<CustomerViewModel>>(result));
+                    var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
+                    return Ok(returnvalue);
 
                 } catch(Exception e) {
                     return BadRequest(e.Message ?? e.StackTrace);

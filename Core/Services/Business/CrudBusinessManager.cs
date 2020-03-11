@@ -141,13 +141,6 @@ namespace Core.Services.Business {
 
         public async Task<CompanyDto> CreateCompany(CompanyDto dto) {
             var entity = await _companyManager.Create(_mapper.Map<CompanyEntity>(dto));
-
-            //TODO: Провверить работу создания и сохранения компании
-            //var customers = await _customerManager.FindByIds(dto.Customers.Select(x => x.Id).ToArray());
-            //customers.ForEach(x => x.CompanyId = entity.Id);
-            //await _customerManager.Update(customers);
-            //entity.Customers = customers;
-
             return _mapper.Map<CompanyDto>(entity);
         }
 

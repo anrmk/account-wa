@@ -43,8 +43,11 @@ namespace Web.ViewModels {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
+        [SpecialName()]
         [Display(Name = "Type")]
         public long? TypeId { get; set; }
+        
+        //public string Type { get; set; }
 
         [Display(Name = "Activity")]
         public bool IsActive { get; set; }
