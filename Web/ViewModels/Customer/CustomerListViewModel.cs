@@ -26,6 +26,8 @@ namespace Web.ViewModels {
         [Display(Name = "Total Invoice")]
         public int Total { get; set; }
 
+        public int Recheck { get; set; }
+
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
         public string CreatedBy { get; set; }

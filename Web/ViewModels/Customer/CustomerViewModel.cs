@@ -46,8 +46,6 @@ namespace Web.ViewModels {
         [SpecialName()]
         [Display(Name = "Type")]
         public long? TypeId { get; set; }
-        
-        //public string Type { get; set; }
 
         [Display(Name = "Activity")]
         public bool IsActive { get; set; }
