@@ -38,6 +38,7 @@ namespace Core {
             #region CUSTOMER
             CreateMap<CustomerDto, CustomerEntity>()
                 .ForMember(d => d.Company, o => o.Ignore())
+                .ForMember(d => d.Type, o => o.Ignore())
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ReverseMap()
@@ -61,6 +62,7 @@ namespace Core {
             #region NSI
             //CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
             CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();
+            CreateMap<NsiDto, CustomerTypeEntity>().ReverseMap();
             #endregion
         }
     }

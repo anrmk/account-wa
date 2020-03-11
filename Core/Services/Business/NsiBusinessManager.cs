@@ -16,16 +16,24 @@ namespace Core.Services.Business {
         //Task<List<ReportPeriodDto>> GetReportPeriods();
         //Task<List<NsiDto>> GetReportFields();
         Task<Pager<NsiDto>> GetReportFields(string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<List<NsiDto>> GetCustomerTypes();
     }
     public class NsiBusinessManager: BaseBusinessManager, INsiBusinessManager {
         private readonly IMapper _mapper;
         //private readonly IReportPeriodManager _reportPeriodManager;
         private readonly IReportFieldManager _reportFieldManager;
+        private readonly ICustomerTypeManager _customerTypeManager;
 
-        public NsiBusinessManager(IMapper mapper, IReportFieldManager reportFieldManager) {
+        public NsiBusinessManager(IMapper mapper, IReportFieldManager reportFieldManager, ICustomerTypeManager customerTypeManager) {
             _mapper = mapper;
             //_reportPeriodManager = reportPeriodManager;
             _reportFieldManager = reportFieldManager;
+            _customerTypeManager = customerTypeManager;
+        }
+
+        public async Task<List<NsiDto>> GetCustomerTypes() {
+            var result = await _customerTypeManager.All();
+            return _mapper.Map<List<NsiDto>>(result);
         }
 
         //public async Task<ReportPeriodDto> GetReportPeriodById(long id) {

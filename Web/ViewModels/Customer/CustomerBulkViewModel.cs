@@ -9,7 +9,7 @@ namespace Web.ViewModels {
 
         //import header
         public List<string> HeadRow { get; set; }
-        
+
         //import rows
         public List<CustomerRowViewModel[]> Rows { get; set; }
     }

@@ -41,6 +41,8 @@ namespace Core.Services {
             ///NSI
             //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
             services.AddTransient<IReportFieldManager, ReportFieldManager>();
+            services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
+            services.AddTransient<IRecheckManager, RecheckManager>();
 
             ///Business
             services.AddTransient<INsiBusinessManager, NsiBusinessManager>();

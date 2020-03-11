@@ -43,6 +43,9 @@ namespace Web.ViewModels {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
+        [Display(Name = "Type")]
+        public long? TypeId { get; set; }
+
         [Display(Name = "Activity")]
         public bool IsActive { get; set; }
         public virtual ICollection<CustomerActivityViewModel> Activities { get; set; }

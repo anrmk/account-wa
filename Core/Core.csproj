@@ -18,8 +18,4 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Entities\Invoice\" />
-  </ItemGroup>
-
 </Project>

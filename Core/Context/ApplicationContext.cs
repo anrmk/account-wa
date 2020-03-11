@@ -31,6 +31,8 @@ namespace Core.Context {
         #region DbSet
         #region NSI
         public DbSet<ReportFieldEntity> ReportFields { get; set; }
+        public DbSet<CustomerTypeEntity> CustomerTypes { get; set; }
+        public DbSet<RecheckEntity> Recheck { get; set; }
         //public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
         #endregion
 

@@ -20,17 +20,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Web.ViewModels;
-using static Core.Extension.ObjectExtension;
 
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly INsiBusinessManager _nsiManager;
         private readonly IViewRenderService _viewRenderService;
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, INsiBusinessManager nsiManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _nsiManager = nsiManager;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
         }
@@ -51,6 +52,9 @@ namespace Web.Controllers.Mvc {
 
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var customerTypes = await _nsiManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(item);
         }
@@ -85,6 +89,9 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            var customerTypes = await _nsiManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(_mapper.Map<CustomerViewModel>(item));
         }
 
@@ -107,6 +114,9 @@ namespace Web.Controllers.Mvc {
 
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var customerTypes = await _nsiManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(model);
         }

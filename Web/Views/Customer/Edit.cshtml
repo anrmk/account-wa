@@ -52,21 +52,26 @@
                     <div class="col-4">
                         <label asp-for="CompanyId"></label>
                         <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>
-                        <span asp-validation-for="CompanyId" class="text-danger"></span>
                     </div>
                 </div>
                 <div class="form-row mb-3">
-                    <div class="col-4">
+                    <div class="col-3">
+                        <label asp-for="TypeId"></label>
+                        <select asp-for="TypeId" asp-items="@ViewBag.CustomerTypes" class="form-control">
+                            <option value="">Select customer type</option>
+                        </select>
+                    </div>
+                    <div class="col-3">
                         <label asp-for="PhoneNumber"></label>
                         <input asp-for="PhoneNumber" type="text" class="form-control">
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
                         <label asp-for="Terms"></label>
                         <input asp-for="Terms" type="text" class="form-control">
                         <span asp-validation-for="Terms" class="text-danger"></span>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
                         <label asp-for="IsActive"></label>
                         <select asp-for="IsActive" type="checkbox" class="form-control">
                             <option value="true">Active</option>

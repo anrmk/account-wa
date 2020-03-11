@@ -15,6 +15,10 @@ namespace Web.ViewModels {
 
         public long CompanyId { get; set; }
         public string Company { get; set; }
+
+        public long TypeId { get; set; }
+        public string Type { get; set; }
+
         public bool IsActive { get; set; }
 
         public DateTime CreatedDate { get; set; }
