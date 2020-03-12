@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -14,6 +15,7 @@ using Core.Services.Managers;
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
         Task<CompanyDto> GetCompany(long id);
+        Task<CustomerDto> GetCustomer(string no, long companyId);
         Task<List<CompanyDto>> GetCompanies();
         Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<CompanyDto> CreateCompany(CompanyDto dto);
@@ -42,7 +44,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
-        Task<List<CustomerDto>> CreateCustomer(List<CustomerDto> list);
+        Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list);
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
@@ -304,6 +306,11 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(result);
         }
 
+        public async Task<CustomerDto> GetCustomer(string no, long companyId) {
+            var result = await _customerManager.FindInclude(no, companyId);
+            return _mapper.Map<CustomerDto>(result);
+        }
+
         public async Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter) {
             //public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
             Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
@@ -363,7 +370,7 @@ namespace Core.Services.Business {
 
             var activityDto = new CustomerActivityDto() {
                 CustomerId = entity.Id,
-                IsActive = false
+                IsActive = dto.IsActive
             };
 
             //Make activity
@@ -372,19 +379,49 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(entity);
         }
 
-        public async Task<List<CustomerDto>> CreateCustomer(List<CustomerDto> list) {
-            var entities = _mapper.Map<List<CustomerEntity>>(list).AsEnumerable();
-            entities = await _customerManager.Create(entities);
+        public async Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list) {
+            var updatedList = new List<CustomerEntity>();
 
-            var activities = entities.Select(x => new CustomerActivityEntity() {
-                CustomerId = x.Id,
-                IsActive = false,
-                CreatedDate = DateTime.Now,
-                Customer = x
-            });
-            await _customerActivityManager.Create(activities);
+            foreach(var dto in list) {
+                var entity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
+                if(entity != null) {
+                    entity.Name = dto.Name;
+                    entity.CreditLimit = dto.CreditLimit;
+                    entity.CreditUtilized = dto.CreditUtilized;
+                    entity.Description = dto.Description;
+                    entity.PhoneNumber = dto.PhoneNumber;
+                    entity.Terms = dto.Terms;
+                    entity.TypeId = dto.TypeId;
 
-            return _mapper.Map<List<CustomerDto>>(entities);
+                    entity.Address.Address = dto.Address.Address;
+                    entity.Address.Address2 = dto.Address.Address2;
+                    entity.Address.City = dto.Address.City;
+                    entity.Address.Country = dto.Address.Country;
+                    entity.Address.State = dto.Address.State;
+                    entity.Address.ZipCode = dto.Address.ZipCode;
+
+                    updatedList.Add(entity);
+                }
+            }
+
+            if(updatedList.Count() != 0) {
+                var newUpdatedList = await _customerManager.Update(updatedList.AsEnumerable());
+            }
+
+            var exceptList = list.Where(x => !updatedList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
+            if(exceptList.Count() != 0) {
+                var items = await _customerManager.Create(_mapper.Map<List<CustomerEntity>>(exceptList).AsEnumerable());
+
+                var activities = items.Select(x => new CustomerActivityEntity() {
+                    CustomerId = x.Id,
+                    IsActive = true,
+                    CreatedDate = DateTime.Now,
+                    Customer = x
+                });
+                await _customerActivityManager.Create(activities);
+            }
+
+            return list;
         }
 
         public async Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto) {
