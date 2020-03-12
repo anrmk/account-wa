@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Core.Services.Managers {
     public interface ICustomerManager: IEntityManager<CustomerEntity> {
         Task<CustomerEntity> FindInclude(long id);
+        Task<CustomerEntity> FindInclude(string no, long companyId);
         Task<List<CustomerEntity>> FindByIds(long[] ids);
         Task<List<CustomerEntity>> FindByCompanyId(long id);
         Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till);
@@ -25,7 +26,26 @@ namespace Core.Services.Managers {
 
     public class CustomerManager: AsyncEntityManager<CustomerEntity>, ICustomerManager {
         public CustomerManager(IApplicationContext context) : base(context) { }
+      
+        public async Task<CustomerEntity> FindInclude(long id) {
+            return await DbSet
+                .Include(x => x.Company)
+                .Include(x => x.Address)
+                .Include(x => x.Activities)
+                .Include(x => x.Type)
+               .Where(x => x.Id == id)
+               .FirstOrDefaultAsync();
+        }
 
+        public async Task<CustomerEntity> FindInclude(string no, long companyId) {
+            return await DbSet
+               .Include(x => x.Company)
+               .Include(x => x.Address)
+               .Include(x => x.Activities)
+               .Include(x => x.Type)
+              .Where(x => x.No.Equals(no) && x.CompanyId == companyId)
+              .FirstOrDefaultAsync();
+        }
         public async Task<List<CustomerEntity>> AllInclude() {
             return await DbSet
                 .Include(x => x.Address)
@@ -62,15 +82,7 @@ namespace Core.Services.Managers {
             return result;
         }
 
-        public async Task<CustomerEntity> FindInclude(long id) {
-            return await DbSet
-                .Include(x => x.Company)
-                .Include(x => x.Address)
-                .Include(x => x.Activities)
-                .Include(x => x.Type)
-               .Where(x => x.Id == id)
-               .FirstOrDefaultAsync();
-        }
+
 
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
