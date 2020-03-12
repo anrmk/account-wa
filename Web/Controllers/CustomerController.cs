@@ -323,7 +323,7 @@ namespace Web.Controllers.Mvc {
                     }
 
                     var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
-                    var result = await _businessManager.CreateCustomer(invoiceList);
+                    var result = await _businessManager.CreateOrUpdateCustomer(invoiceList);
                     var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
                     return Ok(returnvalue);
 
