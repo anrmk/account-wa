@@ -246,9 +246,9 @@ namespace Web.Controllers.Mvc {
 
             [HttpGet]
             [Route("bulk")]
-            public async Task<List<CustomerDto>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
-                var reuslt = await _businessManager.GetBulkCustomers(Id, from, to);
-                return reuslt;
+            public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
+                var result = await _businessManager.GetBulkCustomers(Id, from, to);
+                return _mapper.Map<List<CustomerListViewModel>>(result);
             }
 
             [HttpPost]
@@ -323,7 +323,7 @@ namespace Web.Controllers.Mvc {
                     }
 
                     var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
-                    var result = await _businessManager.CreateOrUpdateCustomer(invoiceList);
+                    var result = await _businessManager.CreateOrUpdateCustomer(invoiceList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
                     var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
                     return Ok(returnvalue);
 

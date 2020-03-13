@@ -36,6 +36,9 @@
                     <div id="toolbar">
                         <label>Customers</label>
                     </div>
+                    <div id="filter-bar">
+                    </div>
+
                     <table id="datatable" class="table table-striped table-sm" data-toggle="table"
                            data-id-field="id"
                            data-select-item-name="Customers[]"
@@ -44,13 +47,11 @@
                            data-click-to-select="true"
                            data-show-extended-pagination="true"
                            data-search="true"
-                           
                            data-show-refresh="false"
                            data-show-columns="false"
                            data-show-toggle="false"
                            data-side-pagination="client"
-                           data-search-on-enter-key="false"
-                          >
+                           data-search-on-enter-key="false">
                         <thead>
                             <tr>
                                 <th data-field="state" data-checkbox="true"></th>
@@ -94,6 +95,7 @@
 
                     $('#content').empty();
                     $table.bootstrapTable('load', customers[0]);
+                   // $table.bootstrapTable('refresh');
                 }).then(_ => {
                     $fieldset.removeAttr('disabled');
                 });

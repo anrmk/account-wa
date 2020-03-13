@@ -37,6 +37,7 @@ namespace Core {
 
             #region CUSTOMER
             CreateMap<CustomerDto, CustomerEntity>()
+                .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Type, o => o.Ignore())
                 .ForMember(d => d.Invoices, o => o.Ignore())

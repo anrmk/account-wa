@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -44,7 +45,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
-        Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list);
+        Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns);
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
@@ -379,26 +380,32 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(entity);
         }
 
-        public async Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list) {
+        public async Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns) {
             var updatedList = new List<CustomerEntity>();
 
             foreach(var dto in list) {
                 var entity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
                 if(entity != null) {
-                    entity.Name = dto.Name;
-                    entity.CreditLimit = dto.CreditLimit;
-                    entity.CreditUtilized = dto.CreditUtilized;
-                    entity.Description = dto.Description;
-                    entity.PhoneNumber = dto.PhoneNumber;
-                    entity.Terms = dto.Terms;
-                    entity.TypeId = dto.TypeId;
+                    //UPDATE CUSTOMER
+                    foreach(var column in columns) {
+                        var entityProp = entity.GetType().GetProperty(column);
+                        var dtoProp = dto.GetType().GetProperty(column);
 
-                    entity.Address.Address = dto.Address.Address;
-                    entity.Address.Address2 = dto.Address.Address2;
-                    entity.Address.City = dto.Address.City;
-                    entity.Address.Country = dto.Address.Country;
-                    entity.Address.State = dto.Address.State;
-                    entity.Address.ZipCode = dto.Address.ZipCode;
+                        if(entityProp != null && dtoProp != null && entityProp.PropertyType?.BaseType != typeof(EntityBase<long>)) {
+                            var value = dtoProp.GetValue(dto);
+                            entityProp.SetValue(entity, value);
+                        }
+                    }
+
+                    //UPDATE CUSTOMER ADDRESS
+                    foreach(var column in columns) {
+                        var entityProp = entity.Address?.GetType().GetProperty(column);
+                        var dtoProp = dto.Address?.GetType().GetProperty(column);
+                        if(entityProp != null && dtoProp != null && entityProp.PropertyType?.BaseType != typeof(EntityBase<long>)) {
+                            var value = dtoProp.GetValue(dto.Address);
+                            entityProp.SetValue(entity.Address, value);
+                        }
+                    }
 
                     updatedList.Add(entity);
                 }

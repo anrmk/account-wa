@@ -10,7 +10,9 @@
             <div class="form-row align-items-end">
                 <div class="col">
                     <label asp-for="CompanyId"></label>
-                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control"></select>
+                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
+                        <option>Select Company</option>
+                    </select>
                     <small class="form-text text-muted">* Indicates required field</small>
                 </div>
             </div>
