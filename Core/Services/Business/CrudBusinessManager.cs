@@ -387,7 +387,11 @@ namespace Core.Services.Business {
         }
 
         public async Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns) {
-            var updatedList = new List<CustomerEntity>();
+            var updateCustomerList = new List<CustomerEntity>();
+            var createCustomerList = new List<CustomerEntity>();
+
+            var updateActivityList = new List<CustomerActivityEntity>();
+            var createActivityList = new List<CustomerActivityEntity>();
 
             foreach(var dto in list) {
                 var entity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
@@ -413,25 +417,53 @@ namespace Core.Services.Business {
                         }
                     }
 
-                    updatedList.Add(entity);
+                    updateCustomerList.Add(entity);
+
+                    //UPDATE ACTIVITY
+                    if(columns.Contains("CreatedDate")) {
+                        var activityList = await _customerActivityManager.FindByCustomerId(entity.Id);
+                        if(activityList != null && activityList.Count > 0) {
+                            var activity = activityList.FirstOrDefault();
+                            activity.CreatedDate = entity.CreatedDate;
+                            updateActivityList.Add(activity);
+                        } else {
+                            createActivityList.Add(new CustomerActivityEntity() {
+                                Customer = entity,
+                                CustomerId = entity.Id,
+                                IsActive = true,
+                                CreatedDate = entity.CreatedDate,
+                            });
+                        }
+                    }
                 }
             }
 
-            if(updatedList.Count() != 0) {
-                var newUpdatedList = await _customerManager.Update(updatedList.AsEnumerable());
+            if(updateCustomerList.Count() != 0) {
+                await _customerManager.Update(updateCustomerList.AsEnumerable());
             }
 
-            var exceptList = list.Where(x => !updatedList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
+            if(updateActivityList.Count() != 0) {
+                await _customerActivityManager.Update(updateActivityList.AsEnumerable());
+            } 
+
+            if(createActivityList.Count() != 0) {
+                await _customerActivityManager.Create(createActivityList.AsEnumerable());
+            }
+
+            //CREATE CUSTOMERS
+            var exceptList = list.Where(x => !updateCustomerList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
             if(exceptList.Count() != 0) {
                 var items = await _customerManager.Create(_mapper.Map<List<CustomerEntity>>(exceptList).AsEnumerable());
 
-                var activities = items.Select(x => new CustomerActivityEntity() {
-                    CustomerId = x.Id,
-                    IsActive = true,
-                    CreatedDate = DateTime.Now,
-                    Customer = x
-                });
-                await _customerActivityManager.Create(activities);
+                if(columns.Contains("CreatedDate")) {
+                    var activities = items.Select(x => new CustomerActivityEntity() {
+                        Customer = x,
+                        CustomerId = x.Id,
+                        IsActive = true,
+                        CreatedDate = x.CreatedDate
+                    });
+                    await _customerActivityManager.Create(activities);
+                }
             }
 
             return list;

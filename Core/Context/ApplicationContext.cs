@@ -79,8 +79,9 @@ namespace Core.Context {
                         entity.CreatedDate = now;
                     } else {
                         Entry(entity).Property(x => x.CreatedBy).IsModified = false;
-                        Entry(entity).Property(x => x.CreatedDate).IsModified = false;
+                        //Entry(entity).Property(x => x.CreatedDate).IsModified = false;
                     }
+
                     entity.UpdatedBy = identityName;
                     entity.UpdatedDate = now;
                 }

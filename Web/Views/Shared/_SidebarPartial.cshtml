@@ -12,22 +12,22 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/company") ? "active" : "")" asp-controller="Company" asp-action="Index">
-                Companies
+                <i class="fas fa-building mr-3"></i> Companies
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/customer") ? "active" : "")" asp-controller="Customer" asp-action="Index">
-                Customers
+                <i class="fas fa-user mr-3"></i> Customers
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
-                Invoices
+                <i class="fas fa-file-invoice mr-3"></i> Invoices
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/payment") ? "active" : "")" asp-controller="Payment" asp-action="Index">
-                Payments
+                <i class="fas fa-coins mr-3"></i> Payments
             </a>
         </li>
     </ul>
@@ -41,6 +41,7 @@
         </li>
 
     </ul>
+    <hr />
     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
         <span><i class="fa fa-cogs mr-1"></i> Settings</span>
     </h6>

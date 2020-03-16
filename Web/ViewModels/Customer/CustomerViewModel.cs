@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
@@ -48,6 +49,10 @@ namespace Web.ViewModels {
         public long? TypeId { get; set; }
 
         public virtual ICollection<CustomerActivityViewModel> Activities { get; set; }
+
+        [Display(Name = "Created Date")]
+        [SpecialName()]
+        public DateTime CreatedDate { get; set; }
 
         #region Address
         public long? AddressId { get; set; }

@@ -341,6 +341,10 @@ namespace Web.Controllers.Mvc {
                                             if(bool.TryParse(row[j].Value, out bool boolVal)) {
                                                 property.SetValue(customer, boolVal);
                                             }
+                                        } else if(property.PropertyType == typeof(DateTime)) {
+                                            if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                                property.SetValue(customer, dateVal);
+                                            }
                                         } else {
                                             if(property.Name.Equals("TypeId")) {
                                                 var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
