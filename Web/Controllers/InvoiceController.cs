@@ -166,7 +166,8 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-                    return RedirectToAction(nameof(Index));
+                    model = _mapper.Map<InvoiceViewModel>(item);
+                    //return RedirectToAction(nameof(Index));
                 }
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);

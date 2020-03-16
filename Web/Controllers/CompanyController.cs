@@ -137,24 +137,26 @@ namespace Web.Controllers.Mvc {
         }
 
         #region SUMMARY RANGE
-        [Route("{id}/createSummaryRange")]
-        public async Task<ActionResult> CreateSummaryRange(long id) {
-            var item = await _businessManager.GetCompany(id);
+        [HttpGet]
+        [Route("{companyId}/summary")]
+        public async Task<ActionResult> CreateSummary(long companyId) {
+            var item = await _businessManager.GetCompany(companyId);
 
             if(item == null) {
                 return NotFound();
             }
+
             ViewBag.CompanyName = item.Name;
 
             var model = new CompanySummaryRangeViewModel() {
-                CompanyId = id
+                CompanyId = companyId
             };
             return View(model);
         }
 
         [HttpPost]
-        [Route("{id}/createsummaryrange")]
-        public async Task<ActionResult> CreateSummaryRange(CompanySummaryRangeViewModel model) {
+        [Route("{companyId}/summary")]
+        public async Task<ActionResult> CreateSummary(CompanySummaryRangeViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var item = await _businessManager.CreateCompanySummaryRange(_mapper.Map<CompanySummaryRangeDto>(model));

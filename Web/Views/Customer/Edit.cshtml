@@ -10,11 +10,18 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
     </div>
 }
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
 
 <div class="card">
     <div class="card-header">
@@ -39,95 +46,83 @@
 
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                 <div class="form-row mb-3">
-                    <div class="col-4">
+                    <div class="col">
                         <label asp-for="No"></label>
                         <input asp-for="No" type="text" class="form-control" required>
                         <span asp-validation-for="No" class="text-danger"></span>
                     </div>
-                    <div class="col-4">
+                    <div class="col">
                         <label asp-for="Name"></label>
                         <input asp-for="Name" type="text" class="form-control" required>
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
-                    <div class="col-4">
+                    <div class="col">
                         <label asp-for="CompanyId"></label>
-                        <input asp-for="CompanyId" type="hidden" >
+                        <input asp-for="CompanyId" type="hidden">
                         <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>
                     </div>
                 </div>
                 <div class="form-row mb-3">
-                    <div class="col-3">
+                    <div class="col">
                         <label asp-for="TypeId"></label>
                         <select asp-for="TypeId" asp-items="@ViewBag.CustomerTypes" class="form-control">
                             <option value="">Select customer type</option>
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col">
                         <label asp-for="PhoneNumber"></label>
                         <input asp-for="PhoneNumber" type="text" class="form-control">
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
-                    <div class="col-3">
+                    <div class="col">
                         <label asp-for="Terms"></label>
                         <input asp-for="Terms" type="text" class="form-control">
                         <span asp-validation-for="Terms" class="text-danger"></span>
                     </div>
-                    <div class="col-3">
-                        <label asp-for="IsActive"></label>
-                        <select asp-for="IsActive" type="checkbox" class="form-control">
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
-                        </select>
-                        <span asp-validation-for="IsActive" class="text-danger"></span>
-                    </div>
                 </div>
-                <div class="form-row mb-3">
-                    <div class="col">
-                        <label asp-for="Description">Description <span class="text-muted">(Optional)</span></label>
-                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                        <span asp-validation-for="Description" class="text-danger"></span>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="Description">Description <span class="text-muted">(Optional)</span></label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
             </div>
-            
+
             <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                 <input asp-for="AddressId" type="hidden" />
                 <div class="form-row mb-3">
                     <div class="col-8">
                         <label asp-for="Address"></label>
                         <input asp-for="Address" type="text" class="form-control">
-                        <small asp-validation-for="Address" class="form-text text-danger"></small>
+                        <span asp-validation-for="Address" class="form-text text-danger"></span>
                     </div>
                     <div class="col-4">
                         <label asp-for="City"></label>
                         <input asp-for="City" type="text" class="form-control">
-                        <small asp-validation-for="City" class="form-text text-danger"></small>
+                        <span asp-validation-for="City" class="form-text text-danger"></span>
                     </div>
                 </div>
-                <div class="form-row mb-3">
-                    <div class="col">
-                        <label asp-for="Address2">Address 2 <span class="text-muted">(Optional)</span></label>
-                        <input asp-for="Address2" type="text" class="form-control" placeholder="Appartment or suite">
-                        <small asp-validation-for="Address2" class="form-text text-danger"></small>
-                    </div>
+                <div class="form-group">
+                    <label asp-for="Address2">Address 2 <span class="text-muted">(Optional)</span></label>
+                    <input asp-for="Address2" type="text" class="form-control" placeholder="Appartment or suite">
+                    <span asp-validation-for="Address2" class="form-text text-danger"></span>
                 </div>
                 <div class="form-row mb-3">
                     <div class="col">
                         <label asp-for="Country"></label>
                         <input asp-for="Country" type="text" class="form-control">
-                        <small asp-validation-for="Country" class="form-text text-danger"></small>
+                        <span asp-validation-for="Country" class="form-text text-danger"></span>
                     </div>
 
                     <div class="col">
                         <label asp-for="State"></label>
                         <input asp-for="State" type="text" class="form-control">
-                        <small asp-validation-for="State" class="form-text text-danger"></small>
+                        <span asp-validation-for="State" class="form-text text-danger"></span>
                     </div>
 
                     <div class="col">
                         <label asp-for="ZipCode"></label>
                         <input asp-for="ZipCode" type="text" class="form-control">
-                        <small asp-validation-for="ZipCode" class="form-text text-danger"></small>
+                        <span asp-validation-for="ZipCode" class="form-text text-danger"></span>
                     </div>
                 </div>
             </div>
@@ -137,35 +132,28 @@
                     <div class="col">
                         <label asp-for="CreditLimit"></label>
                         <input asp-for="CreditLimit" class="form-control">
-                        <small asp-validation-for="CreditLimit" class="form-text text-danger"></small>
+                        <span asp-validation-for="CreditLimit" class="form-text text-danger"></span>
                     </div>
                     <div class="col">
                         <label asp-for="CreditUtilized"></label>
                         <input asp-for="CreditUtilized" class="form-control">
-                        <small asp-validation-for="CreditUtilized" class="form-text text-danger"></small>
+                        <span asp-validation-for="CreditUtilized" class="form-text text-danger"></span>
                     </div>
                 </div>
             </div>
-            
+
             <div id="activities" class="tab-pane fade">
-                <div class="form-row mb-3">
-                    <div class="col">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach(var item in Model.Activities) {
-                                    <tr>
-                                        <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
-                                        <td>@item.IsActive</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <div class="form-group">
+                    <a asp-controller="Customer" asp-action="CreateActivity" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Change</a>
+                </div>
+
+                <div class="form-group">
+                    <div class="list-group">
+                        @foreach(var item in ViewBag.Activities) {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@(item.IsActive ? "Active" : "Disactive") - @item.CreatedDate.ToString("MMM/dd/yyyy")</span>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

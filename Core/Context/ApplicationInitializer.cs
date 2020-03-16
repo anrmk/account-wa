@@ -28,10 +28,10 @@ namespace Core.Context {
             string rootPath = System.IO.Directory.GetCurrentDirectory();
             //CustomerInitializer($"{rootPath}\\Db\\express_customers_jan_2020.json");
 
-            //InvoceInitializerDraft($"{rootPath}\\Db\\express_invoices_jan_2020.json");
+            //InvoceInitializerDraft($"{rootPath}\\Db\\western_invoices_feb_2020.json");
 
-            //PaymentInitializerDraft($"{rootPath}\\Db\\western_invoices_dec_2019.json", 
-            //    $"{rootPath}\\Db\\western_invoices_jan_2020.json", new DateTime(2020, 1, 1), new DateTime(2020, 1, 31));
+            //PaymentInitializerDraft($"{rootPath}\\Db\\western_invoices_jan_2020.json", 
+            //    $"{rootPath}\\Db\\western_invoices_feb_2020.json", new DateTime(2020, 2, 1), new DateTime(2020, 2, 29));
 
         }
 

@@ -89,6 +89,9 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            var activities = await _businessManager.GetCustomerAllActivity(id);
+            ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);
+
             var customerTypes = await _nsiManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
@@ -114,6 +117,9 @@ namespace Web.Controllers.Mvc {
 
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var activities = await _businessManager.GetCustomerAllActivity(id);
+            ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);
 
             var customerTypes = await _nsiManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
@@ -210,6 +216,44 @@ namespace Web.Controllers.Mvc {
             }
             return Json(new { html = "" });
         }
+
+        #region ACTIVITY
+        [Route("{customerId}/activity")]
+        public async Task<ActionResult> CreateActivity(long customerId) {
+            var item = await _businessManager.GetCustomer(customerId);
+
+            if(item == null) {
+                return NotFound();
+            }
+            ViewBag.CustomerName = item.Name;
+
+            var model = new CustomerActivityViewModel() {
+                CustomerId = customerId,
+                CreatedDate = DateTime.Now,
+                IsActive = true
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("{customerId}/activity")]
+        public async Task<ActionResult> CreateActivity(CustomerActivityViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCustomerActivity(_mapper.Map<CustomerActivityDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+
+                    return RedirectToAction(nameof(Edit), new { Id = model.CustomerId });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
+        #endregion
     }
 
     namespace Web.Controllers.Api {

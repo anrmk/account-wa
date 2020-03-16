@@ -4,6 +4,12 @@
     ViewData["Title"] = "Create Company";
     ViewData["SubTitle"] = "Please provide all required details to register new company";
 }
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Companies</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New</li>
+    </ol>
+</nav>
 
 <div class="card">
     <div class="card-header">
@@ -15,8 +21,8 @@
                 <a class="nav-link" data-toggle="tab" id="address-tab" href="#address">Address</a>
             </li>
             @*<li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="summary-tab" href="#summary">Summary Range</a>
-            </li>*@
+                    <a class="nav-link" data-toggle="tab" id="summary-tab" href="#summary">Summary Range</a>
+                </li>*@
         </ul>
     </div>
     <div class="card-body">

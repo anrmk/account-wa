@@ -3,7 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
     public class CompanySummaryRangeViewModel {
-        public long CompanyId { get; set; }
+        public long Id { get; set; }
+
+        public long? CompanyId { get; set; }
 
         [Display(Name = "From")]
         [Range(0, 999999)]

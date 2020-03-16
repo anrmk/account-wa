@@ -1,0 +1,42 @@
+﻿@model Web.ViewModels.CustomerActivityViewModel
+
+@{
+    ViewData["Title"] = "Create customer activity";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+        <li class="breadcrumb-item"><a asp-action="Edit" asp-route-id="@Model.CustomerId">@ViewBag.CustomerName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New customer activity</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header">@ViewBag.CustomerName</div>
+    <div class="card-body">
+        <form id="createForm" method="POST" asp-action="CreateActivity">
+            <input asp-for="CustomerId" type="hidden" />
+            <div class="form-row mb-3">
+                <div class="col-6">
+                    <label asp-for="CreatedDate"></label>
+                    <input asp-for="CreatedDate" type="date" class="form-control" required>
+                    <span asp-validation-for="CreatedDate" class="text-danger"></span>
+                </div>
+                <div class="col-6">
+                    <label asp-for="IsActive"></label>
+                    <select asp-for="IsActive" type="checkbox" class="form-control">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-outline-primary" form="createForm">Save</button>
+            <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-link">Cancel</a>
+        </div>
+    </div>
+</div>

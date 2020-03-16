@@ -15,6 +15,7 @@ using Core.Services.Managers;
 
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
+        #region COMPANY
         Task<CompanyDto> GetCompany(long id);
         Task<CustomerDto> GetCustomer(string no, long companyId);
         Task<List<CompanyDto>> GetCompanies();
@@ -36,7 +37,9 @@ namespace Core.Services.Business {
         Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id);
         Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId);
         Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto);
+        #endregion
 
+        #region CUSTOMER
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
         Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter);
@@ -49,6 +52,12 @@ namespace Core.Services.Business {
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
+        Task<List<CustomerActivityDto>> GetCustomerAllActivity(long customerId);
+        Task<CustomerActivityDto> CreateCustomerActivity(CustomerActivityDto dto);
+
+        #endregion
+
+        #region INVOICE
         Task<InvoiceDto> GetInvoice(long id);
         //Task<Pager<InvoiceDto>> GetInvoicePage(long? companyId, DateTime? date, int? dayePerPeriod, int? numberOfPeriod, long? period, string search, string sort, string order, int offset = 0, int limit = 10);
         Task<Pager<InvoiceDto>> GetInvoicePage(InvoiceFilterDto filter);
@@ -59,7 +68,9 @@ namespace Core.Services.Business {
         Task<InvoiceDto> CreateInvoice(InvoiceDto dto);
         Task<List<InvoiceDto>> CreateInvoice(List<InvoiceDto> list);
         Task<bool> DeleteInvoice(long id);
+        #endregion
 
+        #region PAYMENT
         Task<PaymentDto> GetPayment(long id);
         Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
@@ -68,6 +79,7 @@ namespace Core.Services.Business {
         Task<List<PaymentDto>> CreatePayment(List<PaymentDto> list);
         Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
         Task<bool> DeletePayment(long id);
+        #endregion
     }
 
     public class CrudBusinessManager: BaseBusinessManager, ICrudBusinessManager {
@@ -195,11 +207,6 @@ namespace Core.Services.Business {
             return _mapper.Map<CompanySummaryRangeDto>(result);
         }
 
-        /// <summary>
-        /// Получить список все ценовых групп компании
-        /// </summary>
-        /// <param name="companyId"></param>
-        /// <returns></returns>
         public async Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId) {
             var result = await _companySummaryManager.FindAllByCompanyId(companyId);
             return _mapper.Map<List<CompanySummaryRangeDto>>(result);
@@ -215,7 +222,6 @@ namespace Core.Services.Business {
             var entity = await _companySummaryManager.Create(newEntity);
             return _mapper.Map<CompanySummaryRangeDto>(entity);
         }
-
         #endregion
 
         #region COMPANY EXPORT SETTINGS
@@ -443,13 +449,13 @@ namespace Core.Services.Business {
             var newEntity = _mapper.Map(dto, entity);
             entity = await _customerManager.Update(newEntity);
 
-            //Make activity
-            var activityDto = new CustomerActivityDto() {
-                CustomerId = entity.Id,
-                IsActive = dto.IsActive,
-                CreatedDate = DateTime.Now
-            };
-            var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
+            ////Make activity
+            //var activityDto = new CustomerActivityDto() {
+            //    CustomerId = entity.Id,
+            //    IsActive = dto.IsActive,
+            //    CreatedDate = DateTime.Now
+            //};
+            //var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
 
             return _mapper.Map<CustomerDto>(entity);
         }
@@ -461,6 +467,22 @@ namespace Core.Services.Business {
             }
             int result = await _customerManager.Delete(entity);
             return result != 0;
+        }
+
+        public async Task<List<CustomerActivityDto>> GetCustomerAllActivity(long customerId) {
+            var result = await _customerActivityManager.FindByCustomerId(customerId);
+            return _mapper.Map<List<CustomerActivityDto>>(result);
+        }
+
+        public async Task<CustomerActivityDto> CreateCustomerActivity(CustomerActivityDto dto) {
+            var company = await _customerManager.Find(dto.CustomerId);
+            if(company == null) {
+                return null;
+            }
+            var newEntity = _mapper.Map<CustomerActivityEntity>(dto);
+
+            var entity = await _customerActivityManager.Create(newEntity);
+            return _mapper.Map<CustomerActivityDto>(entity);
         }
         #endregion
 
