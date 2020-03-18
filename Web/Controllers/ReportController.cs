@@ -89,7 +89,16 @@ namespace Web.Controllers.Mvc {
                     }
                 }
 
+                var files = report.Files.Select(x => string.Format("{0}|{1}", x.Id, x.Name));
+                if(rows.ContainsKey("Files")) {
+                    rows["Files"].Add(string.Join(";", files));
+                } else {
+                    rows.Add("Files", new List<string>() {
+                         string.Join(";", files)
+                     });
+                }
             }
+
             var columns = result.Select(x => x.Date.ToString("MMM/dd/yyyy"));
             return View(rows);
         }
@@ -204,6 +213,22 @@ namespace Web.Controllers.Mvc {
             return BadRequest();
         }
 
+        [Route("download/{id}")]
+        public async Task<IActionResult> Download(long id) {
+            var item = await _crudBusinessManager.GetSavedFile(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var report = await _crudBusinessManager.GetSavedReport(item.ReportId ?? 0);
+
+            var fileDate = Regex.Replace(report.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", report.Name, RegexOptions.IgnoreCase);
+
+            //FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
+            //fileStreamResult.FileDownloadName = fileDate;
+            return Ok();
+        }
+
         #region OLD EXPORT
         /*
         [HttpPost]
@@ -281,18 +306,6 @@ namespace Web.Controllers.Api {
             _crudBusinessManager = crudBusinessManager;
         }
 
-        [HttpGet]
-        public async Task<Pager<SavedReportListViewModel>> GetSavedReports([FromQuery] PagerFilterViewModel model) {
-            var result = new List<SavedReportListViewModel>() {
-                new SavedReportListViewModel() {Name = "Arbear", Count = 5},
-                new SavedReportListViewModel() {Name = "Mactive", Count = 2},
-                new SavedReportListViewModel() {Name = "Premier", Count = 4},
-                new SavedReportListViewModel() {Name = "D&D", Count = 2},
-                new SavedReportListViewModel() {Name = "Western", Count = 3},
-            };
-            return new Pager<SavedReportListViewModel>(result.AsEnumerable(), result.Count, 1, 10);
-        }
-
         [HttpPost("aging", Name = "Aging")]
         public async Task<IActionResult> PostRunAgingReport(ReportFilterViewModel model) {
             try {
@@ -307,7 +320,6 @@ namespace Web.Controllers.Api {
             }
             return null;
         }
-
 
         [HttpPost("savedReport", Name = "CreateSavedReport")]
         public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
@@ -334,7 +346,7 @@ namespace Web.Controllers.Api {
                     foreach(var column in report.Columns) {
                         fields.Add(new SavedReportFieldDto() {
                             Name = column.Name,
-                            Value = $"{report.Balance[column.Name].Count} | {report.Balance[column.Name].Sum}"
+                            Value = $"{report.Balance[column.Name].Count}|{report.Balance[column.Name].Sum}"
                         });
                     }
                     #endregion
@@ -346,7 +358,9 @@ namespace Web.Controllers.Api {
                         if(settings != null) {
                             var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
                             if(file != null) {
+                                var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
                                 files.Add(new SavedReportFileDto() {
+                                    Name = fileDate,
                                     File = file
                                 });
                             }

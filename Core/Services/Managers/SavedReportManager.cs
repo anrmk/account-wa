@@ -23,6 +23,7 @@ namespace Core.Services.Managers {
         public async Task<List<SavedReportEntity>> FindAllByUserAndCompanyId(string userId, long companyId) {
             return await DbSet
                 .Include(x => x.Fields)
+                .Include(x => x.Files)
                 .Where(x => x.ApplicationUserId == new System.Guid(userId) && x.CompanyId == companyId).ToListAsync();
         }
     }

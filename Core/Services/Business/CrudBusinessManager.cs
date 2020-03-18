@@ -80,9 +80,11 @@ namespace Core.Services.Business {
         #endregion
 
         #region SAVED REPORT
+        Task<SavedReportDto> GetSavedReport(long id);
         Task<List<SavedReportDto>> GetSavedReport(string userId);
         Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId);
         Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
+        Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
     }
 
@@ -739,6 +741,11 @@ namespace Core.Services.Business {
         #endregion
 
         #region SAVED REPORT
+        public async Task<SavedReportDto> GetSavedReport(long id) {
+            var entity = await _savedReportManager.Find(id);
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
         public async Task<List<SavedReportDto>> GetSavedReport(string userId) {
             var entity = await _savedReportManager.FindAllByUserId(userId);
             return _mapper.Map<List<SavedReportDto>>(entity);
@@ -765,6 +772,11 @@ namespace Core.Services.Business {
             var savedFileEntity = await _savedReportFileManager.Create(fileEntity.AsEnumerable());
 
             return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<SavedReportFileDto> GetSavedFile(long id) {
+            var entity = await _savedReportFileManager.Find(id);
+            return _mapper.Map<SavedReportFileDto>(entity);
         }
 
         #endregion
