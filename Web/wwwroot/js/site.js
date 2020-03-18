@@ -50,6 +50,7 @@ $.fn.bootstrapTable.formatDate = function (value, row, index) {
 
 $.extend($.fn.bootstrapTable.defaults, {
     classes: 'table table-hover',
+    widthUnit : "%",
     sidePagination: 'server',
     toolbar: '#toolbar',
     showPaginationSwitch: false,

@@ -1,0 +1,22 @@
+﻿@model Dictionary<string, List<string>>
+
+@{
+   // ViewData["Title"] = "A/R Aging Summary Report";
+    ViewData["Subtitle"] = "Saved reports";
+}
+
+
+<div class="card">
+    <div class="card-body">
+        <table class="table">
+            @foreach(var row in Model.Keys) {
+                <tr>
+                    <th scope="row">@row</th>
+                    @foreach(var col in Model[row]) {
+                        <td>@col</td>
+                    }
+                </tr>
+            }
+        </table>
+    </div>
+</div>

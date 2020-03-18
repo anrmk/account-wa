@@ -1,0 +1,39 @@
+﻿@model List<Web.ViewModels.SavedReportListViewModel>
+@{
+    ViewData["Title"] = "Saved Reports";
+    ViewData["Subtitle"] = "Use saved reports for faster access to the reports you use most often.";
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <div id="toolbar" class="btn-toolbar" role="toolbar">
+
+            </div>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Group Name</th>
+                        <th>Count</th>
+                        <th class="text-nowrap text-right table-active" width="10%" >Actions</th>
+                    </tr>
+                    @foreach(var item in Model) {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Count</td>
+                            <td class="text-nowrap text-right table-active">
+                                <a asp-controller="Report" asp-action="View" asp-route-companyId="@item.CompanyId" class="btn btn-outline-secondary">View</a>
+                            </td>
+                        </tr>
+                    }
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+    </script>
+}

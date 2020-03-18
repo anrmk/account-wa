@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AutoMapper;
 using Core.Context;
+using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
 using Core.Services.Managers;
@@ -46,25 +48,92 @@ namespace Web.Controllers.Mvc {
             });
         }
 
+        public async Task<IActionResult> Saved() {
+            var result = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var savedReportList = result.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
+                Key = companyId ?? 0,
+                Count = names.Count(),
+                Name = names.First()
+            }).Select(x => new SavedReportListViewModel() {
+                Name = x.Name,
+                CompanyId = x.Key,
+                Count = x.Count
+            }).ToList();
+
+            return View(savedReportList);
+        }
+
+        public async Task<IActionResult> View(long companyId) {
+            var company = await _crudBusinessManager.GetCompany(companyId);
+            if(company == null) {
+                return BadRequest();
+            }
+            ViewData["Title"] = company.Name;
+
+            var result = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
+
+            Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
+            rows.Add("Name", new List<string>());
+            foreach(var report in result) {
+                if(rows.ContainsKey("Name")) {
+                    rows["Name"].Add(report.Date.ToString("MMM/dd/yyyy"));
+                }
+
+                foreach(var field in report.Fields) {
+                    if(rows.ContainsKey(field.Name)) {
+                        rows[field.Name].Add(field.Value);
+                    } else {
+                        rows.Add(field.Name, new List<string>() {
+                            field.Value
+                        });
+                    }
+                }
+
+            }
+            var columns = result.Select(x => x.Date.ToString("MMM/dd/yyyy"));
+            return View(rows);
+        }
+
         [HttpPost]
-        [Route("GetExportSettings")]
-        public async Task<IActionResult> GetExportSettings([FromBody]ReportFilterViewModel model) {
+        [Route("exportSettings")]
+        public async Task<IActionResult> ExportSettings([FromBody]ReportFilterViewModel model) {
             var companyId = model.CompanyId;
 
-            var item = await _crudBusinessManager.GetCompany(companyId);
-            if(item == null) {
+            var company = await _crudBusinessManager.GetCompany(companyId);
+            if(company == null) {
                 return NotFound();
             }
 
             //var periods = await _nsiBusinessManager.GetReportPeriods();
-            var settings = await _crudBusinessManager.GetCompanyAllExportSettings(item.Id);
+            var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
             ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
 
             return View("_ExportSettingsPartial", model);
         }
 
         [HttpPost]
-        [Route("Export/{id}")]
+        [Route("savedReport")]
+        public async Task<IActionResult> SavedReport([FromBody]ReportFilterViewModel model) {
+            var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+            if(company == null) {
+                return NotFound();
+            }
+
+            var result = new SavedReportViewModel() {
+                CompanyId = model.CompanyId,
+                Name = company.Name,
+                Date = model.Date,
+                NumberOfPeriods = model.NumberOfPeriods
+            };
+
+            var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
+            ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
+
+            return View("_SavedReportPartial", result);
+        }
+
+        [HttpPost]
+        [Route("export/{id}")]
         public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
@@ -87,20 +156,6 @@ namespace Web.Controllers.Mvc {
                     //csvWriter.Configuration.Delimiter = ";";
                     //csvWriter.Configuration.HasHeaderRecord = true;
                     //csvWriter.Configuration.AutoMap<ExpandoObject>();
-
-
-                    //var columns = new List<CompanyExportSettingsFieldDto>();
-
-                    //if(!settings.ShowAllCustomers) {
-                    //    columns = result.Columns.Where(x => !settings.Fields.Any(y => x.Equals(y.Name))).Select(x => new CompanyExportSettingsFieldDto() {
-                    //        Name = x,
-                    //        Value = x,
-                    //        IsActive = true,
-                    //        IsEditable = true,
-                    //        ExportSettingsId = settings.Id,
-                    //        Sort = 100
-                    //    }).ToList();
-                    //}
 
                     var fields = settings.Fields.OrderBy(x => x.Sort);//.Concat(columns);
 
@@ -140,6 +195,7 @@ namespace Web.Controllers.Mvc {
 
                     FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
                     fileStreamResult.FileDownloadName = fileDate;
+
                     return fileStreamResult;
                 }
             } catch(Exception er) {
@@ -211,7 +267,7 @@ namespace Web.Controllers.Api {
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
-        private readonly IReportBusinessManager _businessManager;
+        private readonly IReportBusinessManager _reportBusinessManager;
         public ICrudBusinessManager _crudBusinessManager;
 
         public ReportController(IMemoryCache memoryCache,
@@ -221,18 +277,27 @@ namespace Web.Controllers.Api {
             _memoryCache = memoryCache;
             _mapper = mapper;
             _viewRenderService = viewRenderService;
-            _businessManager = businessManager;
+            _reportBusinessManager = businessManager;
             _crudBusinessManager = crudBusinessManager;
+        }
+
+        [HttpGet]
+        public async Task<Pager<SavedReportListViewModel>> GetSavedReports([FromQuery] PagerFilterViewModel model) {
+            var result = new List<SavedReportListViewModel>() {
+                new SavedReportListViewModel() {Name = "Arbear", Count = 5},
+                new SavedReportListViewModel() {Name = "Mactive", Count = 2},
+                new SavedReportListViewModel() {Name = "Premier", Count = 4},
+                new SavedReportListViewModel() {Name = "D&D", Count = 2},
+                new SavedReportListViewModel() {Name = "Western", Count = 3},
+            };
+            return new Pager<SavedReportListViewModel>(result.AsEnumerable(), result.Count, 1, 10);
         }
 
         [HttpPost("aging", Name = "Aging")]
         public async Task<IActionResult> PostRunAgingReport(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
-                    _memoryCache.Set("_ReportViewModel", model, cacheEntryOptions);
-
-                    var result = await _businessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
                     string html = _viewRenderService.RenderToStringAsync("_AgingReportPartial", result).Result;
 
                     return Ok(html);
@@ -241,6 +306,111 @@ namespace Web.Controllers.Api {
                 Console.Write(er.Message);
             }
             return null;
+        }
+
+
+        [HttpPost("savedReport", Name = "CreateSavedReport")]
+        public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+
+                    #region Fields
+                    var fields = new List<SavedReportFieldDto>() {
+                        new SavedReportFieldDto() {
+                            Name = "Total Customers",
+                            Value = report.TotalCustomers.ToString()
+                        },
+                        new SavedReportFieldDto() {
+                            Name = "Balance",
+                            Value = report.BalanceCustomers.ToString()
+                        },
+
+                        new SavedReportFieldDto() {
+                            Name = "No balance",
+                            Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
+                        },
+                    };
+                    foreach(var column in report.Columns) {
+                        fields.Add(new SavedReportFieldDto() {
+                            Name = column.Name,
+                            Value = $"{report.Balance[column.Name].Count} | {report.Balance[column.Name].Sum}"
+                        });
+                    }
+                    #endregion
+
+                    #region Files
+                    var files = new List<SavedReportFileDto>();
+                    foreach(var settingId in model.ExportSettings) {
+                        var settings = await _crudBusinessManager.GetCompanyExportSettings(settingId);
+                        if(settings != null) {
+                            var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
+                            if(file != null) {
+                                files.Add(new SavedReportFileDto() {
+                                    File = file
+                                });
+                            }
+                        }
+                    }
+                    #endregion
+
+                    var dto = _mapper.Map<SavedReportDto>(model);
+                    dto.ApplicationUserId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                    dto.Fields = fields;
+                    dto.Files = files;
+
+                    var result = await _crudBusinessManager.CreateSavedReport(dto);
+                    return Ok(result);
+                }
+            } catch(Exception er) {
+                Console.WriteLine(er.Message);
+            }
+            return null;
+        }
+
+        private async Task<byte[]> GetExportData(long companyId, DateTime date, int numberOfPeriods, CompanyExportSettingsDto settings) {
+            var result = await _reportBusinessManager.GetAgingReport(companyId, date, 30, numberOfPeriods, settings.IncludeAllCustomers);
+
+            var mem = new MemoryStream();
+            var writer = new StreamWriter(mem);
+            var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+            var fields = settings.Fields.OrderBy(x => x.Sort);//.Concat(columns);
+
+            foreach(var field in fields) {
+                if(field.IsActive) {
+                    csvWriter.WriteField<string>(field.Value);
+                }
+            }
+            csvWriter.NextRecord();
+
+            #region SORT BY ACCOUNT NUMBER/CUSTOMER BUSINESS NAME
+            var sortedInvoices = result.Data;
+            if(settings.Sort == 0) {
+                sortedInvoices = sortedInvoices.OrderBy(x => x.AccountNo).ToList();
+            } else {
+                sortedInvoices = sortedInvoices.OrderBy(x => x.Customer.Name).ToList();
+            }
+            #endregion
+
+            foreach(var summary in sortedInvoices) {
+                foreach(var field in fields) {
+                    if(field.IsActive) {
+                        var value = ObjectExtension.GetPropValue(summary, field.Name);
+                        var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
+
+                        csvWriter.WriteField(data == null || data.Equals("0") ? "" : data);
+                    }
+                }
+
+                csvWriter.NextRecord();
+            }
+
+            writer.Flush();
+            mem.Position = 0;
+
+            return mem.ToArray();
         }
     }
 }

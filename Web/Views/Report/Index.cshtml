@@ -6,51 +6,44 @@
 }
 
 @section Toolbar {
-    <ul class="nav justify-content-end">
-        <li class="nav-item">
-            <form id="exportReportForm" asp-controller="Report" asp-action="GetExportSettings" method="post">
-                <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
-                <input type="hidden" name="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
-                <input type="hidden" name="NumberOfPeriods" value="@Model.NumberOfPeriods" />
-                <button type="submit"  class="btn btn-outline-secondary">Export</button>
-            </form>
-        </li>
-    </ul>
+    <div class="btn-toolbar">
+        <div class="btn-group mr-2">
+            <button id="saveBtn" class="btn btn-outline-secondary">
+                <i class="far fa-save mr-2"></i> Save
+            </button>
+        </div>
+        <div class="btn-group">
+            <a id="exportBtn" href="#" class="btn btn-outline-secondary"><i class="fas fa-download mr-2"></i> Export</a>
+        </div>
+    </div>
 }
 
 <div class="row">
-    <div class="col-lg-3 col-md-12">
-        <form class="need-validation" id="filterReportForm" action="/api/report/aging" method="post">
+    <div class="col-lg-3 col-md-12 mb-3">
+        <form id="filterReportForm" asp-route="Aging">
             <fieldset>
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="card">
                     <div class="card-body">
                         <div class="form-group">
                             <label asp-for="CompanyId"></label>
-                            <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker"
-                                    required
-                                    data-live-search="true">
-                            </select>
+                            <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required></select>
                             <span asp-validation-for="CompanyId" class="text-danger"></span>
                         </div>
-                        <div class="form-group">
-                            <label asp-for="Date"></label>
-                            <div class="input-group">
-                                <input id="date" type="date" asp-for="Date" class="form-control" required />
-                                <div class="input-group-append">
-                                    <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
-                                </div>
+                        <div class="form-row">
+                            <div class="col-md-12 col-6 mb-3">
+                                <label asp-for="Date"></label>
+                                <input type="date" asp-for="Date" class="form-control" required />
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label asp-for="NumberOfPeriods"></label>
-                            <input id="numberOfPeriods" asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="1" max="10" required />
-                            <span asp-validation-for="NumberOfPeriods" class="form-text text-danger"></span>
+                            <div class="col-md-12 col-6">
+                                <label asp-for="NumberOfPeriods"></label>
+                                <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="1" max="10" required />
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">
                         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-                            <button class="btn btn-outline-secondary">Run report</button>
+                            <button class="btn btn-outline-primary">Run report</button>
                         </div>
                     </div>
                 </div>
@@ -67,40 +60,43 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
-
-            //On Export Button click
-            $exportBtn = $('#exportBtn').click(_ => {
-                var companyId = $('#companyId').val();
+            //on export button click
+            $exportBtn = $('#exportBtn').click(e => {
                 var options = {
+                    'url': '/exportSettings',
                     'type': 'post',
-                    'url': `/report/getexportsettings/` + companyId,
-                    //'data': { id: $('#companyId').val() }
+                    'data': JSON.stringify($('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false })),
+                    'processData': false,
+                    'contentType': 'application/json; charset=utf-8'
                 };
                 $.ajax(options).done((data, status, jqXHR) => {
-                    
+                    $(data).dialog('Export data');
                 });
+                e.preventDefault();
             });
 
-            // Generate report
+            //on save btn click
+            $saveBtn = $('#saveBtn').click(e => {
+                var options = {
+                    'url': '/savedReport',
+                    'type': 'post',
+                    'data': JSON.stringify($('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false })),
+                    'processData': false,
+                    'contentType': 'application/json; charset=utf-8'
+                }
+                $.ajax(options).done((data, status, jqXHR) => {
+                    $(data).dialog('Save report');
+                });
+                e.preventDefault();
+            });
+
+            //on generate report
             $filterReportForm = $('#filterReportForm').on('submit', e => {
                 $filterReportForm.ajaxSubmit({}, (target, data, status) => {
                     status === 'success' ? $('#content').html(data) : $('#content').empty();
-
-                    var data = target.serializeJSON();
-                    $exportReportForm.find('input[name=CompanyId]').val(data.CompanyId);
-                    $exportReportForm.find('input[name=Date]').val(data.Date);
-                    $exportReportForm.find('input[name=NumberOfPeriods]').val(data.NumberOfPeriods);
                 });
                 e.preventDefault();
             });
-
-            $exportReportForm = $('#exportReportForm').on('submit', e => {
-                $exportReportForm.ajaxSubmit({}, (target, data, status) => {
-                    $(data).dialog('Export data');
-                    //status === 'success' ? $('#content').html(data) : $('#content').empty();
-                });
-                e.preventDefault();
-            })
         });
     </script>
 }

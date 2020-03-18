@@ -46,6 +46,11 @@ namespace Core.Context {
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
+
+        public DbSet<SavedReportEntity> SavedReports { get; set; }
+        public DbSet<SavedReportFieldEntity> SavedReportFields { get; set; }
+        public DbSet<SavedReportFileEntity> SavedReportFiles { get; set; }
+
         #endregion
 
         public Database ApplicationDatabase { get; private set; }

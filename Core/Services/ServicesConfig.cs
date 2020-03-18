@@ -27,7 +27,6 @@ namespace Core.Services {
             services.AddTransient<IViewRenderService, ViewRenderService>();
 
             ///Managers
-            services.AddTransient<IReportManager, ReportManager>();
             services.AddTransient<ICompanyManager, CompanyManager>();
             services.AddTransient<ICompanyAddressMananger, CompanyAddressManager>();
             services.AddTransient<ICompanySummaryRangeManager, CompanySummaryRangeManager>();
@@ -37,6 +36,11 @@ namespace Core.Services {
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();
+
+            services.AddTransient<IReportManager, ReportManager>();
+            services.AddTransient<ISavedReportManager, SavedReportManager>();
+            services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
+            services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
 
             ///NSI
             //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();

@@ -5,14 +5,14 @@
 }
 
 @section Toolbar  {
-<div class="btn-toolbar mb-2 mb-md-0">
-    <div class="btn-group mr-2">
-        <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
-            <input asp-for="Id" type="hidden" id="deleteId" />
-            <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
-        </form>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
+                <input asp-for="Id" type="hidden" id="deleteId" />
+                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
+            </form>
+        </div>
     </div>
-</div>
 }
 <div class="card">
     <div class="card-body">
@@ -74,11 +74,11 @@
                 </label>
                 <div id="exportSettingsFieldsList" class="list-group">
                     @if(Model.Fields != null && Model.Fields.Count > 0) {
-                    @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
-                    <partial name="_CompanyExportSettingsFieldPartial" model="field" />
-                    }
+                        @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
+                            <partial name="_CompanyExportSettingsFieldPartial" model="field" />
+                        }
                     } else {
-                    <div>No matching records found</div>
+                        <div>No matching records found</div>
                     }
                 </div>
             </div>
@@ -93,7 +93,7 @@
 </div>
 
 @section Scripts {
-<script type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(e => {
             var $exportSettingsFieldsList = $('#exportSettingsFieldsList');
 
@@ -129,11 +129,11 @@
             });
 
             $('#popoverFields').popover({
-                html : true,
-                content: function() {
-                  return $('#popoverFieldsContentWrapper').html();
+                html: true,
+                content: function () {
+                    return $('#popoverFieldsContentWrapper').html();
                 }
             });
         })
-</script>
+    </script>
 }

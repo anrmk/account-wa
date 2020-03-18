@@ -101,6 +101,10 @@ namespace Web {
 
             #endregion
 
+            #region SAVED REPORT
+            CreateMap<SavedReportViewModel, SavedReportDto>().ReverseMap();
+            #endregion
+
             CreateMap<NsiViewModel, NsiDto>().ReverseMap();
 
             CreateMap<PagerFilterViewModel, PagerFilter>().ReverseMap();

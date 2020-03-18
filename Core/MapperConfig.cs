@@ -60,6 +60,16 @@ namespace Core {
                 .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null));
             #endregion
 
+            #region SAVED REPORT
+            CreateMap<SavedReportDto, SavedReportEntity>()
+                .ForMember(d => d.Fields, o => o.Ignore())
+                .ForMember(d => d.Files, o => o.Ignore())
+                .ReverseMap()
+                ;
+            CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
+            CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
+            #endregion
+
             #region NSI
             //CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
             CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();

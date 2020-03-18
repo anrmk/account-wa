@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -80,6 +78,12 @@ namespace Core.Services.Business {
         Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
         Task<bool> DeletePayment(long id);
         #endregion
+
+        #region SAVED REPORT
+        Task<List<SavedReportDto>> GetSavedReport(string userId);
+        Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId);
+        Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
+        #endregion
     }
 
     public class CrudBusinessManager: BaseBusinessManager, ICrudBusinessManager {
@@ -94,6 +98,9 @@ namespace Core.Services.Business {
         private readonly IInvoiceManager _invoiceManager;
         private readonly IPaymentManager _paymentManager;
         private readonly IReportManager _reportManager;
+        private readonly ISavedReportManager _savedReportManager;
+        private readonly ISavedReportFieldManager _savedReportFieldManager;
+        private readonly ISavedReportFileManager _savedReportFileManager;
 
         private readonly INsiBusinessManager _nsiBusinessManager;
 
@@ -103,7 +110,9 @@ namespace Core.Services.Business {
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
-            IInvoiceManager invoiceManager, IPaymentManager paymentManager, IReportManager reportManager, INsiBusinessManager nsiBusinessManager) {
+            IInvoiceManager invoiceManager, IPaymentManager paymentManager,
+            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager,
+            INsiBusinessManager nsiBusinessManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
@@ -115,7 +124,11 @@ namespace Core.Services.Business {
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
             _nsiBusinessManager = nsiBusinessManager;
+
             _reportManager = reportManager;
+            _savedReportManager = savedReportManager;
+            _savedReportFieldManager = savedReportFieldManager;
+            _savedReportFileManager = savedReportFileManager;
         }
 
         #region COMPANY
@@ -444,7 +457,7 @@ namespace Core.Services.Business {
 
             if(updateActivityList.Count() != 0) {
                 await _customerActivityManager.Update(updateActivityList.AsEnumerable());
-            } 
+            }
 
             if(createActivityList.Count() != 0) {
                 await _customerActivityManager.Create(createActivityList.AsEnumerable());
@@ -723,6 +736,37 @@ namespace Core.Services.Business {
             int result = await _paymentManager.Delete(entity);
             return result != 0;
         }
+        #endregion
+
+        #region SAVED REPORT
+        public async Task<List<SavedReportDto>> GetSavedReport(string userId) {
+            var entity = await _savedReportManager.FindAllByUserId(userId);
+            return _mapper.Map<List<SavedReportDto>>(entity);
+        }
+
+        public async Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId) {
+            var entity = await _savedReportManager.FindAllByUserAndCompanyId(userId, companyId);
+            return _mapper.Map<List<SavedReportDto>>(entity);
+        }
+
+        public async Task<SavedReportDto> CreateSavedReport(SavedReportDto dto) {
+            var item = _mapper.Map<SavedReportEntity>(dto);
+            var entity = await _savedReportManager.Create(item);
+            if(entity == null) {
+                return null;
+            }
+
+            var fieldEntity = _mapper.Map<List<SavedReportFieldEntity>>(dto.Fields);
+            fieldEntity.ForEach(x => x.ReportId = entity.Id);
+            var savedFieldEntity = await _savedReportFieldManager.Create(fieldEntity.AsEnumerable());
+
+            var fileEntity = _mapper.Map<List<SavedReportFileEntity>>(dto.Files);
+            fileEntity.ForEach(x => x.ReportId = entity.Id);
+            var savedFileEntity = await _savedReportFileManager.Create(fileEntity.AsEnumerable());
+
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
         #endregion
     }
 }
