@@ -28,7 +28,7 @@
                             @foreach(var col in Model[row]) {
                                 <td>
                                     @foreach(var d in col.Split(";")) {
-                                        <a asp-controller="SavedReport" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                        <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
                                     }
                                 </td>
                             }

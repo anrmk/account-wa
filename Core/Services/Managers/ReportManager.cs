@@ -7,6 +7,7 @@ using Core.Data.Entities;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Core.Services.Managers {
     public interface IReportManager {
@@ -16,10 +17,13 @@ namespace Core.Services.Managers {
 
     public class ReportManager: IReportManager {
         private readonly ApplicationContext _context;
+        private readonly IConfiguration _configuration;
         private readonly IInvoiceManager _invoiceManager;
 
-        public ReportManager(ApplicationContext context, IInvoiceManager invoiceManager) {
+        public ReportManager(ApplicationContext context, IConfiguration configuration, IInvoiceManager invoiceManager) {
             _context = context;
+            _configuration = configuration;
+
             _invoiceManager = invoiceManager;
         }
 
@@ -42,8 +46,10 @@ namespace Core.Services.Managers {
             var result = new List<InvoiceEntity>();
 
             try {
-                using(var connection = _context.Database.GetDbConnection()) {
-                    using(var command = connection.CreateCommand()) {
+                string connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+                using(var connection = new SqlConnection(connectionString)) {
+                        using(var command = connection.CreateCommand()) {
                         var dateFrom = dateTo.AddDays(daysPerPeriod * numberOfPeriod * -1);
 
                         command.CommandText = query;
@@ -101,8 +107,6 @@ namespace Core.Services.Managers {
                                     invoice.CustomerId = (long)reader["CustomerId"];
                                     invoice.Customer = customer;
                                 }
-
-
 
                                 if(reader["CompanyId"] != DBNull.Value) {
                                     invoice.CompanyId = (long)reader["CompanyId"];

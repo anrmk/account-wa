@@ -222,11 +222,15 @@ namespace Web.Controllers.Mvc {
 
             var report = await _crudBusinessManager.GetSavedReport(item.ReportId ?? 0);
 
-            var fileDate = Regex.Replace(report.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", report.Name, RegexOptions.IgnoreCase);
+            MemoryStream ms = new MemoryStream();
+            ms.Write(item.File, 0, item.File.Length);
+            ms.Position = 0;
 
-            //FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
-            //fileStreamResult.FileDownloadName = fileDate;
-            return Ok();
+            FileStreamResult fileStreamResult = new FileStreamResult(ms, "application/octet-stream");
+            fileStreamResult.FileDownloadName = item.Name;
+
+            return fileStreamResult;
+
         }
 
         #region OLD EXPORT
