@@ -83,6 +83,7 @@ namespace Core.Services.Business {
         Task<SavedReportDto> GetSavedReport(long id);
         Task<List<SavedReportDto>> GetSavedReport(string userId);
         Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId);
+        Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date);
         Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
         Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
@@ -756,11 +757,22 @@ namespace Core.Services.Business {
             return _mapper.Map<List<SavedReportDto>>(entity);
         }
 
+        public async Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date) {
+            var entity = await _savedReportManager.FindInclude(new Guid(userId), companyId, date);
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
         public async Task<SavedReportDto> CreateSavedReport(SavedReportDto dto) {
             var item = _mapper.Map<SavedReportEntity>(dto);
-            var entity = await _savedReportManager.Create(item);
-            if(entity == null) {
-                return null;
+            var entity = await _savedReportManager.FindInclude(dto.ApplicationUserId, dto.CompanyId ?? 0, dto.Date);
+            if(entity != null) {
+                //REMOVE ALL FIELDS
+                await _savedReportFieldManager.Delete(entity.Fields.AsEnumerable());
+
+                //REMOVE ALL FILES
+                await _savedReportFileManager.Delete(entity.Files.AsEnumerable());
+            } else {
+                entity = await _savedReportManager.Create(item);
             }
 
             var fieldEntity = _mapper.Map<List<SavedReportFieldEntity>>(dto.Fields);

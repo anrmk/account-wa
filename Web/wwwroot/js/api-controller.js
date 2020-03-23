@@ -19,6 +19,7 @@ $.fn.getBulkInvoices = function (id, from, to) {
     });
 }
 
+
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
     var fieldset = this.find('fieldset');

@@ -77,17 +77,20 @@
 
             //on save btn click
             $saveBtn = $('#saveBtn').click(e => {
+                e.preventDefault();
+                var formData = $('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+
                 var options = {
                     'url': '/savedReport',
                     'type': 'post',
-                    'data': JSON.stringify($('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false })),
+                    'data': JSON.stringify(formData),
                     'processData': false,
                     'contentType': 'application/json; charset=utf-8'
                 }
+
                 $.ajax(options).done((data, status, jqXHR) => {
                     $(data).dialog('Save report');
                 });
-                e.preventDefault();
             });
 
             //on generate report

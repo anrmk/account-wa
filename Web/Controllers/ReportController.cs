@@ -325,6 +325,14 @@ namespace Web.Controllers.Api {
             return null;
         }
 
+        [HttpGet]
+        [Route("savedReport")]
+        public async Task<IActionResult> GetSavedReport(long companyId, DateTime date) {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _crudBusinessManager.GetSavedReport(userId, companyId, date);
+            return Ok(result);
+        }
+
         [HttpPost("savedReport", Name = "CreateSavedReport")]
         public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
             try {

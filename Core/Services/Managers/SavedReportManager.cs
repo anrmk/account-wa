@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Core.Context;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Managers {
     public interface ISavedReportManager: IEntityManager<SavedReportEntity> {
+        Task<SavedReportEntity> FindInclude(Guid userId, long companyId, DateTime date);
         Task<List<SavedReportEntity>> FindAllByUserId(string userId);
         Task<List<SavedReportEntity>> FindAllByUserAndCompanyId(string userId, long companyId);
     }
@@ -25,6 +27,14 @@ namespace Core.Services.Managers {
                 .Include(x => x.Fields)
                 .Include(x => x.Files)
                 .Where(x => x.ApplicationUserId == new System.Guid(userId) && x.CompanyId == companyId).ToListAsync();
+        }
+
+        public async Task<SavedReportEntity> FindInclude(Guid userId, long companyId, DateTime date) {
+            return await DbSet
+               .Include(x => x.Fields)
+               .Include(x => x.Files)
+               .Where(x => x.ApplicationUserId == userId && x.CompanyId == companyId && x.Date == date)
+               .FirstOrDefaultAsync();
         }
     }
 }
