@@ -88,15 +88,15 @@ namespace Core.Services.Managers {
             var context = (ApplicationContext)_context;
             var result = new List<CustomerBulkEntity>();
             var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id], CUS.[CustomerType_Id], " +
-                                                    "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, RCH.[Recheck] " +
-                                                    "FROM [dbo].[Customers] AS CUS " +
-                                                    "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
-                                                    "ON CUS.[Id] = INV.[Customer_Id] " +
-                                                    "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
-                                                    "ON CUS.[CustomerType_Id] = CUST.[Id] " +
-                                                    "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
-                                                    "ON CUS.[Id] = RCH.Customer_Id " +
-                                                    "WHERE CUS.[Company_Id] = @COMPANYID";
+                        "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, RCH.[Recheck] " +
+                        "FROM [dbo].[Customers] AS CUS " +
+                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
+                        "ON CUS.[Id] = INV.[Customer_Id] " +
+                        "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
+                        "ON CUS.[CustomerType_Id] = CUST.[Id] " +
+                        "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
+                        "ON CUS.[Id] = RCH.Customer_Id " +
+                        "WHERE CUS.[Company_Id] = @COMPANYID";
 
             try {
                 using(var connection = context.Database.GetDbConnection()) {

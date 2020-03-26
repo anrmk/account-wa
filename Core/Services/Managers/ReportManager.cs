@@ -66,7 +66,6 @@ namespace Core.Services.Managers {
                         }
 
                         using(var reader = await command.ExecuteReaderAsync()) {
-
                             while(reader.Read()) {
                                 var invoice = new InvoiceEntity() {
                                     Id = (long)reader["Id"],

@@ -14,7 +14,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered">
+            <table id="savedReportTable" class="table table-bordered">
                 @foreach(var row in Model.Keys) {
                     <tr>
                         @if(row == "Name") {
@@ -22,17 +22,18 @@
                             @foreach(var col in Model[row]) {
                                 <th scope="col" width="160px">@col</th>
                             }
-
                         } else if(row == "Files") {
                             <th scope="row">@row</th>
                             @foreach(var col in Model[row]) {
                                 <td>
-                                    @foreach(var d in col.Split(";")) {
-                                        <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                    @if(!string.IsNullOrEmpty(col)) {
+                                        @foreach(var d in col.Split(";")) {
+                                            <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                        }
                                     }
                                 </td>
                             }
-                        } else {
+                        } else if(row != "Id") {
                             <th scope="row">@row</th>
                             @foreach(var col in Model[row]) {
                                 <td>
@@ -45,10 +46,43 @@
                                 </td>
                             }
                         }
-                        <th></th>
                     </tr>
+                }
+
+                @foreach(var row in Model.Keys) {
+                    if(row == "Id") {
+                        <tr class="table-active">
+                            <th scope="row">Action</th>
+
+                            @foreach(var col in Model[row]) {
+                                <td id="status_@col">
+                                    @if(!string.IsNullOrEmpty(col)) {
+                                    <form asp-route="PublishSavedReport" asp-route-id="@col">
+                                        <button type="submit" class="btn btn-outline-secondary">Publish</button>
+                                    </form>
+                                    } else {
+                                        <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
                 }
             </table>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script type="text/javascript">
+    $(document).ready(e => {
+        //on change report status
+        $savedReportForm = $('#savedReportTable').find('form').on('submit', e => {
+            $(e.target).ajaxSubmit({}, (target, data, status) => {
+                status === 'success' && data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+            });
+            e.preventDefault();
+        });
+    })
+    </script>
+}

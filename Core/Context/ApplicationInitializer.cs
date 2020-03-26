@@ -26,12 +26,12 @@ namespace Core.Context {
 
 
             string rootPath = System.IO.Directory.GetCurrentDirectory();
-            //CustomerInitializer($"{rootPath}\\Db\\express_customers_jan_2020.json");
+            // CustomerInitializer($"{rootPath}\\Db\\arbear_customers_feb_2020.json");
 
-            //InvoceInitializerDraft($"{rootPath}\\Db\\premier_invoices_feb_2020.json");
+           //InvoceInitializerDraft($"{rootPath}\\Db\\duamex_invoices_feb_2020.json");
 
-            //PaymentInitializerDraft($"{rootPath}\\Db\\premier_invoices_jan_2020.json",
-            //    $"{rootPath}\\Db\\premier_invoices_feb_2020.json", new DateTime(2020, 2, 1), new DateTime(2020, 2, 29));
+           //PaymentInitializerDraft($"{rootPath}\\Db\\duamex_invoices_jan_2020.json",
+           //    $"{rootPath}\\Db\\duamex_invoices_feb_2020.json", new DateTime(2020, 2, 1), new DateTime(2020, 2, 29));
 
         }
 

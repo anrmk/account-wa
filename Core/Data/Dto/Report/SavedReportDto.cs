@@ -9,6 +9,7 @@ namespace Core.Data.Dto {
         public long? CompanyId { get; set; }
         public DateTime Date { get; set; }
         public int NumberOfPeriods { get; set; }
+        public bool IsPublished { get; set; }
 
         public Guid ApplicationUserId { get; set; }
 

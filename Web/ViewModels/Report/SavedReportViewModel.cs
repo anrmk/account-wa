@@ -27,6 +27,8 @@ namespace Web.ViewModels {
         [Range(1, 10)]
         public int NumberOfPeriods { get; set; }
 
+        public bool IsPublished { get; set; }
+
         public IList<long> ExportSettings { get; set; }
     }
 }

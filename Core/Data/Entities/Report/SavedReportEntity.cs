@@ -19,6 +19,8 @@ namespace Core.Data.Entities {
 
         public int NumberOfPeriods { get; set; }
 
+        public bool IsPublished { get; set; }
+
         public virtual ICollection<SavedReportFieldEntity> Fields { get; set; }
 
         public virtual ICollection<SavedReportFileEntity> Files { get; set; }

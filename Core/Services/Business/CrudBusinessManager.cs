@@ -85,6 +85,7 @@ namespace Core.Services.Business {
         Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId);
         Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date);
         Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
+        Task<SavedReportDto> UpdateSavedReport(long id, SavedReportDto dto);
         Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
     }
@@ -467,6 +468,7 @@ namespace Core.Services.Business {
             }
 
             //CREATE CUSTOMERS
+            //Здесь неправильно добавляется дата для Activity
             var exceptList = list.Where(x => !updateCustomerList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
             if(exceptList.Count() != 0) {
                 var items = await _customerManager.Create(_mapper.Map<List<CustomerEntity>>(exceptList).AsEnumerable());
@@ -783,6 +785,18 @@ namespace Core.Services.Business {
             fileEntity.ForEach(x => x.ReportId = entity.Id);
             var savedFileEntity = await _savedReportFileManager.Create(fileEntity.AsEnumerable());
 
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<SavedReportDto> UpdateSavedReport(long id, SavedReportDto dto) {
+            var entity = await _savedReportManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+            //var mapentity = _mapper.Map(dto, entity);
+            entity.IsPublished = dto.IsPublished;
+            
+            entity = await _savedReportManager.Update(entity);
             return _mapper.Map<SavedReportDto>(entity);
         }
 

@@ -74,7 +74,12 @@ namespace Web.Controllers.Mvc {
 
             Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
             rows.Add("Name", new List<string>());
+            rows.Add("Id", new List<string>());
             foreach(var report in result) {
+                if(rows.ContainsKey("Id")) {
+                    rows["Id"].Add(report.IsPublished ? "" : report.Id.ToString());
+                }
+
                 if(rows.ContainsKey("Name")) {
                     rows["Name"].Add(report.Date.ToString("MMM/dd/yyyy"));
                 }
@@ -126,6 +131,11 @@ namespace Web.Controllers.Mvc {
             var company = await _crudBusinessManager.GetCompany(model.CompanyId);
             if(company == null) {
                 return NotFound();
+            }
+
+            var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+            if(savedItem != null && savedItem.IsPublished) {
+                return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
             }
 
             var result = new SavedReportViewModel() {
@@ -310,7 +320,7 @@ namespace Web.Controllers.Api {
             _crudBusinessManager = crudBusinessManager;
         }
 
-        [HttpPost("aging", Name = "Aging")]
+        [HttpPost("RunAgingReport", Name = "RunAgingReport")]
         public async Task<IActionResult> PostRunAgingReport(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
@@ -333,7 +343,7 @@ namespace Web.Controllers.Api {
             return Ok(result);
         }
 
-        [HttpPost("savedReport", Name = "CreateSavedReport")]
+        [HttpPost("CreateSavedReport", Name = "CreateSavedReport")]
         public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
             try {
                 if(ModelState.IsValid) {
@@ -365,16 +375,19 @@ namespace Web.Controllers.Api {
 
                     #region Files
                     var files = new List<SavedReportFileDto>();
-                    foreach(var settingId in model.ExportSettings) {
-                        var settings = await _crudBusinessManager.GetCompanyExportSettings(settingId);
-                        if(settings != null) {
-                            var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
-                            if(file != null) {
-                                var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
-                                files.Add(new SavedReportFileDto() {
-                                    Name = fileDate,
-                                    File = file
-                                });
+
+                    if(model.ExportSettings != null) {
+                        foreach(var settingId in model.ExportSettings) {
+                            var settings = await _crudBusinessManager.GetCompanyExportSettings(settingId);
+                            if(settings != null) {
+                                var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
+                                if(file != null) {
+                                    var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                                    files.Add(new SavedReportFileDto() {
+                                        Name = fileDate,
+                                        File = file
+                                    });
+                                }
                             }
                         }
                     }
@@ -393,6 +406,12 @@ namespace Web.Controllers.Api {
                 Console.WriteLine(er.Message);
             }
             return null;
+        }
+
+        [HttpPost("PublishSavedReport", Name = "PublishSavedReport")]
+        public async Task<IActionResult> PublishSavedReport(long id) {
+            var result = await _crudBusinessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
+            return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
         private async Task<byte[]> GetExportData(long companyId, DateTime date, int numberOfPeriods, CompanyExportSettingsDto settings) {
