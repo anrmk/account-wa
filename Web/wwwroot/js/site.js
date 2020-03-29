@@ -1,4 +1,11 @@
-﻿$(document).ready(() => {
+﻿/*!
+* v1.0.1
+* https://github.com/anrmk
+*
+* Copyright 2020 Aziz Nurmukhamedov
+*/
+
+$(document).ready(() => {
     $.fn.datepicker.defaults.format = "mm/dd/yyyy";
     window.modal = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();

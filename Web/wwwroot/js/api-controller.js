@@ -1,4 +1,11 @@
-﻿//Get company summary range
+﻿/*!
+* v1.0.1
+* https://github.com/anrmk
+*
+* Copyright 2020 Aziz Nurmukhamedov
+*/
+
+//Get company summary range
 $.fn.getCompanySummaryRange = function (id) {
     return $.ajax(`/api/company/${id}/summaryrange`);
 };

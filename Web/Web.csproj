@@ -7,6 +7,9 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
     <Authors>Aziz Nurmukhamedov</Authors>
+    <Copyright>Aziz Nurmukhamedov</Copyright>
+    <RepositoryUrl>https://github.com/anrmk/accountWa</RepositoryUrl>
+    <RepositoryType>github</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
