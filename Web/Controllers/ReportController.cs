@@ -243,6 +243,28 @@ namespace Web.Controllers.Mvc {
 
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Delete(long id) {
+            try {
+                var item = await _crudBusinessManager.GetSavedReport(id);
+                if(item == null)
+                    return NotFound();
+                
+                var companyId = item.CompanyId;
+
+                var result = await _crudBusinessManager.DeleteSavedReport(id);
+                if(result == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(View), new { companyId = companyId });
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
+
         #region OLD EXPORT
         /*
         [HttpPost]

@@ -59,13 +59,18 @@
                     <ul class="list-unstyled">
                         <li><strong>Customer.No</strong> - Account Number</li>
                         <li><strong>Customer.Name</strong> - Business Name</li>
+                        <li><strong>Customer.PhoneNumber</strong> - Phone</li>
+                        <li><strong>Customer.Terms</strong> - Terms</li>
+                        <li><strong>Customer.CreditLimit</strong> - Credit Limit</li>
+                        <li><strong>Customer.CreditUtilized</strong> - High Credit Utilized</li>
+
                         <li><strong>Customer.Address.Address</strong> - Address</li>
                         <li><strong>Customer.Address.Address2</strong> - Address2</li>
                         <li><strong>Customer.Address.City</strong> - City</li>
+                        <li><strong>Customer.Address.State</strong> - State</li>
                         <li><strong>Customer.Address.ZipCode</strong> - Postal Code</li>
-                        <li><strong>Address.Country</strong> - Country</li>
-                        <li><strong>Customer.CreditUtilized</strong> - High Credit Utilized</li>
-                        <li><strong>Customer.CreditLimit</strong> - Credit Limit</li>
+                        <li><strong>Customer.Address.Country</strong> - Country</li>
+
                         <li><strong>Current</strong> - Aging Current / Future</li>
                         <li><strong>1-30</strong> - Past Dues 1-30</li>
                     </ul>
@@ -73,8 +78,12 @@
                 
                 <div id="exportSettingsFieldsList" class="list-group">
                     @if(Model.Fields != null && Model.Fields.Count > 0) {
-                        @foreach(var field in Model.Fields.OrderBy(x => x.Sort)) {
+                        var fields = Model.Fields.OrderBy(x => x.Sort);
+                        var index = 0;
+                        @foreach(var field in fields) {
+                            field.Sort = index;
                             <partial name="_CompanyExportSettingsFieldPartial" model="field" />
+                            index++;
                         }
                     } else {
                         <div>No matching records found</div>

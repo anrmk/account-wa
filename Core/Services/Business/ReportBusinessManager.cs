@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Core.Data.Dto;
+using Core.Data.Entities;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
@@ -39,19 +40,21 @@ namespace Core.Services.Business {
 
             var customers = await _customerManager.FindByCompanyId(companyId, dateTo);
 
-            //TODO: Заменить на эту функцию
-            #region NEW
-            //var filter = new InvoiceFilterDto() {
-            //    CompanyId = companyId,
-            //    Date = dateTo,
-            //    NumberOfPeriods = numberOfPeriods
-            //};
-
-            //var pagerResult = await _businessManager.GetInvoicePage(filter);
-            //var result = pagerResult.Items;
-            #endregion
-
             var invoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+
+            if(includeAllCustomers) {
+                //Добавить всех недостающих Customers
+                var exceptedCustomers = customers.Where(x => !invoices.Any(y => y.CustomerId == x.Id)).ToList();
+                var expectedInvoices = exceptedCustomers.Select(x => new InvoiceEntity() {
+                    Customer = x,
+                    CustomerId = x.Id,
+                    Company = company,
+                    CompanyId = company.Id
+
+                });
+                invoices.AddRange(expectedInvoices);
+                invoices.OrderBy(x => x.CustomerAccountNumber);
+            }
 
             #region CREATE HEADERS
             var _col = new List<AgingSummaryPeriod>() { new AgingSummaryPeriod() {

@@ -86,6 +86,7 @@ namespace Core.Services.Business {
         Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date);
         Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
         Task<SavedReportDto> UpdateSavedReport(long id, SavedReportDto dto);
+        Task<bool> DeleteSavedReport(long id);
         Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
     }
@@ -798,6 +799,15 @@ namespace Core.Services.Business {
             
             entity = await _savedReportManager.Update(entity);
             return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<bool> DeleteSavedReport(long id) {
+            var entity = await _savedReportManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _savedReportManager.Delete(entity);
+            return result != 0;
         }
 
         public async Task<SavedReportFileDto> GetSavedFile(long id) {

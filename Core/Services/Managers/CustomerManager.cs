@@ -73,6 +73,7 @@ namespace Core.Services.Managers {
 
         public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {
             var result = await DbSet
+                .Include(x => x.Address)
                 .Where(x => x.CompanyId == id)
                 .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till),
                 (customer, activity) => new { Customer = customer }).Distinct()
@@ -81,8 +82,6 @@ namespace Core.Services.Managers {
 
             return result;
         }
-
-
 
         public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
