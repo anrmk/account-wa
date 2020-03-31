@@ -172,6 +172,59 @@ namespace Web.Controllers.Mvc {
 
             return View(model);
         }
+
+        public async Task<ActionResult> EditSummary(long id) {
+            var item = await _businessManager.GetCompanySummeryRange(id);
+            if(item == null) {
+                return NotFound();
+            }
+            var company = await _businessManager.GetCompany(item.CompanyId);
+            if(company == null) {
+                return NotFound();
+            }
+
+            ViewBag.CompanyName = company.Name;
+
+            return View(_mapper.Map<CompanySummaryRangeViewModel>(item));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditSummary(long id, CompanySummaryRangeViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var dto = _mapper.Map<CompanySummaryRangeDto>(model);
+                    var item = await _businessManager.UpdateCompanySummaryRange(id, dto);
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(EditSummary), new { Id = item.Id });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteSummary(long id) {
+            try {
+                var item = await _businessManager.GetCompanySummeryRange(id);
+                if(item == null) {
+                    return NotFound();
+                }
+
+                var result = await _businessManager.DeleteCompanySummaryRange(item.Id);
+                return RedirectToAction(nameof(Edit), new { Id = item.CompanyId });
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
         #endregion
 
         #region EXPORT SETTINGS

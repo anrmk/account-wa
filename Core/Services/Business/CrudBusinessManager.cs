@@ -35,6 +35,8 @@ namespace Core.Services.Business {
         Task<CompanySummaryRangeDto> GetCompanySummeryRange(long id);
         Task<List<CompanySummaryRangeDto>> GetCompanyAllSummaryRange(long companyId);
         Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto);
+        Task<CompanySummaryRangeDto> UpdateCompanySummaryRange(long id, CompanySummaryRangeDto dto);
+        Task<bool> DeleteCompanySummaryRange(long id);
         #endregion
 
         #region CUSTOMER
@@ -239,6 +241,27 @@ namespace Core.Services.Business {
 
             var entity = await _companySummaryManager.Create(newEntity);
             return _mapper.Map<CompanySummaryRangeDto>(entity);
+        }
+
+        public async Task<CompanySummaryRangeDto> UpdateCompanySummaryRange(long id, CompanySummaryRangeDto dto) {
+            var entity = await _companySummaryManager.FindInclude(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _companySummaryManager.Update(newEntity);
+
+            return _mapper.Map<CompanySummaryRangeDto>(entity);
+        }
+
+        public async Task<bool> DeleteCompanySummaryRange(long id) {
+            var entity = await _companySummaryManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _companySummaryManager.Delete(entity);
+            return result != 0;
         }
         #endregion
 
