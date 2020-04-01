@@ -74,6 +74,7 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {
             var result = await DbSet
                 .Include(x => x.Address)
+                .Include(x => x.Activities)
                 .Where(x => x.CompanyId == id)
                 .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till),
                 (customer, activity) => new { Customer = customer }).Distinct()

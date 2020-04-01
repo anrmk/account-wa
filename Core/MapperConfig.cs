@@ -47,6 +47,8 @@ namespace Core {
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
+            CreateMap<CustomerCreditUtilizedDto, CustomerCreditUtilizedEntity>().ReverseMap();
+            CreateMap<CustomerCreditLimitDto, CustomerCreditLimitEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
 
             CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();

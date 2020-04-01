@@ -12,13 +12,16 @@ using Core.Data.Dto;
 using Core.Extension;
 using Core.Extensions;
 using Core.Services.Business;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
+
 using Newtonsoft.Json;
+
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
@@ -95,6 +98,12 @@ namespace Web.Controllers.Mvc {
             var customerTypes = await _nsiManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
+            ViewBag.CreditLimit = _mapper.Map<List<CustomerCreditLimitViewModel>>(customerCreditLimit);
+
+            var customerCreditUtilized = await _businessManager.GetCustomerCreditUtilizeds(id);
+            ViewBag.CreditUtilized = _mapper.Map<List<CustomerCreditUtilizedViewModel>>(customerCreditUtilized);
+
             return View(_mapper.Map<CustomerViewModel>(item));
         }
 
@@ -108,7 +117,7 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-                    model = _mapper.Map<CustomerViewModel>(item);
+                    //model = _mapper.Map<CustomerViewModel>(item);
                     return RedirectToAction(nameof(Edit), new { id = item.Id });
                 }
             } catch(Exception er) {
@@ -252,6 +261,190 @@ namespace Web.Controllers.Mvc {
             }
 
             return View(model);
+        }
+        #endregion
+
+        #region CreditLimit
+        [Route("{customerId}/creditlimit")]
+        public async Task<ActionResult> CreateCreditLimit(long customerId) {
+            var item = await _businessManager.GetCustomer(customerId);
+
+            if(item == null) {
+                return NotFound();
+            }
+
+            ViewBag.CustomerName = item.Name;
+
+            var model = new CustomerCreditLimitViewModel() {
+                CustomerId = customerId,
+                CreatedDate = DateTime.Now
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("{customerId}/creditlimit")]
+        public async Task<ActionResult> CreateCreditLimit(CustomerCreditLimitViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCustomerCreditLimit(_mapper.Map<CustomerCreditLimitDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+
+                    return RedirectToAction(nameof(Edit), new { Id = model.CustomerId });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> EditCreditLimit(long id) {
+                var item = await _businessManager.GetCustomerCreditLimit(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var customer = await _businessManager.GetCustomer(item.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(_mapper.Map<CustomerCreditLimitViewModel>(item));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditCreditLimit(long id, CustomerCreditLimitViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateCustomerCreditLimit(id, _mapper.Map<CustomerCreditLimitDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(EditCreditLimit), new { id = item.Id });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            var customer = await _businessManager.GetCustomer(model.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteCreditLimit(long id) {
+            try {
+                var item = await _businessManager.GetCustomerCreditLimit(id);
+                if(item == null) {
+                    return NotFound();
+                }
+
+                var result = await _businessManager.DeleteCustomerCreditLimit(id);
+                if(result == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Edit), new { Id = item.CustomerId});
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
+        #endregion
+
+        #region CreditUtilized
+        [Route("{customerId}/creditutilized")]
+        public async Task<ActionResult> CreateCreditUtilized(long customerId) {
+            var item = await _businessManager.GetCustomer(customerId);
+
+            if(item == null) {
+                return NotFound();
+            }
+
+            ViewBag.CustomerName = item.Name;
+
+            var model = new CustomerCreditUtilizedViewModel() {
+                CustomerId = customerId,
+                CreatedDate = DateTime.Now
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("{customerId}/creditutilized")]
+        public async Task<ActionResult> CreateCreditUtilized(CustomerCreditUtilizedViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCustomerCreditUtilized(_mapper.Map<CustomerCreditUtilizedDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+
+                    return RedirectToAction(nameof(Edit), new { Id = model.CustomerId });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> EditCreditUtilized(long id) {
+            var item = await _businessManager.GetCustomerCreditUtilized(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var customer = await _businessManager.GetCustomer(item.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(_mapper.Map<CustomerCreditUtilizedViewModel>(item));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditCreditUtilized(long id, CustomerCreditUtilizedViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateCustomerCreditUtilized(id, _mapper.Map<CustomerCreditUtilizedDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(EditCreditUtilized), new { id = item.Id });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            var customer = await _businessManager.GetCustomer(model.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteCreditUtilized(long id) {
+            try {
+                var item = await _businessManager.GetCustomerCreditUtilized(id);
+                if(item == null) {
+                    return NotFound();
+                }
+
+                var result = await _businessManager.DeleteCustomerCreditUtilized(id);
+                if(result == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Edit), new { Id = item.CustomerId });
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
         }
         #endregion
     }

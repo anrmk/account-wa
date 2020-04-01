@@ -70,6 +70,8 @@ namespace Web {
                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""))
                ;
 
+            CreateMap<CustomerCreditLimitViewModel, CustomerCreditLimitDto>().ReverseMap();
+            CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
 
             #endregion

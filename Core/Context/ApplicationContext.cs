@@ -43,6 +43,8 @@ namespace Core.Context {
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
         public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
+        public DbSet<CustomerCreditLimitEntity> CustomersCreditLimit { get; set; }
+        public DbSet<CustomerCreditUtilizedEntity> CustomersCreditUtilized { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }

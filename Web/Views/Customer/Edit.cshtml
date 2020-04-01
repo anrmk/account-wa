@@ -129,17 +129,44 @@
 
             <div class="tab-pane fade" id="credits" role="tabpanel" aria-labelledby="credits-tab">
                 <div class="form-row mb-3">
-                    <div class="col">
-                        <label asp-for="CreditLimit"></label>
-                        <input asp-for="CreditLimit" class="form-control">
-                        <span asp-validation-for="CreditLimit" class="form-text text-danger"></span>
+                    <div class="col-lg-6 col-md-12">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <label>Credit Limit</label>
+                            <a asp-controller="Customer" asp-action="CreateCreditLimit" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                        </div>
+                        <table class="table table-bordered">
+                            @foreach(var item in ViewBag.CreditLimit) {
+                                <tr>
+                                    <td><span>$</span> @item.Value</td>
+                                    <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
+                                    <td class="text-right table-active">
+                                        <a asp-controller="Customer" asp-action="EditCreditLimit" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
                     </div>
-                    <div class="col">
-                        <label asp-for="CreditUtilized"></label>
-                        <input asp-for="CreditUtilized" class="form-control">
-                        <span asp-validation-for="CreditUtilized" class="form-text text-danger"></span>
+
+                    <div class="col-lg-6 col-md-12">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <label>Credit Utilized</label>
+                            <a asp-controller="Customer" asp-action="CreateCreditUtilized" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                        </div>
+                        <table class="table table-bordered">
+                            @foreach(var item in ViewBag.CreditUtilized) {
+                                <tr>
+                                    <td><span>$</span>@item.Value</td>
+                                    <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
+                                    <td class="text-right table-active">
+                                        <a asp-controller="Customer" asp-action="EditCreditUtilized" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        </table>
                     </div>
                 </div>
+
+
             </div>
 
             <div id="activities" class="tab-pane fade">

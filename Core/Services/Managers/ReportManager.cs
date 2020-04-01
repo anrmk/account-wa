@@ -6,7 +6,6 @@ using Core.Context;
 using Core.Data.Entities;
 
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace Core.Services.Managers {
@@ -49,7 +48,7 @@ namespace Core.Services.Managers {
                 string connectionString = _configuration.GetConnectionString("DefaultConnection");
 
                 using(var connection = new SqlConnection(connectionString)) {
-                        using(var command = connection.CreateCommand()) {
+                    using(var command = connection.CreateCommand()) {
                         var dateFrom = dateTo.AddDays(daysPerPeriod * numberOfPeriod * -1);
 
                         command.CommandText = query;

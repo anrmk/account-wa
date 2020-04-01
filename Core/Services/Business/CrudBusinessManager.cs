@@ -52,9 +52,23 @@ namespace Core.Services.Business {
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
+        //Activity
         Task<List<CustomerActivityDto>> GetCustomerAllActivity(long customerId);
         Task<CustomerActivityDto> CreateCustomerActivity(CustomerActivityDto dto);
 
+        //Credit Limit
+        Task<CustomerCreditLimitDto> GetCustomerCreditLimit(long id);
+        Task<List<CustomerCreditLimitDto>> GetCustomerCreditLimits(long customerId);
+        Task<CustomerCreditLimitDto> CreateCustomerCreditLimit(CustomerCreditLimitDto dto);
+        Task<CustomerCreditLimitDto> UpdateCustomerCreditLimit(long id, CustomerCreditLimitDto dto);
+        Task<bool> DeleteCustomerCreditLimit(long id);
+
+        //Credit Utilized
+        Task<CustomerCreditUtilizedDto> GetCustomerCreditUtilized(long id);
+        Task<List<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizeds(long customerId);
+        Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto);
+        Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto);
+        Task<bool> DeleteCustomerCreditUtilized(long id);
         #endregion
 
         #region INVOICE
@@ -100,8 +114,12 @@ namespace Core.Services.Business {
         private readonly ICompanySummaryRangeManager _companySummaryManager;
         private readonly ICompanyExportSettingsManager _companyExportSettingsManager;
         private readonly ICompanyExportSettingsFieldManager _companyExportSettingsFieldManager;
+
         private readonly ICustomerManager _customerManager;
         private readonly ICustomerActivityManager _customerActivityManager;
+        private readonly ICustomerCreditLimitManager _customerCreditLimitManager;
+        private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
+
         private readonly IInvoiceManager _invoiceManager;
         private readonly IPaymentManager _paymentManager;
         private readonly IReportManager _reportManager;
@@ -116,7 +134,7 @@ namespace Core.Services.Business {
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager,
             IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager,
             INsiBusinessManager nsiBusinessManager) {
@@ -128,6 +146,8 @@ namespace Core.Services.Business {
             _companyExportSettingsFieldManager = companyExportSettingsFieldManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
+            _customerCreditLimitManager = customerCreditLimitManager;
+            _customerCreditUtilizedManager = customerCreditUtilizedManager;
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
             _nsiBusinessManager = nsiBusinessManager;
@@ -523,14 +543,6 @@ namespace Core.Services.Business {
             var newEntity = _mapper.Map(dto, entity);
             entity = await _customerManager.Update(newEntity);
 
-            ////Make activity
-            //var activityDto = new CustomerActivityDto() {
-            //    CustomerId = entity.Id,
-            //    IsActive = dto.IsActive,
-            //    CreatedDate = DateTime.Now
-            //};
-            //var activity = await _customerActivityManager.Create(_mapper.Map<CustomerActivityEntity>(activityDto));
-
             return _mapper.Map<CustomerDto>(entity);
         }
 
@@ -543,6 +555,7 @@ namespace Core.Services.Business {
             return result != 0;
         }
 
+        #region ACTIVITY
         public async Task<List<CustomerActivityDto>> GetCustomerAllActivity(long customerId) {
             var result = await _customerActivityManager.FindByCustomerId(customerId);
             return _mapper.Map<List<CustomerActivityDto>>(result);
@@ -558,6 +571,102 @@ namespace Core.Services.Business {
             var entity = await _customerActivityManager.Create(newEntity);
             return _mapper.Map<CustomerActivityDto>(entity);
         }
+        #endregion
+
+        #region CREDIT LIMIT
+        public async Task<CustomerCreditLimitDto> GetCustomerCreditLimit(long id) {
+            var result = await _customerCreditLimitManager.Find(id);
+            return _mapper.Map<CustomerCreditLimitDto>(result);
+        }
+
+        public async Task<List<CustomerCreditLimitDto>> GetCustomerCreditLimits(long customerId) {
+            var result = await _customerCreditLimitManager.FindAllByCustomerId(customerId);
+            return _mapper.Map<List<CustomerCreditLimitDto>>(result);
+        }
+
+        public async Task<CustomerCreditLimitDto> CreateCustomerCreditLimit(CustomerCreditLimitDto dto) {
+            var customer = await _customerManager.Find(dto.CustomerId);
+            if(customer == null) {
+                return null;
+            }
+            var newEntity = _mapper.Map<CustomerCreditLimitEntity>(dto);
+
+            var entity = await _customerCreditLimitManager.Create(newEntity);
+            return _mapper.Map<CustomerCreditLimitDto>(entity);
+        }
+
+        public async Task<CustomerCreditLimitDto> UpdateCustomerCreditLimit(long id, CustomerCreditLimitDto dto) {
+            if(id != dto.Id) {
+                return null;
+            }
+            var entity = await _customerCreditLimitManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerCreditLimitManager.Update(newEntity);
+
+            return _mapper.Map<CustomerCreditLimitDto>(entity);
+        }
+
+        public async Task<bool> DeleteCustomerCreditLimit(long id) {
+            var entity = await _customerCreditLimitManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _customerCreditLimitManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
+
+        #region CREDIT UTILIZED
+        public async Task<CustomerCreditUtilizedDto> GetCustomerCreditUtilized(long id) {
+            var result = await _customerCreditUtilizedManager.Find(id);
+            return _mapper.Map<CustomerCreditUtilizedDto>(result);
+        }
+
+        public async Task<List<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizeds(long customerId) {
+            var result = await _customerCreditUtilizedManager.FindAllByCustomerId(customerId);
+            return _mapper.Map<List<CustomerCreditUtilizedDto>>(result);
+        }
+
+        public async Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto) {
+            var company = await _customerManager.Find(dto.CustomerId);
+            if(company == null) {
+                return null;
+            }
+            var newEntity = _mapper.Map<CustomerCreditUtilizedEntity>(dto);
+
+            var entity = await _customerCreditUtilizedManager.Create(newEntity);
+            return _mapper.Map<CustomerCreditUtilizedDto>(entity);
+        }
+
+        public async Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto) {
+            if(id != dto.Id) {
+                return null;
+            }
+            var entity = await _customerCreditUtilizedManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerCreditUtilizedManager.Update(newEntity);
+
+            return _mapper.Map<CustomerCreditUtilizedDto>(entity);
+        }
+
+        public async Task<bool> DeleteCustomerCreditUtilized(long id) {
+            var entity = await _customerCreditUtilizedManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _customerCreditUtilizedManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
+
         #endregion
 
         #region INVOICE
@@ -819,7 +928,7 @@ namespace Core.Services.Business {
             }
             //var mapentity = _mapper.Map(dto, entity);
             entity.IsPublished = dto.IsPublished;
-            
+
             entity = await _savedReportManager.Update(entity);
             return _mapper.Map<SavedReportDto>(entity);
         }
@@ -837,7 +946,6 @@ namespace Core.Services.Business {
             var entity = await _savedReportFileManager.Find(id);
             return _mapper.Map<SavedReportFileDto>(entity);
         }
-
         #endregion
     }
 }

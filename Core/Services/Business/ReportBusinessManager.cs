@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Core.Data.Dto;
 using Core.Data.Entities;
+using Core.Extension;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
@@ -38,9 +41,12 @@ namespace Core.Services.Business {
             if(company == null)
                 return null;
 
-            var customers = await _customerManager.FindByCompanyId(companyId, dateTo);
+            var allCustomers = await _customerManager.FindByCompanyId(companyId, dateTo);
+            var customers = allCustomers.Where(x => x.Activities.IsActive(dateTo)).ToList();
+            //var customer = customers.Where(x => x.Activities.Count > 1).FirstOrDefault();
 
-            var invoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+            var allInvoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+            var invoices = allInvoices.Where(x => x.Customer.Activities.IsActive(dateTo)).ToList(); //check invoices for Inactive customers
 
             if(includeAllCustomers) {
                 //Добавить всех недостающих Customers
@@ -55,6 +61,7 @@ namespace Core.Services.Business {
                 invoices.AddRange(expectedInvoices);
                 invoices.OrderBy(x => x.CustomerAccountNumber);
             }
+
 
             #region CREATE HEADERS
             var _col = new List<AgingSummaryPeriod>() { new AgingSummaryPeriod() {

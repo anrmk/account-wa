@@ -6,17 +6,22 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
 using Core.Services.Managers;
+
 using CsvHelper;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+
 using Web.Extension;
 using Web.ViewModels;
 
@@ -243,6 +248,11 @@ namespace Web.Controllers.Mvc {
 
         }
 
+        /// <summary>
+        /// Delete Saved Report
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(long id) {
@@ -250,7 +260,7 @@ namespace Web.Controllers.Mvc {
                 var item = await _crudBusinessManager.GetSavedReport(id);
                 if(item == null)
                     return NotFound();
-                
+
                 var companyId = item.CompanyId;
 
                 var result = await _crudBusinessManager.DeleteSavedReport(id);

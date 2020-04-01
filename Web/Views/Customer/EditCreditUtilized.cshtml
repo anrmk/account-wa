@@ -1,0 +1,55 @@
+﻿@model Web.ViewModels.CustomerCreditUtilizedViewModel
+
+@{
+    ViewData["Title"] = "Edit customer credit utilized";
+}
+
+
+@section Toolbar  {
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <form method="POST" asp-action="DeleteCreditUtilized">
+                <input asp-for="Id" type="hidden" />
+                <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </form>
+        </div>
+    </div>
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+        <li class="breadcrumb-item"><a asp-action="Edit" asp-route-id="@Model.CustomerId">@ViewBag.CustomerName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Value  - @Model.CreatedDate.ToShortDateString()</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header">@ViewBag.CustomerName</div>
+    <div class="card-body">
+        <form id="editForm" method="POST" asp-action="EditCreditUtilized">
+            <fieldset>
+                <input asp-for="Id" type="hidden" />
+                <input asp-for="CustomerId" type="hidden" />
+                <div class="form-row mb-3">
+                    <div class="col-6">
+                        <label asp-for="Value"></label>
+                        <input asp-for="Value" class="form-control" required>
+                        <span asp-validation-for="Value" class="text-danger"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="CreatedDate"></label>
+                        <input asp-for="CreatedDate" class="form-control" required>
+                        <span asp-validation-for="CreatedDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-outline-primary" form="editForm">Save</button>
+            <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-link">Cancel</a>
+        </div>
+    </div>
+</div>

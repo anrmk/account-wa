@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 using Core.Data.Entities.Nsi;
 
 namespace Core.Data.Entities {
@@ -47,6 +48,10 @@ namespace Core.Data.Entities {
         public virtual CustomerTypeEntity Type { get; set; }
 
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
+
+        public virtual ICollection<CustomerCreditUtilizedEntity> CreditUtilizeds { get; set; }
+
+        public virtual ICollection<CustomerCreditLimitEntity> CreditLimits { get; set; }
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
     }

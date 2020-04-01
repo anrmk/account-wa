@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Core.Context;
 using Core.Extension;
 using Core.Services.Business;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {

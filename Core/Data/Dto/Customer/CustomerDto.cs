@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using AutoMapper.Configuration.Annotations;
+
 using Core.Data.Dto.Nsi;
+
 using Newtonsoft.Json;
 
 namespace Core.Data.Dto {
@@ -29,6 +32,10 @@ namespace Core.Data.Dto {
         public NsiDto Type { get; set; }
 
         public virtual ICollection<InvoiceDto> Invoices { get; set; }
+
+        public virtual ICollection<CustomerCreditUtilizedDto> CreditUtilizeds { get; set; }
+
+        public virtual ICollection<CustomerCreditLimitDto> CreditLimits { get; set; }
 
         public virtual ICollection<CustomerActivityDto> Activities { get; set; }
 
