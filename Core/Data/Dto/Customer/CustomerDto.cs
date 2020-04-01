@@ -19,8 +19,8 @@ namespace Core.Data.Dto {
         public string PhoneNumber { get; set; }
         public string Terms { get; set; }
 
-        public decimal? CreditLimit { get; set; }
-        public decimal? CreditUtilized { get; set; }
+        //public decimal? CreditLimit { get; set; }
+        //public decimal? CreditUtilized { get; set; }
 
         public long? AddressId { get; set; }
         public CustomerAddressDto Address { get; set; }

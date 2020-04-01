@@ -82,9 +82,9 @@ namespace Core.Services.Managers {
                                         No = reader["CustomerAccountNumber"] as string,
                                         Name = reader["CustomerName"] as string,
                                         PhoneNumber = reader["CustomerPhoneNumber"] as string,
-                                        Terms = reader["CustomerTerms"] as string,
-                                        CreditLimit = reader["CustomerCreditLimit"] != DBNull.Value ? (decimal)reader["CustomerCreditLimit"] : (decimal?)null,
-                                        CreditUtilized = reader["CustomerCreditUtilized"] != DBNull.Value ? (decimal)reader["CustomerCreditUtilized"] : (decimal?)null
+                                        Terms = reader["CustomerTerms"] as string
+                                        //CreditLimit = reader["CustomerCreditLimit"] != DBNull.Value ? (decimal)reader["CustomerCreditLimit"] : (decimal?)null,
+                                        //CreditUtilized = reader["CustomerCreditUtilized"] != DBNull.Value ? (decimal)reader["CustomerCreditUtilized"] : (decimal?)null
                                     };
 
                                     if(reader["CustomerAddressId"] != DBNull.Value) {

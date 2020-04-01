@@ -31,15 +31,15 @@ namespace Web.ViewModels {
         [SpecialName()]
         public string Terms { get; set; }
 
-        [Display(Name = "Credit Limit")]
-        [Column(TypeName = "decimal(18, 2)")]
-        [SpecialName()]
-        public double CreditLimit { get; set; }
+        //[Display(Name = "Credit Limit")]
+        //[Column(TypeName = "decimal(18, 2)")]
+        //[SpecialName()]
+        //public double CreditLimit { get; set; }
 
-        [Display(Name = "Credit Utilized")]
-        [Column(TypeName = "decimal(18, 2)")]
-        [SpecialName()]
-        public double CreditUtilized { get; set; }
+        //[Display(Name = "Credit Utilized")]
+        //[Column(TypeName = "decimal(18, 2)")]
+        //[SpecialName()]
+        //public double CreditUtilized { get; set; }
 
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }

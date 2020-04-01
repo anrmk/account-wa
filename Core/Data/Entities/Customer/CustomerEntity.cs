@@ -24,13 +24,13 @@ namespace Core.Data.Entities {
 
         public string Terms { get; set; }
 
-        [DataType(DataType.Currency)]
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal? CreditLimit { get; set; }
+        //[DataType(DataType.Currency)]
+        //[Column(TypeName = "decimal(18, 2)")]
+        //public decimal? CreditLimit { get; set; }
 
-        [DataType(DataType.Currency)]
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal? CreditUtilized { get; set; }
+        //[DataType(DataType.Currency)]
+        //[Column(TypeName = "decimal(18, 2)")]
+        //public decimal? CreditUtilized { get; set; }
 
         [ForeignKey("Address")]
         [Column("CustomerAddress_Id")]
@@ -49,9 +49,9 @@ namespace Core.Data.Entities {
 
         public virtual ICollection<InvoiceEntity> Invoices { get; set; }
 
-        public virtual ICollection<CustomerCreditUtilizedEntity> CreditUtilizeds { get; set; }
-
         public virtual ICollection<CustomerCreditLimitEntity> CreditLimits { get; set; }
+
+        public virtual ICollection<CustomerCreditUtilizedEntity> CreditUtilizeds { get; set; }
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
     }
