@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Core.Data.Entities.Nsi;
+using Core.Extension;
 
 namespace Core.Data.Entities {
     [Table(name: "Customers")]
@@ -26,7 +27,17 @@ namespace Core.Data.Entities {
 
         //[DataType(DataType.Currency)]
         //[Column(TypeName = "decimal(18, 2)")]
-        //public decimal? CreditLimit { get; set; }
+        public decimal? CreditLimit { 
+            get {
+                return CreditLimits.GetLastCreditLimit();
+            }
+        }
+        
+        public decimal? CreditUtilized {
+            get {
+                return CreditLimits.GetLastCreditLimit();
+            }
+        }
 
         //[DataType(DataType.Currency)]
         //[Column(TypeName = "decimal(18, 2)")]

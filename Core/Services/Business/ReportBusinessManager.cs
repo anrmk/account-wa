@@ -46,7 +46,7 @@ namespace Core.Services.Business {
             //var customer = customers.Where(x => x.Activities.Count > 1).FirstOrDefault();
 
             var allInvoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
-            var invoices = allInvoices.Where(x => x.Customer.Activities.IsActive(dateTo)).ToList(); //check invoices for Inactive customers
+            var invoices = allInvoices;//.Where(x => x.Customer?.Activities.IsActive(dateTo)).ToList(); //check invoices for Inactive customers
 
             if(includeAllCustomers) {
                 //Добавить всех недостающих Customers
@@ -61,7 +61,6 @@ namespace Core.Services.Business {
                 invoices.AddRange(expectedInvoices);
                 invoices.OrderBy(x => x.CustomerAccountNumber);
             }
-
 
             #region CREATE HEADERS
             var _col = new List<AgingSummaryPeriod>() { new AgingSummaryPeriod() {

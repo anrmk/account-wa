@@ -203,6 +203,11 @@ namespace Web.Controllers.Mvc {
                         foreach(var field in fields) {
                             if(field.IsActive) {
                                 var value = ObjectExtension.GetPropValue(summary, field.Name);
+                                //TODO: Здесь нужно сделать проверку на массив и взять его значение
+                                
+                                //if(value.GetType() == typeof(Array)) {
+                                //    Console.WriteLine("Array");
+                                //}
                                 var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
 
                                 csvWriter.WriteField(data == null || data.Equals("0") ? "" : data);

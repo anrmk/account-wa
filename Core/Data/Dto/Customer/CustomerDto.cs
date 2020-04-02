@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using AutoMapper.Configuration.Annotations;
 
 using Core.Data.Dto.Nsi;
@@ -19,8 +19,25 @@ namespace Core.Data.Dto {
         public string PhoneNumber { get; set; }
         public string Terms { get; set; }
 
-        //public decimal? CreditLimit { get; set; }
-        //public decimal? CreditUtilized { get; set; }
+        public decimal? CreditLimit {
+            get {
+                if(CreditLimits != null && CreditLimits.Count > 0) {
+                    return CreditLimits.OrderByDescending(x => x.CreatedDate)
+                        .Select(x => x.Value).FirstOrDefault();
+                }
+                return (decimal?)null;
+            }
+        }
+
+        public decimal? CreditUtilized {
+            get {
+                if(CreditUtilizeds != null && CreditUtilizeds.Count > 0) {
+                    return CreditUtilizeds.OrderByDescending(x => x.CreatedDate)
+                        .Select(x => x.Value).FirstOrDefault();
+                }
+                return (decimal?)null;
+            }
+        }
 
         public long? AddressId { get; set; }
         public CustomerAddressDto Address { get; set; }

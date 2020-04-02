@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 using Core.Context;
@@ -26,19 +27,32 @@ namespace Core.Services.Managers {
             _invoiceManager = invoiceManager;
         }
 
+        //5177 - restore customer
         public async Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
                         "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
-                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized, " +
+                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, " + //CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized,
+                        "CACT.[Id] AS ActivityId, CACT.[CreatedDate] AS ActivityDate, CACT.[IsActive] AS ActivityStatus, " +
+                        "CLIM.[Id] AS CreditLimitId, CLIM.[Value] AS CreditLimit, CLIM.[CreatedDate] AS CreditLimitDate, " +
+                        "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, " +
                         "ADDR.[Id] as CustomerAddressId, ADDR.[Address] as CustomerAddress, ADDR.[Address2] as CustomerAddress2, ADDR.[City] as CustomerCity, ADDR.[State] as CustomerState, ADDR.[ZipCode] as CustomerZipCode, ADDR.[Country] as CustomerCountry, " +
                         "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
                         "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
                         "FROM [accountWa].[dbo].[Invoices] AS INV  " +
                         "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
+                        "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities] " + //проверяем на активность пользователя
+                            "WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
+                            "ORDER BY [CreatedDate] DESC) AS CACT " +
+                        "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditLimit] " +
+                            "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +
+                            "ORDER BY [CreatedDate] DESC) AS CLIM " +
+                        "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditUtilized] " +
+                            "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +
+                            "ORDER BY [CreatedDate] DESC) AS CUTIL " +
                         "LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
-                        "WHERE INV.[Company_Id] = @COMPANYID AND INV.[Date] <= @DATETO " +
+                        "WHERE INV.[Company_Id] = @COMPANYID AND CACT.[Id] IS NOT NULL AND INV.[Date] <= @DATETO " +
                         //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
                         "ORDER BY CUS.[AccountNumber] ASC ";
 
@@ -100,6 +114,40 @@ namespace Core.Services.Managers {
 
                                         customer.AddressId = (long)reader["CustomerAddressId"];
                                         customer.Address = address;
+                                    }
+
+                                    if(reader["ActivityId"] != DBNull.Value) {
+                                        var activity = new CustomerActivityEntity() {
+                                            Id = (long)reader["ActivityId"],
+                                            CustomerId = customer.Id,
+                                            CreatedDate = (DateTime)reader["ActivityDate"],
+                                            IsActive = (bool)reader["ActivityStatus"]
+                                        };
+
+                                        customer.Activities = new Collection<CustomerActivityEntity>();
+                                        customer.Activities.Add(activity);
+                                    }
+
+                                    if(reader["CreditLimitId"] != DBNull.Value) {
+                                        var creditLimit = new CustomerCreditLimitEntity() {
+                                            Id = (long)reader["CreditLimitId"],
+                                            CustomerId = customer.Id,
+                                            CreatedDate = (DateTime)reader["CreditLimitDate"],
+                                            Value = reader["CreditLimit"] != DBNull.Value ? (decimal)reader["CreditLimit"] : 0
+                                        };
+                                        customer.CreditLimits = new Collection<CustomerCreditLimitEntity>();
+                                        customer.CreditLimits.Add(creditLimit);
+                                    }
+
+                                    if(reader["CreditUtilizedId"] != DBNull.Value) {
+                                        var creditUtilized = new CustomerCreditUtilizedEntity() {
+                                            Id = (long)reader["CreditUtilizedId"],
+                                            CustomerId = customer.Id,
+                                            CreatedDate = (DateTime)reader["CreditUtilizedDate"],
+                                            Value = reader["CreditUtilized"] != DBNull.Value ? (decimal)reader["CreditUtilized"] : 0
+                                        };
+                                        customer.CreditUtilizeds = new Collection<CustomerCreditUtilizedEntity>();
+                                        customer.CreditUtilizeds.Add(creditUtilized);
                                     }
 
                                     invoice.CustomerId = (long)reader["CustomerId"];
