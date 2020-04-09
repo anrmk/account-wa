@@ -73,7 +73,6 @@ namespace Web.Controllers.Mvc {
                         return BadRequest();
                     }
                     return RedirectToAction(nameof(Edit), new { id = item.Id });
-                    //return RedirectToAction(nameof(Index));
                 }
 
             } catch(Exception er) {
@@ -302,7 +301,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<ActionResult> EditCreditLimit(long id) {
-                var item = await _businessManager.GetCustomerCreditLimit(id);
+            var item = await _businessManager.GetCustomerCreditLimit(id);
             if(item == null) {
                 return NotFound();
             }
@@ -347,7 +346,7 @@ namespace Web.Controllers.Mvc {
                 if(result == false) {
                     return NotFound();
                 }
-                return RedirectToAction(nameof(Edit), new { Id = item.CustomerId});
+                return RedirectToAction(nameof(Edit), new { Id = item.CustomerId });
 
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);

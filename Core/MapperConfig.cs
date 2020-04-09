@@ -50,6 +50,7 @@ namespace Core {
             CreateMap<CustomerCreditUtilizedDto, CustomerCreditUtilizedEntity>().ReverseMap();
             CreateMap<CustomerCreditLimitDto, CustomerCreditLimitEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
+            CreateMap<CustomerTagDto, CustomerTagEntity>().ReverseMap();
 
             CreateMap<CustomerDto, CustomerBulkEntity>().ReverseMap();
             #endregion

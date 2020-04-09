@@ -69,6 +69,14 @@ namespace Core.Services.Business {
         Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto);
         Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto);
         Task<bool> DeleteCustomerCreditUtilized(long id);
+
+        //Tags
+        Task<List<CustomerTagDto>> GetCustomerTags();
+        Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilter filter);
+        Task<CustomerTagDto> GetCustomerTag(long id);
+        Task<CustomerTagDto> CreateCustomerTag(CustomerTagDto dto);
+        Task<CustomerTagDto> UpdateCustomerTag(long id, CustomerTagDto dto);
+        Task<bool> DeleteCustomerTag(long id);
         #endregion
 
         #region INVOICE
@@ -119,6 +127,8 @@ namespace Core.Services.Business {
         private readonly ICustomerActivityManager _customerActivityManager;
         private readonly ICustomerCreditLimitManager _customerCreditLimitManager;
         private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
+        private readonly ICustomerTagManager _customerTagManager;
+        private readonly ICustomerTagLinkManager _customerTagLinkManager;
 
         private readonly IInvoiceManager _invoiceManager;
         private readonly IPaymentManager _paymentManager;
@@ -134,7 +144,7 @@ namespace Core.Services.Business {
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager,
             IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager,
             INsiBusinessManager nsiBusinessManager) {
@@ -144,10 +154,14 @@ namespace Core.Services.Business {
             _companySummaryManager = companySummaryManager;
             _companyExportSettingsManager = companyExportSettingsManager;
             _companyExportSettingsFieldManager = companyExportSettingsFieldManager;
+
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
             _customerCreditLimitManager = customerCreditLimitManager;
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
+            _customerTagManager = customerTagManager;
+            _customerTagLinkManager = customerTagLinkManager;
+
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
             _nsiBusinessManager = nsiBusinessManager;
@@ -663,6 +677,75 @@ namespace Core.Services.Business {
                 return false;
             }
             int result = await _customerCreditUtilizedManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
+
+        #region TAGS
+        public async Task<List<CustomerTagDto>> GetCustomerTags() {
+            var result = await _customerTagManager.All();
+            return _mapper.Map<List<CustomerTagDto>>(result);
+        }
+
+        public async Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilter filter) {
+            Expression<Func<CustomerTagEntity, bool>> wherePredicate = x =>
+               (true)
+            && (string.IsNullOrEmpty(filter.Search)
+                || x.Name.ToLower().Contains(filter.Search.ToLower()));
+
+            #region Sort
+            Expression<Func<CustomerTagEntity, string>> orderPredicate = x => x.Id.ToString();
+            #endregion
+
+            string[] include = new string[] { };
+
+            Tuple<List<CustomerTagEntity>, int> tuple = await _customerTagManager.Pager<CustomerTagEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<CustomerTagDto>(new List<CustomerTagDto>(), 0, filter.Offset, filter.Limit);
+
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+
+            var result = _mapper.Map<List<CustomerTagDto>>(list);
+            return new Pager<CustomerTagDto>(result, count, page, filter.Limit);
+        }
+
+        public async Task<CustomerTagDto> GetCustomerTag(long id) {
+            var result = await _customerTagManager.Find(id);
+            return _mapper.Map<CustomerTagDto>(result);
+        }
+
+        public async Task<CustomerTagDto> CreateCustomerTag(CustomerTagDto dto) {
+            var entity = _mapper.Map<CustomerTagEntity>(dto);
+            entity = await _customerTagManager.Create(entity);
+
+            return _mapper.Map<CustomerTagDto>(entity);
+        }
+
+        public async Task<CustomerTagDto> UpdateCustomerTag(long id, CustomerTagDto dto) {
+            if(id != dto.Id) {
+                return null;
+            }
+
+            var entity = await _customerTagManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerTagManager.Update(newEntity);
+
+            return _mapper.Map<CustomerTagDto>(entity);
+        }
+
+        public async Task<bool> DeleteCustomerTag(long id) {
+            var entity = await _customerTagManager.Find(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _customerTagManager.Delete(entity);
             return result != 0;
         }
         #endregion

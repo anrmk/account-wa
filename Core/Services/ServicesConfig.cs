@@ -37,6 +37,8 @@ namespace Core.Services {
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();
             services.AddTransient<ICustomerCreditLimitManager, CustomerCreditLimitManager>();
             services.AddTransient<ICustomerCreditUtilizedManager, CustomerCreditUtilizedManager>();
+            services.AddTransient<ICustomerTagManager, CustomerTagManager>();
+            services.AddTransient<ICustomerTagLinkManager, CustomerTagLinkManager>();
 
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();

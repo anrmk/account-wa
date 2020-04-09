@@ -1,0 +1,48 @@
+﻿@model Web.ViewModels.CustomerTagViewModel
+
+@{
+    ViewData["Title"] = "Edit Customer Tags";
+    ViewData["SubTitle"] = "";
+}
+
+@section Toolbar  {
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group mr-2">
+            <form method="POST" asp-action="Delete">
+                <input asp-for="Id" type="hidden" />
+                <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </form>
+        </div>
+    </div>
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customer Tags</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-body">
+        <form class="tab-content" id="submitForm" method="POST" asp-action="Edit">
+            <input asp-for="Id" type="hidden" />
+
+            <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                <div class="form-row mb-3">
+                    <div class="col">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" type="text" class="form-control" required>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar" aria-label="Toolbar with button groups">
+            <button type="submit" class="btn btn-outline-primary" form="submitForm">Save</button>
+            <a asp-action="index" class="btn btn-link">Cancel</a>
+        </div>
+    </div>
+</div>

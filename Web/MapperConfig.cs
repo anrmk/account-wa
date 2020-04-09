@@ -73,7 +73,8 @@ namespace Web {
             CreateMap<CustomerCreditLimitViewModel, CustomerCreditLimitDto>().ReverseMap();
             CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
-
+            CreateMap<CustomerTagViewModel, CustomerTagDto>().ReverseMap();
+            
             #endregion
 
             #region INVOICE

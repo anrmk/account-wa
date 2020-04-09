@@ -16,10 +16,18 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link @(url.Contains("/customer") ? "active" : "")" asp-controller="Customer" asp-action="Index">
+            <a class="nav-link @(url.Equals("/customer") ? "active" : "")" asp-controller="Customer" asp-action="Index">
                 <i class="fas fa-user mr-3"></i> Customers
             </a>
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Equals("/customertag") ? "active" : "")" asp-controller="CustomerTag" asp-action="Index">
+                        <i class="fas fa-user-tag mr-3"></i>Tags
+                    </a>
+                </li>
+            </ul>
         </li>
+
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
                 <i class="fas fa-file-invoice mr-3"></i> Invoices

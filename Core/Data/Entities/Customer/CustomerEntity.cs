@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Core.Data.Entities.Nsi;
-using Core.Extension;
 
 namespace Core.Data.Entities {
     [Table(name: "Customers")]
@@ -24,24 +23,6 @@ namespace Core.Data.Entities {
         public string PhoneNumber { get; set; }
 
         public string Terms { get; set; }
-
-        //[DataType(DataType.Currency)]
-        //[Column(TypeName = "decimal(18, 2)")]
-        public decimal? CreditLimit { 
-            get {
-                return CreditLimits.GetLastCreditLimit();
-            }
-        }
-        
-        public decimal? CreditUtilized {
-            get {
-                return CreditLimits.GetLastCreditLimit();
-            }
-        }
-
-        //[DataType(DataType.Currency)]
-        //[Column(TypeName = "decimal(18, 2)")]
-        //public decimal? CreditUtilized { get; set; }
 
         [ForeignKey("Address")]
         [Column("CustomerAddress_Id")]
@@ -65,6 +46,8 @@ namespace Core.Data.Entities {
         public virtual ICollection<CustomerCreditUtilizedEntity> CreditUtilizeds { get; set; }
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
+
+        //public virtual ICollection<CustomerTagLinkEntity> CustomerTagLinks { get; set; }
     }
 
     public class CustomerBulkEntity: CustomerEntity {

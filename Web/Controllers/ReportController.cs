@@ -204,7 +204,7 @@ namespace Web.Controllers.Mvc {
                             if(field.IsActive) {
                                 var value = ObjectExtension.GetPropValue(summary, field.Name);
                                 //TODO: Здесь нужно сделать проверку на массив и взять его значение
-                                
+
                                 //if(value.GetType() == typeof(Array)) {
                                 //    Console.WriteLine("Array");
                                 //}
