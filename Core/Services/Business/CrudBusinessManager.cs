@@ -402,13 +402,14 @@ namespace Core.Services.Business {
             && (string.IsNullOrEmpty(filter.Search)
                 || x.Name.ToLower().Contains(filter.Search.ToLower())
                 || x.No.ToLower().Contains(filter.Search.ToLower())
-                || x.Description.ToLower().Contains(filter.Search.ToLower()));
+                || x.Description.ToLower().Contains(filter.Search.ToLower())
+                || x.TagLinks.Where(x => x.Tag.Name.Contains(filter.Search.ToLower())).Count() > 0);
 
             #region Sort
             Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
             #endregion
 
-            string[] include = new string[] { "Company", "Address", "Activities" };
+            string[] include = new string[] { "Company", "Address", "Activities", "TagLinks" };
 
             Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
@@ -566,7 +567,7 @@ namespace Core.Services.Business {
             //list of tags to delete
             var removeTag = entityTagLinks.Where(x => !dto.TagsId.Contains(x.TagId));
             await _customerTagLinkManager.Delete(removeTag);
-           
+
 
             //list of customres to insert
             var selectedCustomersIds = dto.TagsId.Where(x => entityTagLinks.Where(p => p.TagId == x).FirstOrDefault() == null).ToList();
