@@ -59,22 +59,22 @@ namespace Web {
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
             CreateMap<CustomerViewModel, CustomerDto>()
-               .ForMember(d => d.Address, o => o.MapFrom(s => new CustomerAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
-               .ReverseMap()
-               .ForMember(d => d.AddressId, o => o.MapFrom(s => (s.Address != null) ? s.Address.Id : (long?)null))
-               .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address : ""))
-               .ForMember(d => d.Address2, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address2 : ""))
-               .ForMember(d => d.City, o => o.MapFrom(s => (s.Address != null) ? s.Address.City : ""))
-               .ForMember(d => d.State, o => o.MapFrom(s => (s.Address != null) ? s.Address.State : ""))
-               .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
-               .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""))
-               ;
+                .ForMember(d => d.Tags, o => o.Ignore())
+                .ForMember(d => d.Address, o => o.MapFrom(s => new CustomerAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
+                .ReverseMap()
+                .ForMember(d => d.AddressId, o => o.MapFrom(s => (s.Address != null) ? s.Address.Id : (long?)null))
+                .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address : ""))
+                .ForMember(d => d.Address2, o => o.MapFrom(s => (s.Address != null) ? s.Address.Address2 : ""))
+                .ForMember(d => d.City, o => o.MapFrom(s => (s.Address != null) ? s.Address.City : ""))
+                .ForMember(d => d.State, o => o.MapFrom(s => (s.Address != null) ? s.Address.State : ""))
+                .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
+                .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
 
             CreateMap<CustomerCreditLimitViewModel, CustomerCreditLimitDto>().ReverseMap();
             CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
             CreateMap<CustomerTagViewModel, CustomerTagDto>().ReverseMap();
-            
+
             #endregion
 
             #region INVOICE

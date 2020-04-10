@@ -39,17 +39,14 @@ namespace Web.Controllers.Mvc {
             _memoryCache = memoryCache;
         }
 
-        // GET: Customer
         public ActionResult Index() {
             return View();
         }
 
-        // GET: Customer/Details/5
         public ActionResult Details(long id) {
             return View();
         }
 
-        // GET: Customer/Create
         public async Task<ActionResult> Create() {
             var item = new CustomerViewModel();
 
@@ -62,7 +59,6 @@ namespace Web.Controllers.Mvc {
             return View(item);
         }
 
-        // POST: Customer/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(CustomerViewModel model) {
@@ -81,7 +77,6 @@ namespace Web.Controllers.Mvc {
             return View(model);
         }
 
-        // GET: Customer/Edit/5
         public async Task<ActionResult> Edit(long id) {
             var item = await _businessManager.GetCustomer(id);
             if(item == null) {
@@ -103,10 +98,12 @@ namespace Web.Controllers.Mvc {
             var customerCreditUtilized = await _businessManager.GetCustomerCreditUtilizeds(id);
             ViewBag.CreditUtilized = _mapper.Map<List<CustomerCreditUtilizedViewModel>>(customerCreditUtilized);
 
+            var custoremTags = await _businessManager.GetCustomerTags();
+            ViewBag.Tags = custoremTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(_mapper.Map<CustomerViewModel>(item));
         }
 
-        // POST: Customer/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Edit(long id, CustomerViewModel model) {
@@ -132,10 +129,18 @@ namespace Web.Controllers.Mvc {
             var customerTypes = await _nsiManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
+            var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
+            ViewBag.CreditLimit = _mapper.Map<List<CustomerCreditLimitViewModel>>(customerCreditLimit);
+
+            var customerCreditUtilized = await _businessManager.GetCustomerCreditUtilizeds(id);
+            ViewBag.CreditUtilized = _mapper.Map<List<CustomerCreditUtilizedViewModel>>(customerCreditUtilized);
+
+            var custoremTags = await _businessManager.GetCustomerTags();
+            ViewBag.Tags = custoremTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(model);
         }
 
-        // POST: Customer/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Delete(long id) {
@@ -447,129 +452,129 @@ namespace Web.Controllers.Mvc {
         }
         #endregion
     }
+}
 
-    namespace Web.Controllers.Api {
-        [Route("api/[controller]")]
-        [ApiController]
-        public class CustomerController: ControllerBase {
-            private readonly IMapper _mapper;
-            private readonly IViewRenderService _viewRenderService;
-            private readonly ICrudBusinessManager _businessManager;
-            private readonly INsiBusinessManager _nsiManager;
-            private readonly IMemoryCache _memoryCache;
+namespace Web.Controllers.Api {
+    [Route("api/[controller]")]
+    [ApiController]
+    public class CustomerController: ControllerBase {
+        private readonly IMapper _mapper;
+        private readonly IViewRenderService _viewRenderService;
+        private readonly ICrudBusinessManager _businessManager;
+        private readonly INsiBusinessManager _nsiManager;
+        private readonly IMemoryCache _memoryCache;
 
-            public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager, INsiBusinessManager nsiManager) {
-                _mapper = mapper;
-                _viewRenderService = viewRenderService;
-                _memoryCache = memoryCache;
-                _businessManager = businessManager;
-                _nsiManager = nsiManager;
-            }
+        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager, INsiBusinessManager nsiManager) {
+            _mapper = mapper;
+            _viewRenderService = viewRenderService;
+            _memoryCache = memoryCache;
+            _businessManager = businessManager;
+            _nsiManager = nsiManager;
+        }
 
-            [HttpGet]
-            public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] PagerFilterViewModel model) {
-                var result = await _businessManager.GetCustomersPage(_mapper.Map<PagerFilter>(model));
-                var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
-                return pager;
-            }
+        [HttpGet]
+        public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] PagerFilterViewModel model) {
+            var result = await _businessManager.GetCustomersPage(_mapper.Map<PagerFilter>(model));
+            var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            return pager;
+        }
 
-            [HttpGet]
-            [Route("company/{id}")]
-            public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
-                var result = await _businessManager.GetCustomers(id);
-                return _mapper.Map<List<CustomerListViewModel>>(result);
-            }
+        [HttpGet]
+        [Route("company/{id}")]
+        public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
+            var result = await _businessManager.GetCustomers(id);
+            return _mapper.Map<List<CustomerListViewModel>>(result);
+        }
 
-            [HttpGet]
-            [Route("bulk")]
-            public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
-                var result = await _businessManager.GetBulkCustomers(Id, from, to);
-                return _mapper.Map<List<CustomerListViewModel>>(result);
-            }
+        [HttpGet]
+        [Route("bulk")]
+        public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
+            var result = await _businessManager.GetBulkCustomers(Id, from, to);
+            return _mapper.Map<List<CustomerListViewModel>>(result);
+        }
 
-            [HttpPost]
-            [Route("create")]
-            public async Task<ActionResult> CreateCustomers(CustomerBulkViewModel model) {
-                var customerList = new List<CustomerViewModel>();
+        [HttpPost]
+        [Route("create")]
+        public async Task<ActionResult> CreateCustomers(CustomerBulkViewModel model) {
+            var customerList = new List<CustomerViewModel>();
 
-                try {
-                    if(ModelState.IsValid) {
-                        //Получить данные из кэш
-                        var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                        model.Rows = cacheModel?.Rows;
+            try {
+                if(ModelState.IsValid) {
+                    //Получить данные из кэш
+                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                    model.Rows = cacheModel?.Rows;
 
-                        var customerTypes = await _nsiManager.GetCustomerTypes();
+                    var customerTypes = await _nsiManager.GetCustomerTypes();
 
-                        for(var i = 0; i < model.Rows?.Count(); i++) {
-                            var row = model.Rows[i];
-                            var customer = new CustomerViewModel() {
-                                CompanyId = model.CompanyId,
-                            };
+                    for(var i = 0; i < model.Rows?.Count(); i++) {
+                        var row = model.Rows[i];
+                        var customer = new CustomerViewModel() {
+                            CompanyId = model.CompanyId,
+                        };
 
-                            for(var j = 0; j < row.Count(); j++) {
-                                var column = model.Columns[j];
-                                if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
-                                    var property = customer.GetType().GetProperty(column.Name);
+                        for(var j = 0; j < row.Count(); j++) {
+                            var column = model.Columns[j];
+                            if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
+                                var property = customer.GetType().GetProperty(column.Name);
 
-                                    if(property != null && property.CanWrite) {
-                                        /*if(property.PropertyType == typeof(long)) {
-                                            if(long.TryParse(row[j].Value, out long longValue)) {
-                                                property.SetValue(customer, longValue);
-                                            }
-                                        } else*/
-                                        if(property.PropertyType == typeof(double)) {
-                                            if(double.TryParse(row[j].Value, out double doubleVal)) {
-                                                property.SetValue(customer, doubleVal);
-                                            }
-                                        } else if(property.PropertyType == typeof(decimal)) {
-                                            if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
-                                                property.SetValue(customer, decimalVal);
-                                            }
-                                        } else if(property.PropertyType == typeof(int)) {
-                                            if(int.TryParse(row[j].Value, out int intVal)) {
-                                                property.SetValue(customer, intVal);
-                                            }
-                                        } else if(property.PropertyType == typeof(bool)) {
-                                            if(bool.TryParse(row[j].Value, out bool boolVal)) {
-                                                property.SetValue(customer, boolVal);
-                                            }
-                                        } else if(property.PropertyType == typeof(DateTime)) {
-                                            if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
-                                                property.SetValue(customer, dateVal);
+                                if(property != null && property.CanWrite) {
+                                    /*if(property.PropertyType == typeof(long)) {
+                                        if(long.TryParse(row[j].Value, out long longValue)) {
+                                            property.SetValue(customer, longValue);
+                                        }
+                                    } else*/
+                                    if(property.PropertyType == typeof(double)) {
+                                        if(double.TryParse(row[j].Value, out double doubleVal)) {
+                                            property.SetValue(customer, doubleVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(decimal)) {
+                                        if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
+                                            property.SetValue(customer, decimalVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(int)) {
+                                        if(int.TryParse(row[j].Value, out int intVal)) {
+                                            property.SetValue(customer, intVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(bool)) {
+                                        if(bool.TryParse(row[j].Value, out bool boolVal)) {
+                                            property.SetValue(customer, boolVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(DateTime)) {
+                                        if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                            property.SetValue(customer, dateVal);
+                                        }
+                                    } else {
+                                        if(property.Name.Equals("TypeId")) {
+                                            var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
+                                            if(ctype != null) {
+                                                var propertyTypeId = customer.GetType().GetProperty("TypeId");
+                                                propertyTypeId.SetValue(customer, ctype.Id);
                                             }
                                         } else {
-                                            if(property.Name.Equals("TypeId")) {
-                                                var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
-                                                if(ctype != null) {
-                                                    var propertyTypeId = customer.GetType().GetProperty("TypeId");
-                                                    propertyTypeId.SetValue(customer, ctype.Id);
-                                                }
-                                            } else {
-                                                property.SetValue(customer, row[j].Value);
-                                            }
+                                            property.SetValue(customer, row[j].Value);
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            if(TryValidateModel(customer)) {
-                                customerList.Add(customer);
-                            }
+                        if(TryValidateModel(customer)) {
+                            customerList.Add(customer);
                         }
                     }
-
-                    if(customerList.Count == 0) {
-                        throw new Exception("No records have been created! Please, fill the required fields!");
-                    }
-
-                    var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
-                    var result = await _businessManager.CreateOrUpdateCustomer(invoiceList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-                    var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
-                    return Ok(returnvalue);
-
-                } catch(Exception e) {
-                    return BadRequest(e.Message ?? e.StackTrace);
                 }
+
+                if(customerList.Count == 0) {
+                    throw new Exception("No records have been created! Please, fill the required fields!");
+                }
+
+                var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
+                var result = await _businessManager.CreateOrUpdateCustomer(invoiceList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
+                var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
+                return Ok(returnvalue);
+
+            } catch(Exception e) {
+                return BadRequest(e.Message ?? e.StackTrace);
             }
         }
     }

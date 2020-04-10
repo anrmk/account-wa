@@ -18,7 +18,6 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerTagController: BaseController<CustomerTagController> {
         private readonly ICrudBusinessManager _businessManager;
-       //private readonly INsiBusinessManager _nsiManager;
 
         public CustomerTagController(ILogger<CustomerTagController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
             ICrudBusinessManager businessManager) : base(logger, mapper, context) {

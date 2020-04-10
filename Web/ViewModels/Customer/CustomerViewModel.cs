@@ -31,16 +31,6 @@ namespace Web.ViewModels {
         [SpecialName()]
         public string Terms { get; set; }
 
-        //[Display(Name = "Credit Limit")]
-        //[Column(TypeName = "decimal(18, 2)")]
-        //[SpecialName()]
-        //public double CreditLimit { get; set; }
-
-        //[Display(Name = "Credit Utilized")]
-        //[Column(TypeName = "decimal(18, 2)")]
-        //[SpecialName()]
-        //public double CreditUtilized { get; set; }
-
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
@@ -49,6 +39,8 @@ namespace Web.ViewModels {
         public long? TypeId { get; set; }
 
         public virtual ICollection<CustomerActivityViewModel> Activities { get; set; }
+
+        public virtual ICollection<long?> TagsId { get; set; }
 
         [Display(Name = "Created Date")]
         [SpecialName()]

@@ -77,6 +77,8 @@ namespace Core.Services.Business {
         Task<CustomerTagDto> CreateCustomerTag(CustomerTagDto dto);
         Task<CustomerTagDto> UpdateCustomerTag(long id, CustomerTagDto dto);
         Task<bool> DeleteCustomerTag(long id);
+
+        Task<List<CustomerTagDto>> GetCustomerTags(long customerId);
         #endregion
 
         #region INVOICE
@@ -557,6 +559,25 @@ namespace Core.Services.Business {
             var newEntity = _mapper.Map(dto, entity);
             entity = await _customerManager.Update(newEntity);
 
+
+            #region UPDATE CUSTOMER LIST
+            var entityTagLinks = entity.TagLinks;
+
+            //list of tags to delete
+            var removeTag = entityTagLinks.Where(x => !dto.TagsId.Contains(x.TagId));
+            await _customerTagLinkManager.Delete(removeTag);
+           
+
+            //list of customres to insert
+            var selectedCustomersIds = dto.TagsId.Where(x => entityTagLinks.Where(p => p.TagId == x).FirstOrDefault() == null).ToList();
+            var createTag = selectedCustomersIds.Select(x => new CustomerTagLinkEntity() {
+                CustomerId = entity.Id,
+                TagId = x
+            });
+
+            await _customerTagLinkManager.Create(createTag);
+            #endregion
+
             return _mapper.Map<CustomerDto>(entity);
         }
 
@@ -748,6 +769,19 @@ namespace Core.Services.Business {
             int result = await _customerTagManager.Delete(entity);
             return result != 0;
         }
+        #endregion
+
+        #region TAGS LINK
+        public async Task<List<CustomerTagDto>> GetCustomerTags(long customerId) {
+            var tagList = new List<CustomerTagEntity>();
+
+            var result = await _customerTagLinkManager.FindByCustomerId(customerId);
+            if(result != null)
+                tagList = result.Select(x => x.Tag).ToList();
+
+            return _mapper.Map<List<CustomerTagDto>>(tagList);
+        }
+
         #endregion
 
         #endregion

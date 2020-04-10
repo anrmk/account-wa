@@ -32,6 +32,7 @@ namespace Core.Services.Managers {
                 .Include(x => x.Company)
                 .Include(x => x.Address)
                 .Include(x => x.Activities)
+                .Include(x => x.TagLinks)
                 .Include(x => x.Type)
                .Where(x => x.Id == id)
                .FirstOrDefaultAsync();

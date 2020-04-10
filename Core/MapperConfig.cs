@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Dto.Nsi;
@@ -42,8 +43,11 @@ namespace Core {
                 .ForMember(d => d.Type, o => o.Ignore())
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
+                .ForMember(d => d.TagLinks, o => o.Ignore())
                 .ReverseMap()
                 // .ForMember(d => d.AccountNumber, o => o.MapFrom(s => s.AccountNumber))
+                .ForMember(d => d.TagsId, o => o.MapFrom(s => s.TagLinks.Select(r => r.TagId)))
+                //.ForMember(d => d.Tags, o => o.MapFrom(s => s.TagLinks.Select(r => new CustomerTagDto() { Id = r.Tag.Id, Name = r.Tag.Name })))
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();

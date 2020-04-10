@@ -57,6 +57,9 @@ namespace Core.Data.Dto {
 
         public virtual ICollection<CustomerActivityDto> Activities { get; set; }
 
+        public virtual ICollection<long?> TagsId { get; set; }
+        public virtual ICollection<CustomerTagDto> Tags { get; set; }
+
         public DateTime CreatedDate { get; set; }
         public string CreatedBy { get; set; }
         public DateTime UpdatedDate { get; set; }

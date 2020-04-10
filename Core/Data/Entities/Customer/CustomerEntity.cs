@@ -47,7 +47,7 @@ namespace Core.Data.Entities {
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
 
-        //public virtual ICollection<CustomerTagLinkEntity> CustomerTagLinks { get; set; }
+        public virtual ICollection<CustomerTagLinkEntity> TagLinks { get; set; }
     }
 
     public class CustomerBulkEntity: CustomerEntity {

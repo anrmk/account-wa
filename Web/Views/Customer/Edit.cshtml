@@ -75,6 +75,17 @@
                         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                     </div>
                     <div class="col">
+                        <label asp-for="TagsId"></label>
+                        <select asp-for="TagsId" asp-items="@ViewBag.Tags" class="form-control selectpicker"
+                                multiple
+                                data-live-search="true"
+                                data-selected-text-format="count > 3"
+                                data-actions-box="true">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3">
+                    <div class="col">
                         <label asp-for="Terms"></label>
                         <input asp-for="Terms" type="text" class="form-control">
                         <span asp-validation-for="Terms" class="text-danger"></span>
