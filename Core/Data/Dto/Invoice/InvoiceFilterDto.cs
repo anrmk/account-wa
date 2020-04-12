@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Collections.Generic;
 using Core.Extension;
 
 namespace Core.Data.Dto {
@@ -10,5 +10,6 @@ namespace Core.Data.Dto {
 
         public int? From { get; set; }
         public int? To { get; set; }
+        public List<string> Periods { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {
     public class InvoiceFilterViewModel: PagerFilterViewModel {
@@ -22,6 +23,7 @@ namespace Web.ViewModels {
         [Display(Name = "Period To")]
         public int? To { get; set; }
 
-        //   private List<Company>
+        [FromQuery(Name = "periods")]
+        public string Periods { get; set; } = "";
     }
 }

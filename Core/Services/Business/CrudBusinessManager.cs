@@ -818,18 +818,37 @@ namespace Core.Services.Business {
 
             if(filter.Date != null && dateFrom != null) {
                 var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
-                invoices = invoices.Where(x =>
-                    true && (filter.From.HasValue ? (filter.Date.Value - x.DueDate).Days >= filter.From : true)
-                         && (filter.To.HasValue ? (filter.Date.Value - x.DueDate).Days <= filter.To.Value : true)
-                         && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                //Поиск в разрезе заказчиков с задолжностями более 2х сумм
+                var doubleInvoice = invoices.Where(x => x.CustomerAccountNumber == "41102").ToList();
 
-                /*
-                (selectedPeriod == null) || (
-                  (filter.Date.Value - x.DueDate).Days >= selectedPeriod.From
-                  && (filter.Date.Value - x.DueDate).Days <= selectedPeriod.To
-                  && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
-                )*/
-                ).OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+
+                //Поиск в разрезе периода
+                List<InvoiceEntity> newList = new List<InvoiceEntity>();
+
+                foreach(var p in filter.Periods) {
+                    var dash = p.LastIndexOf('-');
+                    int filterFrom, filterTo;
+
+                    if(int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
+                        newList.AddRange(invoices.Where(x =>
+                        true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                             && ((filter.Date.Value - x.DueDate).Days <= filterTo)
+                             && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                        ));
+                    }
+                }
+
+                if(filter.Periods.Count > 1) {
+                    var dublCustomers = newList.GroupBy(x => x.Customer.No)
+                              .Where(g => g.Count() > 1)
+                              .Select(y => y.Key)
+                              .ToList();
+                    invoices = newList.Where(x => dublCustomers.Contains(x.Customer.No)).ToList();
+                } else {
+                    invoices = newList;
+                }
+
+                invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());

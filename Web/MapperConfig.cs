@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using AutoMapper;
 
@@ -92,7 +93,11 @@ namespace Web {
                 .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()))
                 .ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payments.LastPaymentDate()));
 
-            CreateMap<InvoiceFilterViewModel, InvoiceFilterDto>().ReverseMap();
+            CreateMap<InvoiceFilterViewModel, InvoiceFilterDto>()
+                .ForMember(d => d.Periods, o => o.MapFrom(s => string.IsNullOrEmpty(s.Periods) ? new List<string>() : s.Periods.Split(',', System.StringSplitOptions.RemoveEmptyEntries).ToList()))
+                .ReverseMap()
+                .ForMember(d => d.Periods, o => o.MapFrom(s => string.Join(",", s.Periods)));
+                ;
             #endregion
 
             #region PAYMENT

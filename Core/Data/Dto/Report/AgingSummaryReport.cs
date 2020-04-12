@@ -15,6 +15,9 @@ namespace Core.Data.Dto {
         public Dictionary<string, AgingSummaryBalance> Balance { get; set; }
 
         public List<AgingSummaryData> Data { get; set; }
+
+        public Dictionary<string, decimal> DoubleDebt { get; set; }
+        
         public int BalanceCustomers { get; set; }
     }
 
@@ -29,6 +32,7 @@ namespace Core.Data.Dto {
         public CustomerDto Customer { get; set; }
 
         public Dictionary<string, decimal> Data { get; set; }
+        public Dictionary<string, decimal> InvoiceCount { get; set; }
     }
 
     public class AgingSummaryBalance {

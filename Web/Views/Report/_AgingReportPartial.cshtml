@@ -32,6 +32,22 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <h6>Debt:</h6>
+                <table class="table table-sm">
+                    <tbody>
+                        @foreach(var column in Model?.DoubleDebt) {
+                            <tr>
+                                <td>
+                                    @column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=@column.Key})">@column.Value</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
             <div class="col">
                 <h6>Balance</h6>
@@ -46,9 +62,15 @@
                     <tbody>
                         @foreach(var column in Model.Columns) {
                             <tr>
-                                <td scope="col">@column.Name</td>
+                                <td scope="col">
+                                    @if(column.Name == "-31-0") {
+                                        <span>Current</span>
+                                    } else {
+                                        @column.Name
+                                    }
+                                </td>
                                 <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, from=column.From, to=column.To })">@Model.Balance[column.Name].Count</a>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
                                 </td>
                                 <td>@Model.Balance[column.Name].Sum</td>
                             </tr>
@@ -66,11 +88,14 @@
                         <th>#</th>
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
-                        @*@foreach(var header in Model.Columns) {
-                            <th scope="col">@header</th>
-                        }*@
                         @foreach(var column in Model.Columns) {
-                            <th scope="col">@column.Name</th>
+                            <th scope="col">
+                            @if(column.Name == "-31-0") {
+                                <span>Current</span>
+                            } else {
+                                @column.Name
+                            }
+                            </th>
                         }
                     </tr>
                 </thead>
