@@ -14,6 +14,6 @@ namespace Core.Data.Dto {
 
         public virtual ICollection<long?> TagsIds { get; set; }
 
-        public int Recheck { get; set; }
+        public virtual ICollection<int?> Recheck { get; set; }
     }
 }

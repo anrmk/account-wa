@@ -18,8 +18,7 @@
                 <div class="form-row mb-3">
                     <div class="col-3">
                         <label asp-for="CompanyId"></label>
-                        <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
-                        </select>
+                        <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required></select>
                     </div>
                     <div class="col-3">
                         <label asp-for="SummaryRangeId"></label>
@@ -45,17 +44,16 @@
                     <div class="col-3">
                         <label asp-for="TypeIds"></label>
                         <select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
-                                multiple
-                                data-live-search="true">
+                            multiple
+                            data-live-search="true">
                         </select>
                     </div>
                     <div class="col-3">
                         <label asp-for="Recheck">Recheck</label>
-                        <input asp-for="Recheck" class="form-control" />
-                        @*<select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
-                                    multiple
-                                    data-live-search="true">
-                            </select>*@
+                        <select id="recheck" name="Recheck[]" class="form-control selectpicker" data-field="type"
+                            multiple
+                            data-live-search="true">
+                        </select>
                     </div>
                 </div>
                 <button class="btn btn-outline-primary" id="filterApplyBtn">Save</button>
@@ -100,7 +98,21 @@
     <script src="~/lib/bootstrap-table/extensions/toolbar/bootstrap-table-toolbar.min.js"></script>
     <script type="text/javascript">
         window.ajaxOptions = {
-            traditional: true
+            traditional: true,
+            beforeSend: (jqXHR, settings) => {
+                window.localStorage.setItem("recheckSelected", $("#recheck").val());
+            },
+            complete: (jqXHR, status) => {
+                if (status === 'success') {
+                    var recheckFilter = jqXHR.responseJSON.filter["Recheck"];
+                    if (recheckFilter !== undefined) {
+                        var recheckSelected = window.localStorage.getItem("recheckSelected").split(',');
+                        var opt = recheckFilter.map((val, i) => { return `<option value='${val}' ${recheckSelected.includes(val) ? "selected='selected'" : null }>${val}</option>` });
+                        $("#recheck").html(opt).selectpicker('refresh')
+                    }
+
+                }
+            }
         }
 
         function queryParams(params) {
@@ -132,14 +144,12 @@
             });
 
             //on criteria change
-            $('#CompanyId').on('change', (e) => {
+            $('#companyId').on('change', (e) => {
                 e.preventDefault();
                 let $fieldset = $submitForm.find('fieldset').attr('disabled', 'disabled');
 
                 $.fn.getCompanySummaryRange(e.currentTarget.value).done((data) => {
-                    var opt = $.map(data, function (val, i) {
-                        return `<option value='${val.id}'>${val.from} - ${val.to}</option>`
-                    });
+                    var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>`});
                     $("#summaryRange").html(opt).selectpicker('refresh');
 
                     $fieldset.removeAttr('disabled');

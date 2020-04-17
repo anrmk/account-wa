@@ -476,6 +476,7 @@ namespace Web.Controllers.Api {
         public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] CustomerFilterViewModel model) {
             var result = await _businessManager.GetCustomersPage(_mapper.Map<CustomerFilterDto>(model));
             var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            pager.Filter = result.Filter;
             return pager;
         }
 

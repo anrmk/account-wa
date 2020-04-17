@@ -32,6 +32,6 @@ namespace Web.ViewModels {
         public List<long> TypeIds { get; set; }
 
         [Display(Name = "Recheck")]
-        public int Recheck { get; set; }
+        public List<int> Recheck { get; set; }
     }
 }

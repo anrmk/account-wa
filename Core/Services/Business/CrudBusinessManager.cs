@@ -397,9 +397,11 @@ namespace Core.Services.Business {
 
         public async Task<Pager<CustomerDto>> GetCustomersPage(CustomerFilterDto filter) {
             Tuple<List<CustomerEntity>, int> tuple;
+            List<string> recheckFilter = new List<string>();
 
             if(filter.DateFrom.HasValue && filter.DateTo.HasValue) {
                 var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
+                recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
 
                 customers = customers.Where(x=> (true)
                     && (string.IsNullOrEmpty(filter.Search)
@@ -408,7 +410,7 @@ namespace Core.Services.Business {
                     )
                     && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(x => filter.TagsIds.Contains(x.TagId)).Count() > 0)
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
-                    && ((filter.Recheck == 0)|| filter.Recheck == x.Recheck)
+                    && ((filter.Recheck == null || filter.Recheck.Count == 0)||  filter.Recheck.Contains(x.Recheck))
                    //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
@@ -440,7 +442,10 @@ namespace Core.Services.Business {
             var page = (filter.Offset + filter.Limit) / filter.Limit;
 
             var result = _mapper.Map<List<CustomerDto>>(list);
-            return new Pager<CustomerDto>(result, count, page, filter.Limit);
+            var pager = new Pager<CustomerDto>(result, count, page, filter.Limit);
+            pager.Filter.Add("Recheck", recheckFilter);
+
+            return pager;
         }
 
         public async Task<List<CustomerDto>> GetCustomers() {

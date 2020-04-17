@@ -10,6 +10,7 @@ namespace Core.Extension {
         public int StartPage { get; private set; }
         public int EndPage { get; private set; }
         public IEnumerable<T> Items { get; private set; }
+        public Dictionary<string, List<string>> Filter { get; set; } = new Dictionary<string, List<string>>();
 
         public Pager(IEnumerable<T> list, int totalItems, int? page, int? pageSize) {
             var t = (decimal)totalItems / (decimal)(pageSize ?? totalItems);
