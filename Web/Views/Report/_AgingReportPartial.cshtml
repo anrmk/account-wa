@@ -42,7 +42,7 @@
                                     @column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)
                                 </td>
                                 <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=@column.Key})">@column.Value</a>
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=@column.Key, moreThanOne=true})">@column.Value</a>
                                 </td>
                             </tr>
                         }

@@ -13,7 +13,8 @@ $.fn.getCompanySummaryRange = function (id) {
 //Get bulk customers
 $.fn.getBulkCustomers = function (id, from, to) {
     return $.ajax({
-        url: '/api/customer/bulk',
+        url: '/api/customer',
+        //url: '/api/customer/bulk',
         data: { 'id': id, 'from': from, 'to': to }
     });
 }

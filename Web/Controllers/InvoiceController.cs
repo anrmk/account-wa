@@ -128,15 +128,24 @@ namespace Web.Controllers.Mvc {
 
             var selectedCompany = companies.FirstOrDefault();
 
-            var model = new BulkInvoiceViewModel() {
-                CompanyId = selectedCompany?.Id ?? 0
+            var model = new CustomerFilterViewModel() {
+                CompanyId = selectedCompany?.Id ?? 0,
+                DateFrom = DateTime.Now,
+                DateTo = DateTime.Now.AddDays(30)
             };
 
             var summaryRange = await _businessManager.GetCompanyAllSummaryRange(selectedCompany?.Id ?? 0);
             ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.From} - {x.To}", Value = x.Id.ToString() });
 
-            var customers = await _businessManager.GetBulkCustomers(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
-            ViewBag.Customers = _mapper.Map<List<CustomerListViewModel>>(customers);
+            var customerTags = await _businessManager.GetCustomerTags();
+            ViewBag.Tags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
+
+            var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
+
+
+            //var customers = await _businessManager.GetBulkCustomers(selectedCompany?.Id ?? 0, model.DateFrom, model.DateTo);
+            //ViewBag.Customers = _mapper.Map<List<CustomerListViewModel>>(customers);
 
             return View(model);
         }

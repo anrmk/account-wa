@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
@@ -19,6 +20,8 @@ namespace Web.ViewModels {
 
         public long TypeId { get; set; }
         public string Type { get; set; }
+
+        public virtual ICollection<CustomerTagViewModel> Tags { get; set; }
 
         [Display(Name = "Is active")]
         public bool IsActive { get; set; }

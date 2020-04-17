@@ -6,11 +6,11 @@ namespace Core.Data.Entities {
         [ForeignKey("Customer")]
         [Column("Customer_Id")]
         public long? CustomerId { get; set; }
-        public CustomerEntity Customer { get; set; }
+        public virtual CustomerEntity Customer { get; set; }
 
         [ForeignKey("CustomerTag")]
         [Column("CustomerTag_Id")]
         public long? TagId { get; set; }
-        public CustomerTagEntity Tag { get; set; }
+        public virtual CustomerTagEntity Tag { get; set; }
     }
 }

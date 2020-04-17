@@ -48,10 +48,16 @@ namespace Core.Data.Entities {
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
 
         public virtual ICollection<CustomerTagLinkEntity> TagLinks { get; set; }
-    }
 
-    public class CustomerBulkEntity: CustomerEntity {
+        [NotMapped]
         public int Total { get; set; }
+
+        [NotMapped]
         public int Recheck { get; set; }
     }
+
+    //public class CustomerBulkEntity: CustomerEntity {
+    //    public int Total { get; set; }
+    //    public int Recheck { get; set; }
+    //}
 }

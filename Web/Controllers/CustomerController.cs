@@ -473,8 +473,8 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] PagerFilterViewModel model) {
-            var result = await _businessManager.GetCustomersPage(_mapper.Map<PagerFilter>(model));
+        public async Task<Pager<CustomerListViewModel>> GetCustomers([FromQuery] CustomerFilterViewModel model) {
+            var result = await _businessManager.GetCustomersPage(_mapper.Map<CustomerFilterDto>(model));
             var pager = new Pager<CustomerListViewModel>(_mapper.Map<List<CustomerListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
         }
@@ -486,6 +486,7 @@ namespace Web.Controllers.Api {
             return _mapper.Map<List<CustomerListViewModel>>(result);
         }
 
+        [Obsolete]
         [HttpGet]
         [Route("bulk")]
         public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {

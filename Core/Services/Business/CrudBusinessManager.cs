@@ -42,7 +42,7 @@ namespace Core.Services.Business {
         #region CUSTOMER
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
-        Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter);
+        Task<Pager<CustomerDto>> GetCustomersPage(CustomerFilterDto filter);
         Task<List<CustomerDto>> GetUntiedCustomers(long? companyId);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
@@ -395,23 +395,42 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(result);
         }
 
-        public async Task<Pager<CustomerDto>> GetCustomersPage(PagerFilter filter) {
-            //public async Task<Pager<CustomerDto>> GetCustomersPage(string search, string sort, string order, int offset = 0, int limit = 10) {
-            Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
-               (true)
-            && (string.IsNullOrEmpty(filter.Search)
-                || x.Name.ToLower().Contains(filter.Search.ToLower())
-                || x.No.ToLower().Contains(filter.Search.ToLower())
-                || x.Description.ToLower().Contains(filter.Search.ToLower())
-                || x.TagLinks.Where(x => x.Tag.Name.Contains(filter.Search.ToLower())).Count() > 0);
+        public async Task<Pager<CustomerDto>> GetCustomersPage(CustomerFilterDto filter) {
+            Tuple<List<CustomerEntity>, int> tuple;
 
-            #region Sort
-            Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
-            #endregion
+            if(filter.DateFrom.HasValue && filter.DateTo.HasValue) {
+                var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
 
-            string[] include = new string[] { "Company", "Address", "Activities", "TagLinks" };
+                customers = customers.Where(x=> (true)
+                    && (string.IsNullOrEmpty(filter.Search)
+                       || x.Name.ToLower().Contains(filter.Search.ToLower())
+                       || x.No.ToLower().Contains(filter.Search.ToLower())
+                    )
+                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(x => filter.TagsIds.Contains(x.TagId)).Count() > 0)
+                    && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
+                    && ((filter.Recheck == 0)|| filter.Recheck == x.Recheck)
+                   //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
+                   ).ToList();
 
-            Tuple<List<CustomerEntity>, int> tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+                var filteredCustomers = customers.Skip(filter.Offset ?? 0).Take(filter.Limit ?? customers.Count()).ToList();
+                tuple = new Tuple<List<CustomerEntity>, int>(filteredCustomers, customers.Count());
+            } else {
+                Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
+                   (true)
+                     && (string.IsNullOrEmpty(filter.Search)
+                    || x.Name.ToLower().Contains(filter.Search.ToLower())
+                    || x.No.ToLower().Contains(filter.Search.ToLower())
+                );
+
+                #region Sort
+                Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
+                #endregion
+
+                string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag" };
+
+                tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+            }
+
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -565,12 +584,12 @@ namespace Core.Services.Business {
             var entityTagLinks = entity.TagLinks;
 
             //list of tags to delete
-            var removeTag = entityTagLinks.Where(x => !dto.TagsId.Contains(x.TagId));
+            var removeTag = entityTagLinks.Where(x => !dto.TagsIds.Contains(x.TagId));
             await _customerTagLinkManager.Delete(removeTag);
 
 
             //list of customres to insert
-            var selectedCustomersIds = dto.TagsId.Where(x => entityTagLinks.Where(p => p.TagId == x).FirstOrDefault() == null).ToList();
+            var selectedCustomersIds = dto.TagsIds.Where(x => entityTagLinks.Where(p => p.TagId == x).FirstOrDefault() == null).ToList();
             var createTag = selectedCustomersIds.Select(x => new CustomerTagLinkEntity() {
                 CustomerId = entity.Id,
                 TagId = x
@@ -819,7 +838,7 @@ namespace Core.Services.Business {
             if(filter.Date != null && dateFrom != null) {
                 var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
                 //Поиск в разрезе заказчиков с задолжностями более 2х сумм
-                var doubleInvoice = invoices.Where(x => x.CustomerAccountNumber == "41102").ToList();
+                //var doubleInvoice = invoices.Where(x => x.CustomerAccountNumber == "41102").ToList();
 
 
                 //Поиск в разрезе периода
@@ -838,7 +857,7 @@ namespace Core.Services.Business {
                     }
                 }
 
-                if(filter.Periods.Count > 1) {
+                if(filter.MoreThanOne) {
                     var dublCustomers = newList.GroupBy(x => x.Customer.No)
                               .Where(g => g.Count() > 1)
                               .Select(y => y.Key)
@@ -848,7 +867,7 @@ namespace Core.Services.Business {
                     invoices = newList;
                 }
 
-                invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+                invoices =  invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());

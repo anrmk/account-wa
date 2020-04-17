@@ -73,7 +73,10 @@ $.extend($.fn.bootstrapTable.defaults, {
     showToggle: true,
     sortStable: true,
     pagination: true,
-    maintainMetaData: true
+    maintainMetaData: true,
+    filterOptions: {
+        filterAlgorithm: 'or'
+    }
 });
 
 //$.extend($.fn.bootstrapTable.columnDefaults, {

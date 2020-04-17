@@ -54,7 +54,10 @@ namespace Web {
             CreateMap<CustomerListViewModel, CustomerDto>()
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ForMember(d => d.Activities, o => o.Ignore())
+                .ForMember(d => d.Tags, o => o.Ignore())
                 .ReverseMap()
+                .ForMember(d => d.Tags, o => o.MapFrom(s => s.Tags))
+                //.ForMember(d => d.Tags, o => o.MapFrom(s => string.Join(',', s.Tags)))
                 .ForMember(d => d.Company, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
                 .ForMember(d => d.Type, o => o.MapFrom(s => (s.Type != null) ? s.Type.Name : ""))
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
@@ -75,6 +78,12 @@ namespace Web {
             CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
             CreateMap<CustomerTagViewModel, CustomerTagDto>().ReverseMap();
+
+            CreateMap<CustomerFilterViewModel, CustomerFilterDto>()
+              //  .ForMember(d => d., o => o.MapFrom(s => string.IsNullOrEmpty(s.Periods) ? new List<string>() : s.Periods.Split(',', System.StringSplitOptions.RemoveEmptyEntries).ToList()))
+                .ReverseMap()
+                //.ForMember(d => d.Periods, o => o.MapFrom(s => string.Join(",", s.Periods)));
+            ;
 
             #endregion
 

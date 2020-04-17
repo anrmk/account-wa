@@ -25,18 +25,19 @@
 
             <div class="form-row mb-3">
                 <div class="col">
-                    <label asp-for="From"></label>
-                    <input asp-for="From" class="form-control" />
+                    <label asp-for="Periods"></label>
+                    <input asp-for="Periods" class="form-control" />
                 </div>
-                <div class="col">
-                    <label asp-for="To"></label>
-                    <input asp-for="To" class="form-control" />
-                </div>
-
             </div>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked": "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
+
+            <div class="form-check col">
+                <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
                 <label asp-for="RandomSort" class="form-check-label"></label>
+            </div>
+
+            <div class="form-check col">
+                <input type="checkbox" class="form-check-input" @(Model.MoreThanOne ? "checked" : "") name="MoreThanOne:boolean" id="MoreThanOne" data-val="true" data-value-type="boolean" />
+                <label asp-for="MoreThanOne" class="form-check-label"></label>
             </div>
         </div>
     </fieldset>

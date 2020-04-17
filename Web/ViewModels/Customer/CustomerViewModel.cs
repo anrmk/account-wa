@@ -40,7 +40,8 @@ namespace Web.ViewModels {
 
         public virtual ICollection<CustomerActivityViewModel> Activities { get; set; }
 
-        public virtual ICollection<long?> TagsId { get; set; }
+        [Display(Name = "Tags")]
+        public virtual ICollection<long?> TagsIds { get; set; }
 
         [Display(Name = "Created Date")]
         [SpecialName()]

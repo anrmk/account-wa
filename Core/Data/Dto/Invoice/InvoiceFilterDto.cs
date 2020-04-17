@@ -8,8 +8,9 @@ namespace Core.Data.Dto {
         public DateTime? Date { get; set; }
         public int NumberOfPeriods { get; set; }
 
-        public int? From { get; set; }
-        public int? To { get; set; }
+        //public int? From { get; set; }
+        //public int? To { get; set; }
         public List<string> Periods { get; set; }
+        public bool MoreThanOne { get; set; }
     }
 }

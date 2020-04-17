@@ -22,16 +22,23 @@
             <ul class="list-unstyled ml-3">
                 <li class="nav-item">
                     <a class="nav-link @(url.Equals("/customertag") ? "active" : "")" asp-controller="CustomerTag" asp-action="Index">
-                        <i class="fas fa-user-tag mr-3"></i>Tags
+                        <i class="fas fa-dot-circle mr-3"></i>Tags
                     </a>
                 </li>
             </ul>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link @(url.Contains("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
+            <a class="nav-link @(url.Equals("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
                 <i class="fas fa-file-invoice mr-3"></i> Invoices
             </a>
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Contains("/invoice/bulk") ? "active" : "")" asp-controller="Invoice" asp-action="Bulk">
+                        <i class="fas fa-dot-circle mr-3"></i> Bulk
+                    </a>
+                </li>
+            </ul>
         </li>
         <li class="nav-item">
             <a class="nav-link @(url.Contains("/payment") ? "active" : "")" asp-controller="Payment" asp-action="Index">

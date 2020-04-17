@@ -21,7 +21,7 @@ namespace Core.Services.Managers {
         Task<List<CustomerEntity>> AllInclude();
         Task<List<CustomerEntity>> FindUntied(long? companyId);
 
-        Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to);
+        Task<List<CustomerEntity>> FindBulks(long companyId, DateTime from, DateTime to);
     }
 
     public class CustomerManager: AsyncEntityManager<CustomerEntity>, ICustomerManager {
@@ -33,6 +33,7 @@ namespace Core.Services.Managers {
                 .Include(x => x.Address)
                 .Include(x => x.Activities)
                 .Include(x => x.TagLinks)
+                    .ThenInclude(x => x.Tag)
                 .Include(x => x.Type)
                .Where(x => x.Id == id)
                .FirstOrDefaultAsync();
@@ -85,20 +86,24 @@ namespace Core.Services.Managers {
             return result;
         }
 
-        public async Task<List<CustomerBulkEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
+        public async Task<List<CustomerEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
-            var result = new List<CustomerBulkEntity>();
-            var query = "SELECT CUS.[Id], INV.[Total], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[CreditLimit], CUS.[CreditUtilized], CUS.[Company_Id], CUS.[CustomerType_Id], " +
-                        "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, RCH.[Recheck] " +
+            var result = new List<CustomerEntity>();
+            var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], " +
+                            "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, " +
+                            "RCH.[Recheck], INV.[Total], " +
+                            "TAGS.[TagLinkIds], TAGS.[TagIds], TAGS.[TagNames] " +
                         "FROM [dbo].[Customers] AS CUS " +
-                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS[Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
-                        "ON CUS.[Id] = INV.[Customer_Id] " +
+                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
+                            "ON CUS.[Id] = INV.[Customer_Id] " +
                         "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
-                        "ON CUS.[CustomerType_Id] = CUST.[Id] " +
+                            "ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
-                        "ON CUS.[Id] = RCH.Customer_Id " +
+                            "ON CUS.[Id] = RCH.[Customer_Id] " +
+                        "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [dbo].[CustomerTags] AS CT " +
+                            "LEFT JOIN [dbo].[CustomerTagLinks] AS CTL " +
+                            "ON CT.[Id] = CTL.[CustomerTag_Id] WHERE CTL.[Customer_Id] = CUS.[Id]) AS TAGS " +
                         "WHERE CUS.[Company_Id] = @COMPANYID";
-
             try {
                 using(var connection = context.Database.GetDbConnection()) {
                     using(var command = connection.CreateCommand()) {
@@ -117,13 +122,32 @@ namespace Core.Services.Managers {
                         using(var reader = await command.ExecuteReaderAsync()) {
                             while(reader.Read()) {
 
+                                var taglinks = new List<CustomerTagLinkEntity>();
+                                if(reader["TagLinkIds"] != DBNull.Value && reader["TagIds"] != DBNull.Value && reader["TagNames"] != DBNull.Value) {
+                                    var tagLinksIds = reader["TagLinkIds"] as string;
+                                    var tagIds = reader["TagIds"] as string;
+                                    var tagNames = reader["TagNames"] as string;
+
+                                    var tags = tagIds.Split(',').Zip(tagNames.Split(','), (id, name) => new CustomerTagEntity() {
+                                        Id = long.Parse(id),
+                                        Name = name
+                                    });
+
+                                    taglinks = tagLinksIds.Split(',').Zip(tags, (id, tag) => new CustomerTagLinkEntity() {
+                                        Id = long.Parse(id),
+                                        CustomerId = (long)reader["Id"],
+                                        Tag = tag,
+                                        TagId = tag.Id
+                                    }).ToList();
+                                }
+
                                 var customerType = reader["CustomerType_Id"] != DBNull.Value ? new Data.Entities.Nsi.CustomerTypeEntity() {
                                     Id = (long)reader["CustomerType_Id"],
                                     Code = reader["CustomerTypeCode"] as string,
                                     Name = reader["CustomerTypeName"] as string
                                 } : null;
 
-                                result.Add(new CustomerBulkEntity() {
+                                result.Add(new CustomerEntity() {
                                     Id = (long)reader["Id"],
                                     Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,
                                     No = reader["No"] as string,
@@ -134,6 +158,7 @@ namespace Core.Services.Managers {
                                     TypeId = customerType != null ? customerType.Id : (long?)null,
                                     Type = customerType,
                                     Recheck = reader["Recheck"] != DBNull.Value ? (int)reader["Recheck"] : 0,
+                                    TagLinks = taglinks
                                 });
                             }
                         }

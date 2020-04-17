@@ -17,11 +17,9 @@ namespace Web.ViewModels {
         [Display(Name = "Random sort")]
         public bool RandomSort { get; set; } = false;
 
-        [Display(Name = "Period From")]
-        public int? From { get; set; }
-
-        [Display(Name = "Period To")]
-        public int? To { get; set; }
+        [Display(Name = "Debtor with more than one invoices only")]
+        [FromQuery(Name = "moreThanOne")]
+        public bool MoreThanOne { get; set; } = false;
 
         [FromQuery(Name = "periods")]
         public string Periods { get; set; } = "";

@@ -21,6 +21,9 @@ namespace Web.ViewModels {
         [Display(Name = "Customers")]
         public List<long> Customers { get; set; }
 
+        [Display(Name = "Tags")]
+        public virtual ICollection<long?> TagsId { get; set; }
+
         [Display(Name = "Summary Range")]
         public long? SummaryRangeId { get; set; }
 

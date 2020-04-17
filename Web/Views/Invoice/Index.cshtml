@@ -3,6 +3,7 @@
     ViewData["Title"] = "Invoices";
 }
 
+
 <div class="card">
     <div class="card-body">
         <div class="bootstrap-table">
@@ -23,72 +24,13 @@
                     <input type="hidden" asp-for="CompanyId" />
                     <input type="hidden" asp-for="Date" />
                     <input type="hidden" asp-for="NumberOfPeriods" />
-                    <input type="hidden" asp-for="From" />
-                    <input type="hidden" asp-for="To" />
-                    <input type="hidden" asp-for="RandomSort" />
                     <input type="hidden" asp-for="Periods" />
+                    <input type="hidden" name="RandomSort:boolean" id="RandomSort" data-val="@Model.RandomSort" data-value-type="boolean" value="@Model.RandomSort" />
+                    <input type="hidden" name="MoreThanOne:boolean" id="MoreThanOne" data-val="@Model.MoreThanOne" data-value-type="boolean" value="@Model.MoreThanOne" />
                 </form>
                 <button id="filterBtn" class="btn btn-outline-secondary">Filter</button>
             </div>
-
-            @*<div class="btn-group mr-1" role="group" aria-label="Payment active button group">
-                    <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
-                        <i class="fa fa-filter mr-1 "></i> Filter
-                    </button>
-                </div>*@
         </div>
-
-        @*<div id="filterCollapse" class="collapse mb-3">
-
-                <form id="filterForm" action="javascript:void(0);">
-                    <div class="form-row mb-3">
-                        <div class="col-6">
-                            <label asp-for="CompanyId"></label>
-                            <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control selectpicker" data-live-search="true">
-                                <option value="">Choose one of the following...</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="card text-white bg-info mb-3">
-                        <div class="card-header">Aging Report filter</div>
-                        <div class="card-body">
-                            <div class="form-row mb-3">
-                                <div class="col">
-                                    <label asp-for="Date"></label>
-                                    <div class="input-group">
-                                        <input type="date" asp-for="Date" class="form-control" />
-                                        <div class="input-group-append">
-                                            <span class="input-group-text"><i class="fa fa-calendar-alt"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <label asp-for="NumberOfPeriods"></label>
-                                    <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" />
-                                </div>
-                                <div class="col">
-                                    <label asp-for="From"></label>
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fa fa-digital-tachograph"></i></span>
-                                        </div>
-                                        <input asp-for="From" aria-label="From" class="form-control" />
-                                        <input asp-for="To" aria-label="To" class="form-control" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-group mb-3 form-check">
-                                <input type="checkbox" value="@Model.RandomSort" name="RandomSort:boolean" id="RandomSort" data-val="true" />
-                                <label asp-for="RandomSort" class="form-check-label"></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="toolbar mb-3">
-                        <button id="filterApply" type="submit" class="btn btn-outline-primary">Apply</button>
-                        <button id="filterClear" type="button" class="btn btn-link">Clear</button>
-                    </div>
-                </form>
-            </div>*@
 
         <table id="datatable" data-toggle="table" data-url="/api/invoice"
                data-query-params="queryParams"
@@ -121,7 +63,7 @@
             $filterBtn = $('#filterBtn').click(_ => {
                 var options = {
                     'url': '/invoice/filter',
-                    'data': $('#filterForm').serializeJSON({ parseNumbers: true })
+                    'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" })
                 };
 
                 $.ajax(options).done((data, status, jqXHR) => {
@@ -130,7 +72,7 @@
                             case 'modal.on.load':
                                 $(content).on('submit', evt => {
                                     evt.preventDefault();
-                                    $('#filterForm').loadJSON(content.serializeJSON());
+                                    $('#filterForm').loadJSON(content.serializeJSON({parseNumbers: true, checkboxUncheckedValue: "false"}));
                                     $table.bootstrapTable('refresh');
                                     window.modal.modal('hide');
                                 });
@@ -199,7 +141,7 @@
 
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
-                                    <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
+                        <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
         }
     </script>
 }
