@@ -65,6 +65,16 @@ namespace Web.Controllers.Mvc {
                 Count = x.Count
             }).ToList();
 
+            var comanies = await _crudBusinessManager.GetCompanies();
+            comanies = comanies.Where(x => !savedReportList.Any(y => y.CompanyId == x.Id)).ToList();
+
+            if(comanies.Count > 0)
+                savedReportList.AddRange(comanies.Select(x => new SavedReportListViewModel() {
+                    Name = x.Name,
+                    CompanyId = x.Id,
+                    Count = 0
+                }));
+
             return View(savedReportList);
         }
 
