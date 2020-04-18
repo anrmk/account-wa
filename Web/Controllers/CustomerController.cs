@@ -507,6 +507,7 @@ namespace Web.Controllers.Api {
                     model.Rows = cacheModel?.Rows;
 
                     var customerTypes = await _nsiManager.GetCustomerTypes();
+                    var customerTags = await _businessManager.GetCustomerTags();
 
                     for(var i = 0; i < model.Rows?.Count(); i++) {
                         var row = model.Rows[i];
@@ -545,6 +546,13 @@ namespace Web.Controllers.Api {
                                         if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
                                             property.SetValue(customer, dateVal);
                                         }
+                                    } else if(property.PropertyType == typeof(ICollection<long?>)) {
+                                        if(property.Name.Equals("TagsIds")) {
+                                            var tagsValues = row[j].Value.Split(',').Select(x => x.Trim()).ToList();
+                                            var tagsIds = customerTags.Where(x => tagsValues.Contains(x.Name)).Select(x => x?.Id).ToList();
+                                            if(tagsIds.Count() > 0)
+                                                property.SetValue(customer, tagsIds);
+                                        }
                                     } else {
                                         if(property.Name.Equals("TypeId")) {
                                             var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
@@ -570,10 +578,9 @@ namespace Web.Controllers.Api {
                     throw new Exception("No records have been created! Please, fill the required fields!");
                 }
 
-                var invoiceList = _mapper.Map<List<CustomerDto>>(customerList);
-                var result = await _businessManager.CreateOrUpdateCustomer(invoiceList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-                var returnvalue = _mapper.Map<List<CustomerViewModel>>(result);
-                return Ok(returnvalue);
+                var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
+                var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
+                return Ok(_mapper.Map<List<CustomerViewModel>>(result));
 
             } catch(Exception e) {
                 return BadRequest(e.Message ?? e.StackTrace);

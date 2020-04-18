@@ -403,14 +403,14 @@ namespace Core.Services.Business {
                 var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
                 recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
 
-                customers = customers.Where(x=> (true)
+                customers = customers.Where(x => (true)
                     && (string.IsNullOrEmpty(filter.Search)
                        || x.Name.ToLower().Contains(filter.Search.ToLower())
                        || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
                     && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(x => filter.TagsIds.Contains(x.TagId)).Count() > 0)
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
-                    && ((filter.Recheck == null || filter.Recheck.Count == 0)||  filter.Recheck.Contains(x.Recheck))
+                    && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
                    //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
@@ -489,85 +489,141 @@ namespace Core.Services.Business {
         }
 
         public async Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns) {
-            var updateCustomerList = new List<CustomerEntity>();
-            var createCustomerList = new List<CustomerEntity>();
+            var updateCustomerEntityList = new List<CustomerEntity>();
+            //var createCustomerList = new List<CustomerEntity>();
 
-            var updateActivityList = new List<CustomerActivityEntity>();
-            var createActivityList = new List<CustomerActivityEntity>();
+            var updateActivitEntityyList = new List<CustomerActivityEntity>();
+            var createActivityEntityList = new List<CustomerActivityEntity>();
 
+            var removeTagLinkList = new List<CustomerTagLinkEntity>();
+            var createTagLinkList = new List<CustomerTagLinkEntity>();
+
+            var customerTags = await _customerTagManager.All();
+
+            #region UPDATE CUSTOMERS
             foreach(var dto in list) {
-                var entity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
-                if(entity != null) {
+                var customerEntity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
+                if(customerEntity != null) {
                     //UPDATE CUSTOMER
                     foreach(var column in columns) {
-                        var entityProp = entity.GetType().GetProperty(column);
+                        var entityProp = customerEntity.GetType().GetProperty(column);
                         var dtoProp = dto.GetType().GetProperty(column);
 
                         if(entityProp != null && dtoProp != null && entityProp.PropertyType?.BaseType != typeof(EntityBase<long>)) {
                             var value = dtoProp.GetValue(dto);
-                            entityProp.SetValue(entity, value);
+                            entityProp.SetValue(customerEntity, value);
                         }
                     }
 
                     //UPDATE CUSTOMER ADDRESS
                     foreach(var column in columns) {
-                        var entityProp = entity.Address?.GetType().GetProperty(column);
+                        var entityProp = customerEntity.Address?.GetType().GetProperty(column);
                         var dtoProp = dto.Address?.GetType().GetProperty(column);
                         if(entityProp != null && dtoProp != null && entityProp.PropertyType?.BaseType != typeof(EntityBase<long>)) {
                             var value = dtoProp.GetValue(dto.Address);
-                            entityProp.SetValue(entity.Address, value);
+                            entityProp.SetValue(customerEntity.Address, value);
                         }
                     }
 
-                    updateCustomerList.Add(entity);
+                    updateCustomerEntityList.Add(customerEntity);
 
                     //UPDATE ACTIVITY
                     if(columns.Contains("CreatedDate")) {
-                        var activityList = await _customerActivityManager.FindByCustomerId(entity.Id);
-                        if(activityList != null && activityList.Count > 0) {
-                            var activity = activityList.FirstOrDefault();
-                            activity.CreatedDate = entity.CreatedDate;
-                            updateActivityList.Add(activity);
+                        var activityEntityList = await _customerActivityManager.FindByCustomerId(customerEntity.Id);
+                        if(activityEntityList != null && activityEntityList.Count > 0) {
+                            var activityEntity = activityEntityList.FirstOrDefault();
+                                activityEntity.CreatedDate = dto.CreatedDate;
+                            updateActivitEntityyList.Add(activityEntity);
                         } else {
-                            createActivityList.Add(new CustomerActivityEntity() {
-                                Customer = entity,
-                                CustomerId = entity.Id,
+                            createActivityEntityList.Add(new CustomerActivityEntity() {
+                                CustomerId = customerEntity.Id,
                                 IsActive = true,
-                                CreatedDate = entity.CreatedDate,
+                                CreatedDate = dto.CreatedDate,
                             });
                         }
+                    }
+
+                    //CREATE/UPDATE TAGS
+                    if(columns.Contains("TagsIds")) {
+                        var tagLinkEntityList = await _customerTagLinkManager.FindByCustomerId(customerEntity.Id);
+                        
+                        var createTagLinkIds = dto.TagsIds.Where(x => !tagLinkEntityList.Any(y => y.TagId == x.Value)).ToList();
+                        var createTagLinksEntity = customerTags.Where(x => createTagLinkIds.Contains(x.Id))
+                            .Select(x => new CustomerTagLinkEntity() {
+                                CustomerId = customerEntity.Id,
+                                TagId = x.Id,
+                            }).ToList();
+
+                        if(createTagLinksEntity.Count > 0)
+                            createTagLinkList.AddRange(createTagLinksEntity);
+
+                        var removeTagLinkEntity = tagLinkEntityList.Where(x => !dto.TagsIds.Any(y => y.Value == x.TagId)).ToList();
+                        if(removeTagLinkEntity.Count > 0)
+                            removeTagLinkList.AddRange(removeTagLinkEntity);
+                    }
+                } else {
+                    //Возможно здесь необходимо будет описать функции создания новых CUSTOMERs
+                    //выявим в процессе тестирования
+                }
+            }
+
+            if(updateCustomerEntityList.Count() != 0) {
+                await _customerManager.Update(updateCustomerEntityList.AsEnumerable());
+            }
+
+            if(updateActivitEntityyList.Count() != 0) {
+                await _customerActivityManager.Update(updateActivitEntityyList.AsEnumerable());
+            }
+
+            if(createActivityEntityList.Count() != 0) {
+                await _customerActivityManager.Create(createActivityEntityList.AsEnumerable());
+            }
+
+            if(createTagLinkList.Count() != 0) {
+                await _customerTagLinkManager.Create(createTagLinkList.AsEnumerable());
+            }
+            if(removeTagLinkList.Count() != 0) {
+                await _customerTagLinkManager.Delete(removeTagLinkList.AsEnumerable());
+            }
+            #endregion
+
+
+            #region CREATE CUSTOMERS
+            createActivityEntityList.Clear(); // Очистить список активности
+            createTagLinkList.Clear(); // Очистить список тэгов
+
+            var exceptList = list.Where(x => !updateCustomerEntityList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
+            foreach(var dto in exceptList) {
+                var customerEntity = await _customerManager.Create(_mapper.Map<CustomerEntity>(dto));
+                if(customerEntity != null) {
+
+                    //CREATE ACTIVITY
+                    if(columns.Contains("CreatedDate")) {
+                        createActivityEntityList.Add(new CustomerActivityEntity() {
+                            CustomerId = customerEntity.Id,
+                            IsActive = true,
+                            CreatedDate = dto.CreatedDate,
+                        });
+                    }
+
+                    //CREATE TAGS
+                    if(columns.Contains("TagsIds")) {
+                        createTagLinkList.AddRange(customerTags.Where(x => dto.TagsIds.Contains(x.Id)).Select(x => new CustomerTagLinkEntity() {
+                            CustomerId = customerEntity.Id,
+                            TagId = x.Id,
+                        }));
                     }
                 }
             }
 
-            if(updateCustomerList.Count() != 0) {
-                await _customerManager.Update(updateCustomerList.AsEnumerable());
+            if(createActivityEntityList.Count() != 0) {
+                await _customerActivityManager.Create(createActivityEntityList.AsEnumerable());
             }
 
-            if(updateActivityList.Count() != 0) {
-                await _customerActivityManager.Update(updateActivityList.AsEnumerable());
+            if(createTagLinkList.Count() != 0) {
+                await _customerTagLinkManager.Create(createTagLinkList.AsEnumerable());
             }
-
-            if(createActivityList.Count() != 0) {
-                await _customerActivityManager.Create(createActivityList.AsEnumerable());
-            }
-
-            //CREATE CUSTOMERS
-            //Здесь неправильно добавляется дата для Activity
-            var exceptList = list.Where(x => !updateCustomerList.Any(y => y.No == x.No && y.CompanyId == x.CompanyId));
-            if(exceptList.Count() != 0) {
-                var items = await _customerManager.Create(_mapper.Map<List<CustomerEntity>>(exceptList).AsEnumerable());
-
-                if(columns.Contains("CreatedDate")) {
-                    var activities = items.Select(x => new CustomerActivityEntity() {
-                        Customer = x,
-                        CustomerId = x.Id,
-                        IsActive = true,
-                        CreatedDate = x.CreatedDate
-                    });
-                    await _customerActivityManager.Create(activities);
-                }
-            }
+            #endregion
 
             return list;
         }
@@ -872,7 +928,7 @@ namespace Core.Services.Business {
                     invoices = newList;
                 }
 
-                invoices =  invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+                invoices = invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());

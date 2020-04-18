@@ -75,15 +75,11 @@ namespace Core.Context {
         }
 
         public async Task<int> SaveChangesAsync() {
-            var modifiedEntries = ChangeTracker.Entries()
-              .Where(x => x.Entity is IAuditableEntity
-                  && (x.State == EntityState.Added || x.State == EntityState.Modified));
-
+            var modifiedEntries = ChangeTracker.Entries().Where(x => x.Entity is IAuditableEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
 
             foreach(var entry in modifiedEntries) {
                 IAuditableEntity entity = entry.Entity as IAuditableEntity;
                 if(entity != null) {
-
                     string identityName = _principal?.Identity.Name ?? "system"; // Thread.CurrentPrincipal.Identity.Name;
                     DateTime now = DateTime.Now;
 
@@ -92,7 +88,7 @@ namespace Core.Context {
                         entity.CreatedDate = now;
                     } else {
                         Entry(entity).Property(x => x.CreatedBy).IsModified = false;
-                        //Entry(entity).Property(x => x.CreatedDate).IsModified = false;
+                        Entry(entity).Property(x => x.CreatedDate).IsModified = false;
                     }
 
                     entity.UpdatedBy = identityName;
