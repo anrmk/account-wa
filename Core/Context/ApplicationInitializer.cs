@@ -24,14 +24,23 @@ namespace Core.Context {
             RoleManager();
             ApplicationUser();
 
-
             string rootPath = System.IO.Directory.GetCurrentDirectory();
+
+            string company = "greco";
+            string folder = $"{rootPath}\\Db\\{company}";
+
+
             // CustomerInitializer($"{rootPath}\\Db\\arbear_customers_feb_2020.json");
 
-            //InvoceInitializerDraft($"{rootPath}\\Db\\duamex_invoices_feb_2020.json");
+            //InvoceInitializerDraft($"{folder}\\invoices_jan_2020.json");
+           // InvoceInitializerDraft($"{folder}\\invoices_feb_2020.json");
+            //InvoceInitializerDraft($"{folder}\\invoices_march_2020.json");
 
-            //PaymentInitializerDraft($"{rootPath}\\Db\\duamex_invoices_jan_2020.json",
-            //    $"{rootPath}\\Db\\duamex_invoices_feb_2020.json", new DateTime(2020, 2, 1), new DateTime(2020, 2, 29));
+            //PaymentInitializerDraft($"{folder}\\invoices_jan_2020.json",
+            //    $"{folder}\\invoices_feb_2020.json", new DateTime(2020, 2, 1), new DateTime(2020, 2, 29));
+
+            //PaymentInitializerDraft($"{folder}\\invoices_feb_2020.json",
+            //    $"{folder}\\invoices_march_2020.json", new DateTime(2020, 3, 1), new DateTime(2020, 3, 31));
 
         }
 
@@ -141,7 +150,7 @@ namespace Core.Context {
             //var noInSecondInvoiceList = invoiceListFrom.Where(x => !invoiceListTo.Any(p => p.CustomerAccountNumber == x.CustomerAccountNumber && p.Subtotal == x.Subtotal)).ToList();
 
             //diffInvoiceList.AddRange(noInSecondInvoiceList);
-
+            var listPaymentEntity = new List<PaymentEntity>();
             foreach(var i in diffInvoiceList) {
                 var customer = _context.Customers.Where(x => x.No.Equals(i.CustomerAccountNumber)).FirstOrDefault();
                 if(customer != null) {
@@ -151,7 +160,7 @@ namespace Core.Context {
                         var newDate = random.NextDate(startDate, endDate);
 
                         var payment = new PaymentEntity() {
-                            No = "Inv_" + invoice.No,
+                            No = "I" + invoice.No,
                             InvoiceId = invoice.Id,
                             IsDraft = true,
                             Amount = invoice.Subtotal,
@@ -160,7 +169,18 @@ namespace Core.Context {
                             UpdatedDate = DateTime.Now,
                         };
 
+                        //listPaymentEntity.Add(payment);
+                        //if(listPaymentEntity.Count == 100) {
+                        //    try {
                         _context.Payments.Add(payment);
+                        //_context.Payments.AddRange(listPaymentEntity);
+                        //_context.SaveChanges();
+                        //listPaymentEntity.Clear();
+                        //}catch (Exception ex) {
+                        //    Console.WriteLine(ex.ToString());
+                        //}
+                        //  }
+
                     } else {
                         Console.WriteLine($"PAYMENT INVOICE NOT FOUND: CustomerId {i.CustomerId}, Payment {i.Subtotal}");
                     }

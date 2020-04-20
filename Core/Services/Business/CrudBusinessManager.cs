@@ -941,7 +941,11 @@ namespace Core.Services.Business {
                 #region Filter
                 Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                       (true)
-                   && (string.IsNullOrEmpty(filter.Search) || (x.No.ToLower().Contains(filter.Search.ToLower()) || x.Customer.Name.ToLower().Contains(filter.Search.ToLower())))
+                   && (string.IsNullOrEmpty(filter.Search) 
+                        || (x.No.ToLower().Contains(filter.Search.ToLower()) 
+                        || x.Customer.Name.ToLower().Contains(filter.Search.ToLower()))
+                        || x.Subtotal.ToString().Equals(filter.Search.ToLower())
+                        )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
 
                 #region MUST BE UNIVERSAL LINQ REQUEST
