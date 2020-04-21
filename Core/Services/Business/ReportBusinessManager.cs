@@ -85,15 +85,15 @@ namespace Core.Services.Business {
                 Name = "Total"
             });
 
+            _col.Add(new AgingSummaryPeriod() {
+                Name = "Latest"
+            });
             #endregion
 
             var report = new Dictionary<long, AgingSummaryData>();
 
             foreach(var invoice in invoices) {
                 var recordKey = invoice.CustomerId ?? 0;
-                if(invoice.No == "0819_606483") {
-                    Console.WriteLine("0819_606483");
-                }
 
                 var invoiceAmount = invoice.Subtotal * (1 + invoice.TaxRate / 100); //get total amount
                 var diffPay = invoiceAmount - (invoice.Payments?.Sum(x => x.Amount) ?? 0);
@@ -140,18 +140,32 @@ namespace Core.Services.Business {
             #region BALANCE
             var balance = new Dictionary<string, AgingSummaryBalance>();
             foreach(var c in _col) {
-                if(!c.Name.Equals("Total")) {
-                    balance.Add(c.Name, new AgingSummaryBalance {
-                        Sum = report.Values.Sum(x => x.Data[c.Name]),
-                        Count = report.Values.Count(x => x.Data[c.Name] != 0)
-                    });
-                } else {
+                if(c.Name.Equals("Total")) {
                     balance.Add("Total", new AgingSummaryBalance {
-                        Sum = report.Values.Sum(x => x.Data["Total"]),
-                        Count = balance.Values.Sum(x => x.Count)
+                        Count = balance.Values.Sum(x => x.Count),
+                        Sum = report.Values.Sum(x => x.Data["Total"])
+                    });
+                } else if(c.Name.Equals("Latest")) {
+                    
+                } else {
+                    balance.Add(c.Name, new AgingSummaryBalance {
+                        Count = report.Values.Count(x => x.Data[c.Name] != 0),
+                        Sum = report.Values.Sum(x => x.Data[c.Name])
                     });
                 }
+
+                //if(c.Name.Equals("Latest")) {
+                //    balance.Add("Latest", new AgingSummaryBalance {
+                //        Sum = report.Values.Sum(x => x.Data["Total"] - x.Data["-31-0"]),
+                //        Count = balance.Values.Sum(x => x.Count) - report.Values.Count(x => x.Data["-31-0"] != 0)
+                //    });
+                //}
             }
+
+            balance.Add("Latest", new AgingSummaryBalance {
+                Count = balance["Total"].Count - balance["-31-0"].Count,
+                Sum = balance["Total"].Sum - balance["-31-0"].Sum
+            });
             #endregion
 
             #region Double Invoice 

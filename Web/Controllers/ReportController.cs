@@ -178,11 +178,6 @@ namespace Web.Controllers.Mvc {
 
                     var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods, settings.IncludeAllCustomers);
 
-                    //var invoices = await _reportManager.GetAgingInvoices(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods);
-                    //if(invoices == null || invoices.Count == 0) {
-                    //    return NotFound();
-                    //}
-
                     var mem = new MemoryStream();
                     var writer = new StreamWriter(mem);
                     var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
@@ -230,10 +225,18 @@ namespace Web.Controllers.Mvc {
                     writer.Flush();
                     mem.Position = 0;
 
-                    var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                    var fileName = settings.Title;
+                    var match = Regex.Match(fileName, @"(?:\$)?\{.*?\}", RegexOptions.IgnoreCase);
+
+                    if(match.Success) {
+                        string template = match.Value.Trim(new char[] { '{', '}', '$' });
+                        var date = model.Date.ToString(template, DateTimeFormatInfo.InvariantInfo);
+
+                        fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
+                    }
 
                     FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
-                    fileStreamResult.FileDownloadName = fileDate;
+                    fileStreamResult.FileDownloadName = fileName;
 
                     return fileStreamResult;
                 }
@@ -429,9 +432,19 @@ namespace Web.Controllers.Api {
                             if(settings != null) {
                                 var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
                                 if(file != null) {
-                                    var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                                    var fileName = settings.Title;
+                                    var match = Regex.Match(fileName, @"(?:\$)?\{.*?\}", RegexOptions.IgnoreCase);
+
+                                    if(match.Success) {
+                                        string template = match.Value.Trim(new char[] { '{', '}', '$' });
+                                        var date = model.Date.ToString(template, DateTimeFormatInfo.InvariantInfo);
+
+                                        fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
+                                    }
+
+                                  //  var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
                                     files.Add(new SavedReportFileDto() {
-                                        Name = fileDate,
+                                        Name = fileName,
                                         File = file
                                     });
                                 }

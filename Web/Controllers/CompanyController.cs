@@ -257,6 +257,9 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
+            var company = await _businessManager.GetCompany(dto.CompanyId ?? 0);
+            ViewBag.CompanyName = company.Name;
+
             return View(_mapper.Map<CompanyExportSettingsViewModel>(dto));
         }
 
@@ -279,6 +282,9 @@ namespace Web.Controllers.Mvc {
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
+
+            var company = await _businessManager.GetCompany(model.CompanyId);
+            ViewBag.CompanyName = company.Name;
 
             return View(model);
         }

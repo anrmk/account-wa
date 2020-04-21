@@ -144,7 +144,7 @@
                        data-side-pagination="true">
                     <thead>
                         <tr>
-                            <th data-field="no" data-sortable="true">No</th>
+                            <th data-field="no" data-sortable="true" data-formatter="customerFormatter">No</th>
                             <th data-field="name" data-sortable="true">Customer</th>
                             <th data-field="phone">Phone</th>
                             <th data-field="address">Address</th>
@@ -177,3 +177,11 @@
     </div>
 </div>
 
+
+@section Scripts {
+    <script type="text/javascript">
+        function customerFormatter(value, row) {
+            return `<a href='/customer/edit/${row.id}'>${value}</a>`
+        }
+    </script>
+}

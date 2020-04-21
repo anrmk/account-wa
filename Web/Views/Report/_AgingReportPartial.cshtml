@@ -89,13 +89,15 @@
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
                         @foreach(var column in Model.Columns) {
-                            <th scope="col">
-                            @if(column.Name == "-31-0") {
-                                <span>Current</span>
-                            } else {
-                                @column.Name
+                            if(!column.Name.Equals("Latest")) {
+                                <th scope="col">
+                                @if(column.Name == "-31-0") {
+                                    <span>Current</span>
+                                } else {
+                                    @column.Name
+                                }
+                                </th>
                             }
-                            </th>
                         }
                     </tr>
                 </thead>

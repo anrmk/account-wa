@@ -26,7 +26,7 @@ namespace Core.Context {
 
             string rootPath = System.IO.Directory.GetCurrentDirectory();
 
-            string company = "greco";
+            string company = "western";
             string folder = $"{rootPath}\\Db\\{company}";
 
 
@@ -65,11 +65,11 @@ namespace Core.Context {
         private void ApplicationUser() {
             var userManager = _serviceProvider.GetRequiredService<UserManager<ApplicationUserEntity>>();
 
-            if(userManager.FindByEmailAsync("test@test.kz").Result == null) {
+            if(userManager.FindByEmailAsync("test@test.com").Result == null) {
                 var user = new ApplicationUserEntity() {
-                    UserName = "test@test.kz",
+                    UserName = "test@test.com",
                     NormalizedUserName = "Тестовый пользователь",
-                    Email = "test@test.kz",
+                    Email = "test@test.com",
                     EmailConfirmed = true
                 };
 
