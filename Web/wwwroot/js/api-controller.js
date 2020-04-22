@@ -27,6 +27,27 @@ $.fn.getBulkInvoices = function (id, from, to) {
     });
 }
 
+$.fn.uploadFile = function (callback) {
+    var formData = new FormData();
+    $.each(this.prop('files'), function (key, value) {
+        formData.append(key, value);
+    });
+
+    var options = {
+        'url': this.attr('action'),
+        'type': this.attr('method'),
+        'data': formData,
+        'cache': false,
+        'contentType': false,
+        'processData': false
+    };
+
+     $.ajax(options).done((data, status, jqXHR) => {
+        callback(this, data, status, jqXHR);
+    }).fail((jqXHR, status) => {
+        callback(this, null, status, jqXHR);
+    });
+}
 
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {

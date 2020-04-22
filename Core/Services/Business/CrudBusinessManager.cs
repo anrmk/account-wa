@@ -49,6 +49,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
         Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns);
+        Task<List<CustomerImportCreditsDto>> CreateOrUpdateCustomerCredits(List<CustomerImportCreditsDto> list, List<string> columns);
         Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto);
         Task<bool> DeleteCustomer(long id);
 
@@ -532,7 +533,7 @@ namespace Core.Services.Business {
                         var activityEntityList = await _customerActivityManager.FindByCustomerId(customerEntity.Id);
                         if(activityEntityList != null && activityEntityList.Count > 0) {
                             var activityEntity = activityEntityList.FirstOrDefault();
-                                activityEntity.CreatedDate = dto.CreatedDate;
+                            activityEntity.CreatedDate = dto.CreatedDate;
                             updateActivitEntityyList.Add(activityEntity);
                         } else {
                             createActivityEntityList.Add(new CustomerActivityEntity() {
@@ -546,7 +547,7 @@ namespace Core.Services.Business {
                     //CREATE/UPDATE TAGS
                     if(columns.Contains("TagsIds")) {
                         var tagLinkEntityList = await _customerTagLinkManager.FindByCustomerId(customerEntity.Id);
-                        
+
                         var createTagLinkIds = dto.TagsIds.Where(x => !tagLinkEntityList.Any(y => y.TagId == x.Value)).ToList();
                         var createTagLinksEntity = customerTags.Where(x => createTagLinkIds.Contains(x.Id))
                             .Select(x => new CustomerTagLinkEntity() {
@@ -627,6 +628,98 @@ namespace Core.Services.Business {
 
             return list;
         }
+
+
+        public async Task<List<CustomerImportCreditsDto>> CreateOrUpdateCustomerCredits(List<CustomerImportCreditsDto> list, List<string> columns) {
+            var updateCreditLimitEntityList = new List<CustomerCreditLimitEntity>();
+            var createCreditLimitEntityList = new List<CustomerCreditLimitEntity>();
+
+            var updateCreditUtilizedEntityList = new List<CustomerCreditUtilizedEntity>();
+            var createCreditUtilizedEntityList = new List<CustomerCreditUtilizedEntity>();
+
+            foreach(var dto in list) {
+                var customerEntity = await _customerManager.FindInclude(dto.No, dto.CompanyId ?? 0);
+                if(customerEntity != null) {
+                    //CREATE CREDIT LIMITS
+                    if(columns.Contains("CreditLimit") && dto.CreditLimit.HasValue) {
+                        var creditLimitEntityList = await _customerCreditLimitManager.FindAllByCustomerId(customerEntity.Id);
+                        var creditLimitEntity = creditLimitEntityList.Where(x => x.CreatedDate == dto.CreatedDate).FirstOrDefault(); //найти схожую запись
+
+                        if(creditLimitEntity != null) { //если имеется - обновить
+                            creditLimitEntity.Value = dto.CreditLimit;
+                            updateCreditLimitEntityList.Add(creditLimitEntity);
+                        } else {
+                            var doublicate = creditLimitEntityList.Where(x => x.Value == dto.CreditLimit && x.CreatedDate < dto.CreatedDate)
+                                .FirstOrDefault(); //найти предыдущю запись
+                            if(doublicate == null) {
+                                createCreditLimitEntityList.Add(new CustomerCreditLimitEntity() {
+                                    CustomerId = customerEntity.Id,
+                                    Value = dto.CreditLimit,
+                                    CreatedDate = dto.CreatedDate,
+                                });
+                            }
+                        }
+                    }
+
+                    //CREATE CREDIT LIMITS
+                    if(columns.Contains("CreditUtilized") && dto.CreditUtilized.HasValue) {
+                        var creditUtilizedEntityList = await _customerCreditUtilizedManager.FindAllByCustomerId(customerEntity.Id);
+                        var creditUtilizedEntity = creditUtilizedEntityList.Where(x => x.CreatedDate == dto.CreatedDate).FirstOrDefault(); //найти схожую запись
+
+                        if(creditUtilizedEntity != null) {
+                            creditUtilizedEntity.Value = dto.CreditUtilized;
+                            updateCreditUtilizedEntityList.Add(creditUtilizedEntity);
+                        } else {
+                            var doublicate = creditUtilizedEntityList.Where(x => x.Value == dto.CreditUtilized && x.CreatedDate < dto.CreatedDate)
+                               .FirstOrDefault(); //найти предыдущю запись
+                            if(doublicate == null) {
+                                createCreditUtilizedEntityList.Add(new CustomerCreditUtilizedEntity() {
+                                    CustomerId = customerEntity.Id,
+                                    Value = dto.CreditUtilized,
+                                    CreatedDate = dto.CreatedDate,
+                                });
+                            }
+
+                        }
+                    }
+
+
+
+                    //UPDATE CUSTOMER
+                    //foreach(var column in columns) {
+                    //    var entityProp = customerEntity.GetType().GetProperty(column);
+                    //    var dtoProp = dto.GetType().GetProperty(column);
+
+                    //    if(entityProp != null && dtoProp != null && entityProp.PropertyType?.BaseType != typeof(EntityBase<long>)) {
+                    //        var value = dtoProp.GetValue(dto);
+                    //        entityProp.SetValue(customerEntity, value);
+                    //    }
+                    //}
+
+
+                } else {
+                    //Возможно здесь необходимо будет описать функции создания новых CUSTOMERs
+                    //выявим в процессе тестирования
+                }
+            }
+
+            if(updateCreditLimitEntityList.Count() != 0) {
+                await _customerCreditLimitManager.Update(updateCreditLimitEntityList.AsEnumerable());
+            }
+            if(createCreditLimitEntityList.Count() != 0) {
+                await _customerCreditLimitManager.Create(createCreditLimitEntityList.AsEnumerable());
+            }
+
+            if(updateCreditUtilizedEntityList.Count() != 0) {
+                await _customerCreditUtilizedManager.Update(updateCreditUtilizedEntityList.AsEnumerable());
+            }
+            if(createCreditUtilizedEntityList.Count() != 0) {
+                await _customerCreditUtilizedManager.Create(createCreditUtilizedEntityList.AsEnumerable());
+            }
+
+            return list;
+        }
+
 
         public async Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto) {
             if(id != dto.Id) {
@@ -941,8 +1034,8 @@ namespace Core.Services.Business {
                 #region Filter
                 Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                       (true)
-                   && (string.IsNullOrEmpty(filter.Search) 
-                        || (x.No.ToLower().Contains(filter.Search.ToLower()) 
+                   && (string.IsNullOrEmpty(filter.Search)
+                        || (x.No.ToLower().Contains(filter.Search.ToLower())
                         || x.Customer.Name.ToLower().Contains(filter.Search.ToLower()))
                         || x.Subtotal.ToString().Equals(filter.Search.ToLower())
                         )

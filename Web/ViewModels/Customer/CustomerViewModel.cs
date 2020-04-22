@@ -156,4 +156,33 @@ namespace Web.ViewModels {
         public string Country { get; set; }
         #endregion
     }
+
+    public class CustomerImportCreditsViewModel {
+        [Required]
+        [Display(Name = "Account Number")]
+        [MaxLength(16)]
+        [SpecialName()]
+        public string No { get; set; }
+
+        //[Required]
+        //[Display(Name = "Business Name")]
+        //[MaxLength(256)]
+        //[SpecialName()]
+        //public string Name { get; set; }
+
+        [Display(Name = "Credit Limits")]
+        [SpecialName()]
+        public decimal? CreditLimit { get; set; }
+
+        [Display(Name = "Height Credit Utilized")]
+        [SpecialName()]
+        public decimal? CreditUtilized { get; set; }
+
+        [Required]
+        public long? CompanyId { get; set; }
+
+        [Display(Name = "Created Date")]
+        [SpecialName()]
+        public DateTime CreatedDate { get; set; }
+    }
 }

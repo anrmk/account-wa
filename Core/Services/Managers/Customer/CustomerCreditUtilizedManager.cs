@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace Core.Services.Managers {
     public interface ICustomerCreditUtilizedManager: IEntityManager<CustomerCreditUtilizedEntity> {
         Task<List<CustomerCreditUtilizedEntity>> FindAllByCustomerId(long customerId);
         Task<CustomerCreditUtilizedEntity> FindInclude(long id);
+        Task<CustomerCreditUtilizedEntity> FindByCustomerIdAndDate(long customerId, DateTime date);
     }
 
     public class CustomerCreditUtilizedManager: AsyncEntityManager<CustomerCreditUtilizedEntity>, ICustomerCreditUtilizedManager {
@@ -19,6 +21,10 @@ namespace Core.Services.Managers {
 
         public async Task<List<CustomerCreditUtilizedEntity>> FindAllByCustomerId(long customerId) {
             return await DbSet.Where(x => x.CustomerId == customerId).ToListAsync();
+        }
+
+        public async Task<CustomerCreditUtilizedEntity> FindByCustomerIdAndDate(long customerId, DateTime date) {
+            return await DbSet.Where(x => x.CustomerId == customerId && x.CreatedDate == date).FirstOrDefaultAsync();
         }
 
         public async Task<CustomerCreditUtilizedEntity> FindInclude(long id) {

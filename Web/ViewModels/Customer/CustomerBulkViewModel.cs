@@ -1,10 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
+    //Customer Credit Limits & Credit Utilized Import Fomr
+    public class CustomerCreditsBulkViewModel: CustomerBulkViewModel {
+        [Required]
+        public DateTime CreatedDate { get; set; }
+    }
+
+    //Customer Import Form
     public class CustomerBulkViewModel {
         [Required]
         public long? CompanyId { get; set; }
+
         public List<CustomerColViewModel> Columns { get; set; }
 
         //import header

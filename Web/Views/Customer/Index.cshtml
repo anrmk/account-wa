@@ -11,7 +11,21 @@
                     <a asp-controller="Customer" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                 </div>
                 <div class="btn-group mr-1" role="group">
-                    <input id="file-uploader" type="file">
+                    @*<input type="file">*@
+
+                    <button id="uploadGroupBtn" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Uploads
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="uploadGroupBtn">
+                        <label class="dropdown-item">
+                            <input type="file" style="display: none;" action="/customer/upload" method="POST">
+                            Upload Customers
+                        </label>
+                        <label class="dropdown-item">
+                            <input type="file" style="display: none;" action="/customer/uploadcredits" method="POST">
+                            Upload Credits
+                        </label>
+                    </div>
                 </div>
             </div>
             <table id="datatable" data-toggle="table" data-url="/api/customer"
@@ -49,35 +63,34 @@
             return `<a href='/customer/edit/${row.id}' class='btn btn-outline-secondary mr-1' >Edit</a>`;
         }
 
-        $(document).ready(() => {
-            var $table = $('#datatable');
+        function showImportDialog(html, status) {
+            $(html).dialog('Import CSV', (action, evt, content) => {
+                if (action === 'modal.on.load') {
+                    $(content).on('submit', e => {
+                        e.preventDefault();
 
-            $("#file-uploader").fileinput({
-                showRemove: false,
-                showPreview: false,
-                uploadUrl: '/customer/upload', // server upload action
-                uploadAsync: false,
-                mergeAjaxCallbacks: true,
-                ajaxSettings: {
-                    success: function (data, textStatus, jqXHR) {
-                        $(data.html).dialog('Import customers', (action, evt, content) => {
-                            if (action === 'modal.on.load') {
-                                $(content).on('submit', e => {
-                                    e.preventDefault();
-
-                                    $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                                        if (status === 'success') {
-                                            $table.bootstrapTable('refresh');
-                                            window.modal.modal('hide');
-                                        } else if (status === 'error') {
-                                            alert(jqXHR.responseText);
-                                        }
-                                    });
-                                });
+                        $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                            if (status === 'success') {
+                                $('#datatable').bootstrapTable('refresh');
+                                window.modal.modal('hide');
+                            } else if (status === 'error') {
+                                alert(jqXHR.responseText);
                             }
                         });
-                    }
+                    });
                 }
+            });
+        }
+
+        $(document).ready(() => {
+            $('input[type=file]').on('change', e => {
+                $(e.target).uploadFile((element, data, status, jqXHR) => {
+                    if (status === 'success') {
+                        showImportDialog(data.html);
+                    } else if (status === 'error') {
+                        alert(jqXHR.responseText);
+                    }
+                });
             });
         });
     </script>
