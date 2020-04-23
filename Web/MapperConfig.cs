@@ -56,6 +56,8 @@ namespace Web {
                 .ForMember(d => d.Activities, o => o.Ignore())
                 .ForMember(d => d.Tags, o => o.Ignore())
                 .ReverseMap()
+                .ForMember(d => d.CreditLimit, o => o.MapFrom(s => s.CreditLimit.HasValue ? s.CreditLimit.Value.ToCurrency() : ""))
+                .ForMember(d => d.CreditUtilized, o => o.MapFrom(s => s.CreditUtilized.HasValue ? s.CreditUtilized.Value.ToCurrency() : ""))
                 .ForMember(d => d.Tags, o => o.MapFrom(s => s.Tags))
                 //.ForMember(d => d.Tags, o => o.MapFrom(s => string.Join(',', s.Tags)))
                 .ForMember(d => d.Company, o => o.MapFrom(s => (s.Company != null) ? s.Company.Name : ""))
@@ -99,8 +101,9 @@ namespace Web {
                 .ReverseMap()
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
-                .ForMember(d => d.Amount, o => o.MapFrom(s => (s.Subtotal * (1 + s.TaxRate / 100)).ToString("0.##")))
-                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount()))
+                .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.ToCurrency()))
+                .ForMember(d => d.Balance, o => o.MapFrom(s => s.Balance.ToCurrency()))
+                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.TotalAmount().ToCurrency()))
                 .ForMember(d => d.PaymentDate, o => o.MapFrom(s => s.Payments.LastPaymentDate()));
 
             CreateMap<InvoiceFilterViewModel, InvoiceFilterDto>()

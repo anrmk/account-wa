@@ -37,14 +37,14 @@
                 <table class="table table-sm">
                     <tbody>
                         @foreach(var column in Model?.DoubleDebt) {
-                            <tr>
-                                <td>
-                                    @column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)
-                                </td>
-                                <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=@column.Key, moreThanOne=true})">@column.Value</a>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td>
+                                @column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)
+                            </td>
+                            <td>
+                                <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=@column.Key, moreThanOne=true})">@column.Value</a>
+                            </td>
+                        </tr>
                         }
                     </tbody>
                 </table>
@@ -61,19 +61,19 @@
                     </thead>
                     <tbody>
                         @foreach(var column in Model.Columns) {
-                            <tr>
-                                <td scope="col">
-                                    @if(column.Name == "-31-0") {
-                                        <span>Current</span>
+                        <tr>
+                            <td scope="col">
+                                @if(column.Name == "-31-0") {
+                                <span>Current</span>
                                     } else {
-                                        @column.Name
+                                @column.Name
                                     }
-                                </td>
-                                <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
-                                </td>
-                                <td>@Model.Balance[column.Name].Sum</td>
-                            </tr>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
+                            </td>
+                            <td>@Core.Extension.NumberExtensionMethods.ToCurrency(Model.Balance[column.Name].Sum)</td>
+                        </tr>
                         }
                     </tbody>
                 </table>
@@ -90,13 +90,13 @@
                         <th scope="col">Business Name</th>
                         @foreach(var column in Model.Columns) {
                             if(!column.Name.Equals("Latest")) {
-                                <th scope="col">
-                                @if(column.Name == "-31-0") {
-                                    <span>Current</span>
+                        <th scope="col">
+                            @if(column.Name == "-31-0") {
+                            <span>Current</span>
                                 } else {
-                                    @column.Name
+                            @column.Name
                                 }
-                                </th>
+                        </th>
                             }
                         }
                     </tr>
@@ -104,16 +104,16 @@
                 <tbody>
                     @for(var i=0; i< Model.Data.Count(); i++) {
                         var summary = Model.Data[i];
-                        <tr>
-                            <td>@(i+1)</td>
-                            <td scope="row">@summary.Customer.No</td>
-                            <td scope="row">@summary.Customer.Name</td>
-                            @foreach(var column in Model.Columns) {
-                                @if(summary.Data.ContainsKey(column.Name)) {
-                                    <td>@(summary.Data[column.Name] == 0 ? "" : summary.Data[column.Name].ToString())</td>
-                                }
-                            }
-                        </tr>
+                    <tr>
+                        <td>@(i+1)</td>
+                        <td scope="row">@summary.Customer.No</td>
+                        <td scope="row">@summary.Customer.Name</td>
+                        @foreach(var column in Model.Columns) {
+                          @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Latest")) {
+                            <td>@(summary.Data[column.Name] == 0 ? "" : Core.Extension.NumberExtensionMethods.ToCurrency(summary.Data[column.Name]))</td>
+                          }
+                        }
+                    </tr>
                     }
                 </tbody>
             </table>

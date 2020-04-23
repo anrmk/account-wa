@@ -5,5 +5,11 @@
             if(value >= Min && value <= Max) return true;
             else return false;
         }
+
+        //Convert to currency
+        // Output: $0,000.00
+        public static string ToCurrency(this decimal value) {
+            return $"{value:C}";
+        }
     }
 }

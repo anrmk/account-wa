@@ -55,7 +55,6 @@ namespace Core.Services.Business {
                     CustomerId = x.Id,
                     Company = company,
                     CompanyId = company.Id
-
                 });
                 invoices.AddRange(expectedInvoices);
                 invoices.OrderBy(x => x.CustomerAccountNumber);
@@ -82,11 +81,11 @@ namespace Core.Services.Business {
             });
 
             _col.Add(new AgingSummaryPeriod() {
-                Name = "Total"
+                Name = "Latest"
             });
 
             _col.Add(new AgingSummaryPeriod() {
-                Name = "Latest"
+                Name = "Total"
             });
             #endregion
 

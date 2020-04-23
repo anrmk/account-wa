@@ -148,7 +148,7 @@
                         <table class="table table-bordered">
                             @foreach(var item in ViewBag.CreditLimit) {
                                 <tr>
-                                    <td><span>$</span> @item.Value</td>
+                                    <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.Value)</td>
                                     <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
                                     <td class="text-right table-active">
                                         <a asp-controller="Customer" asp-action="EditCreditLimit" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edit</a>
@@ -166,7 +166,7 @@
                         <table class="table table-bordered">
                             @foreach(var item in ViewBag.CreditUtilized) {
                                 <tr>
-                                    <td><span>$</span>@item.Value</td>
+                                    <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.Value)</td>
                                     <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
                                     <td class="text-right table-active">
                                         <a asp-controller="Customer" asp-action="EditCreditUtilized" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edit</a>

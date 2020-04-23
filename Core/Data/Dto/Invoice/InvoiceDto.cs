@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Extension;
 
 namespace Core.Data.Dto {
     public class InvoiceDto {
@@ -24,5 +25,22 @@ namespace Core.Data.Dto {
         public string CreatedBy { get; set; }
         public DateTime UpdatedDate { get; set; }
         public string UpdatedBy { get; set; }
+
+        public string Status {
+            get {
+                var totalPaymentAmount = Payments.TotalAmount();
+                if(Subtotal == totalPaymentAmount) {
+                    return "Paid";
+                } else if(totalPaymentAmount >0 && totalPaymentAmount < Subtotal) {
+                    return "Partially paid";
+                } else {
+                    return "Unpaid";
+                }
+            }
+        }
+
+        public decimal Balance => Payments.TotalAmount() - Subtotal;
+
+        public decimal Amount => Subtotal * (1 + TaxRate / 100);
     }
 }

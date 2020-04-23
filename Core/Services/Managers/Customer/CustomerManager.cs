@@ -77,11 +77,16 @@ namespace Core.Services.Managers {
             var result = await DbSet
                 .Include(x => x.Address)
                 .Include(x => x.Activities)
+                .Include(x => x.CreditLimits)
+                .Include(x => x.CreditUtilizeds)
                 .Where(x => x.CompanyId == id)
-                .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till),
-                (customer, activity) => new { Customer = customer }).Distinct()
+                    .SelectMany(x => x.Activities.Where(b => b.IsActive == true && b.CreatedDate <= till), (customer, activity) => new { Customer = customer }).Distinct()
+                    .Select(p => p.Customer).ToListAsync();
 
-                .Select(p => p.Customer).ToListAsync();
+            //Select only one limit in list matching condition
+            result.ForEach(x => x.CreditLimits = x.CreditLimits.Where(y => y.CreatedDate <= till).OrderByDescending(z => z.CreatedDate).Take(1).ToList());
+            result.ForEach(x => x.CreditUtilizeds = x.CreditUtilizeds.Where(y => y.CreatedDate <= till).OrderByDescending(z => z.CreatedDate).Take(1).ToList());
+
 
             return result;
         }

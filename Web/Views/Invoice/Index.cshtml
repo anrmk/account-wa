@@ -45,9 +45,9 @@
                     <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
                     <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate">Date</th>
                     <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
-                    <th data-field="paymentAmount" data-formatter="paymentFormatter">Balance</th>
-                    <th data-field="subtotal" data-editable="true">Amount</th>
-                    <th data-field="paymentAmount" data-formatter="statusFormatter">Status</th>
+                    <th data-field="balance">Balance</th>
+                    <th data-field="amount">Amount</th>
+                    <th data-field="status">Status</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                 </tr>
             </thead>
@@ -72,7 +72,7 @@
                             case 'modal.on.load':
                                 $(content).on('submit', evt => {
                                     evt.preventDefault();
-                                    $('#filterForm').loadJSON(content.serializeJSON({parseNumbers: true, checkboxUncheckedValue: "false"}));
+                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" }));
                                     $table.bootstrapTable('refresh');
                                     window.modal.modal('hide');
                                 });
@@ -125,23 +125,9 @@
             return `${value} <p class='text-muted'>${row.companyName}</p>`;
         }
 
-        function paymentFormatter(value, row) {
-            return row.subtotal - value;
-        }
-
-        function statusFormatter(value, row) {
-            if (row.subtotal == value) {
-                return 'Paid';
-            } else if (value > 0 && value < row.subtotal) {
-                return 'Partially paid';
-            } else {
-                return 'Unpaid';
-            }
-        }
-
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
-                        <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
+                            <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
         }
     </script>
 }

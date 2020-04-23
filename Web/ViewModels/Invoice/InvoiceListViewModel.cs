@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Core.Extension;
 
 namespace Web.ViewModels {
     public class InvoiceListViewModel {
         public long Id { get; set; }
         public string No { get; set; }
-        public double Subtotal { get; set; }
-        public double TaxRate { get; set; }
-        public string Amount => (Subtotal * (1 + TaxRate / 100)).ToString("0.##");
+        public decimal Subtotal { get; set; }
+        public decimal TaxRate { get; set; }
+        public string Amount => (Subtotal * (1 + TaxRate / 100)).ToCurrency();
 
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
@@ -16,7 +17,9 @@ namespace Web.ViewModels {
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public string DueDate { get; set; }
 
-        public double PaymentAmount { get; set; }
+        public string Balance { get; set; }
+
+        public string PaymentAmount { get; set; }
         public string PaymentDate { get; set; }
 
         public long CompanyId { get; set; }
@@ -24,5 +27,7 @@ namespace Web.ViewModels {
 
         public long CustomerId { get; set; }
         public string CustomerName { get; set; }
+
+        public string Status { get; set; }
     }
 }

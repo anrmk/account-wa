@@ -34,12 +34,16 @@
                                 </td>
                             }
                         } else if(row != "Id") {
-                            <th scope="row">@row</th>
+                            <th scope="row">
+                                @(row == "-31-0" ? "Current" : row )
+                            </th>
                             @foreach(var col in Model[row]) {
                                 <td>
                                     @if(col.Split("|").Length >= 2) {
                                         <span>@col.Split("|")[0] </span><br />
-                                        <span>@col.Split("|")[1]</span>
+                                        <span>
+                                            @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
+                                        </span>
                                     } else {
                                         <span>@col</span>
                                     }
@@ -56,19 +60,19 @@
                             <th scope="row">Action</th>
 
                             @foreach(var col in Model[row]) {
-                        <td id="status_@col">
-                            @if(!string.IsNullOrEmpty(col)) {
-                                <form asp-route="PublishSavedReport" asp-route-id="@col" data-action="publish">
-                                    <button type="submit" class="btn btn-outline-secondary">Publish</button>
-                                </form>
-                                <br />
-                                <form asp-action="Delete" asp-route-id="@col" data-action="delete">
-                                    <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-                                </form>
-                            } else {
-                                <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
-                            }
-                        </td>
+                                <td id="status_@col">
+                                    @if(!string.IsNullOrEmpty(col)) {
+                                        <form asp-route="PublishSavedReport" asp-route-id="@col" data-action="publish">
+                                            <button type="submit" class="btn btn-outline-secondary">Publish</button>
+                                        </form>
+                                        <br />
+                                        <form asp-action="Delete" asp-route-id="@col" data-action="delete">
+                                            <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                                        </form>
+                                    } else {
+                                        <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
+                                    }
+                                </td>
                             }
                         </tr>
                     }
@@ -80,14 +84,14 @@
 
 @section Scripts {
     <script type="text/javascript">
-    $(document).ready(e => {
-        //on change report status
-        $publishReportForms = $('#savedReportTable').find('form[data-action=publish]').on('submit', e => {
-            $(e.target).ajaxSubmit({}, (target, data, status) => {
-                status === 'success' && data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+        $(document).ready(e => {
+            //on change report status
+            $publishReportForms = $('#savedReportTable').find('form[data-action=publish]').on('submit', e => {
+                $(e.target).ajaxSubmit({}, (target, data, status) => {
+                    status === 'success' && data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+                });
+                e.preventDefault();
             });
-            e.preventDefault();
-        });
-    })
+        })
     </script>
 }
