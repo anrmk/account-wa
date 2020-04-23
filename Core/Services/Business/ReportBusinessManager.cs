@@ -35,7 +35,7 @@ namespace Core.Services.Business {
             _businessManager = businessManager;
             _reportManager = reportManager;
         }
-     
+
         public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods, bool includeAllCustomers = true) {
             var company = await _companyManager.Find(companyId);
             if(company == null)
@@ -115,16 +115,17 @@ namespace Core.Services.Business {
                             summary.Add(c.Name, 0);
                     }
 
-                    var diffDays = (dateTo - invoice.DueDate).Days;
+                    if(diffPay > 0) {
+                        var diffDays = (dateTo - invoice.DueDate).Days;
 
-
-                    foreach(var col in _col) {
-                        if(diffDays <= 0) {
-                            summary[col.Name] += diffPay;
-                            break;
-                        } else if(diffDays >= col.From && diffDays <= col.To) {
-                            summary[col.Name] += diffPay;
-                            break;
+                        foreach(var col in _col) {
+                            if(diffDays <= 0) {
+                                summary[col.Name] += diffPay;
+                                break;
+                            } else if(diffDays >= col.From && diffDays <= col.To) {
+                                summary[col.Name] += diffPay;
+                                break;
+                            }
                         }
                     }
                 } else {
@@ -145,7 +146,7 @@ namespace Core.Services.Business {
                         Sum = report.Values.Sum(x => x.Data["Total"])
                     });
                 } else if(c.Name.Equals("Latest")) {
-                    
+
                 } else {
                     balance.Add(c.Name, new AgingSummaryBalance {
                         Count = report.Values.Count(x => x.Data[c.Name] != 0),
@@ -198,7 +199,7 @@ namespace Core.Services.Business {
                 DoubleDebt = doubleDebt
             };
         }
-  
+
         /*
         public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods, bool includeAllCustomers = true) {
             var company = await _companyManager.Find(companyId);
