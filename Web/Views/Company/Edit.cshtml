@@ -82,6 +82,7 @@
                         </div>*@
                 </div>
             </div>
+            
             <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
                 <input asp-for="AddressId" type="hidden" />
                 <div class="form-group row mb-3">
@@ -123,6 +124,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
                 <div class="form-group">
                     <a asp-controller="Company" asp-action="CreateSummary" asp-route-companyId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
@@ -139,19 +141,27 @@
                     </div>
                 </div>
             </div>
+           
             <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
-                <table id="datatable" data-toggle="table" data-url="/api/customer/company/@Model.Id"
-                       data-side-pagination="true">
+                <table id="datatable" data-toggle="table" data-url="/api/customer"
+                       data-query-params="queryParams"
+                       data-total-field="totalItems"
+                       data-data-field="items" >
                     <thead>
                         <tr>
-                            <th data-field="no" data-sortable="true" data-formatter="customerFormatter">No</th>
-                            <th data-field="name" data-sortable="true">Customer</th>
-                            <th data-field="phone">Phone</th>
+                            <th data-field="no" data-sortable="true">No</th>
+                            <th data-field="isActive" data-formatter="activityFormatter" data-sortable="true">Activity</th>
+                            <th data-field="name" data-formatter="nameFormatter">Customer</th>
+                            <th data-field="phoneNumber">Phone</th>
+                            <th data-field="creditLimit" data-sortable="true">Credit limit</th>
+                            <th data-field="creditUtilized">High credit utilized</th>
                             <th data-field="address">Address</th>
+                            <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                         </tr>
                     </thead>
                 </table>
             </div>
+            
             <div class="tab-pane fade" id="exportSettings" role="tabpanel" aria-labelledby="exportSettings-tab">
                 <div class="form-group">
                     <a asp-controller="Company" asp-action="CreateExportSettings" asp-route-id="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
@@ -177,11 +187,28 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script type="text/javascript">
-        function customerFormatter(value, row) {
-            return `<a href='/customer/edit/${row.id}'>${value}</a>`
+        function queryParams(params) {
+            if (!params.search) {
+                params.search = $('div.search input').val();
+            }
+
+            return $.extend({}, params, {
+                'companyId': @Model.Id
+            });
+        }
+
+        function nameFormatter(value, row) {
+            return `${value} <p class='text-muted'>${row.company}</p>`;
+        }
+
+        function activityFormatter(value, row) {
+            return `<i class='mr-1 fa ${row.isActive ? 'fa-check-circle' : 'fa-times-circle'}'></i>`;
+        }
+
+        function actionFormatter(value, row) {
+            return `<a href='/customer/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
         }
     </script>
 }

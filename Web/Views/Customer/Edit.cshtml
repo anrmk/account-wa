@@ -36,6 +36,9 @@
                 <a class="nav-link" data-toggle="tab" id="credits-tab" href="#credits">Credits</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="invoices-tab" href="#invoices">Invoices</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" id="activities-tab" href="#activities">Activities</a>
             </li>
         </ul>
@@ -180,6 +183,26 @@
 
             </div>
 
+            <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
+                <table id="datatable" data-toggle="table" data-url="/api/invoice"
+                       data-query-params="queryParams"
+                       data-total-field="totalItems"
+                       data-data-field="items">
+                    <thead>
+                        <tr>
+                            <th data-field="no" data-sortable="true">Invoice</th>
+                            <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
+                            <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate">Date</th>
+                            <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
+                            <th data-field="balance">Balance</th>
+                            <th data-field="amount">Amount</th>
+                            <th data-field="status">Status</th>
+                            <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
             <div id="activities" class="tab-pane fade">
                 <div class="form-group">
                     <a asp-controller="Customer" asp-action="CreateActivity" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Change</a>
@@ -204,3 +227,26 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function queryParams(params) {
+            if (!params.search) {
+                params.search = $('div.search input').val();
+            }
+
+            return $.extend({}, params, {
+                'customerId': @Model.Id
+            });
+        }
+
+        function nameFormatter(value, row) {
+            return `${value} <p class='text-muted'>${row.companyName}</p>`;
+        }
+
+        function actionFormatter(value, row) {
+            return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
+                    <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
+        }
+    </script>
+}

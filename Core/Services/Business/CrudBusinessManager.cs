@@ -424,11 +424,12 @@ namespace Core.Services.Business {
                 tuple = new Tuple<List<CustomerEntity>, int>(filteredCustomers, customers.Count());
             } else {
                 Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
-                   (true)
-                     && (string.IsNullOrEmpty(filter.Search)
-                    || x.Name.ToLower().Contains(filter.Search.ToLower())
-                    || x.No.ToLower().Contains(filter.Search.ToLower())
-                );
+                    (true)
+                    && (string.IsNullOrEmpty(filter.Search) 
+                        || x.Name.ToLower().Contains(filter.Search.ToLower()) 
+                        || x.No.ToLower().Contains(filter.Search.ToLower())
+                    )
+                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
 
                 #region Sort
                 Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
@@ -1045,6 +1046,7 @@ namespace Core.Services.Business {
                         || x.Subtotal.ToString().Equals(filter.Search.ToLower())
                         )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
+                   && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
 
                 #region MUST BE UNIVERSAL LINQ REQUEST
                    //&& ((filter.Date == null || dateFrom == null) || (/*x.DueDate >= dateFrom.Value &&*/ x.Date <= filter.Date.Value))

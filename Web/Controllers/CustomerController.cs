@@ -540,12 +540,13 @@ namespace Web.Controllers.Api {
             return pager;
         }
 
-        [HttpGet]
-        [Route("company/{id}")]
-        public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
-            var result = await _businessManager.GetCustomers(id);
-            return _mapper.Map<List<CustomerListViewModel>>(result);
-        }
+        //[Obsolete]
+        //[HttpGet]
+        //[Route("company/{id}")]
+        //public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
+        //    var result = await _businessManager.GetCustomers(id);
+        //    return _mapper.Map<List<CustomerListViewModel>>(result);
+        //}
 
         [Obsolete]
         [HttpGet]
