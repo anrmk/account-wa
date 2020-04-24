@@ -77,6 +77,7 @@ namespace Core.Services.Managers {
             var result = await DbSet
                 .Include(x => x.Address)
                 .Include(x => x.Activities)
+                .Include(x => x.Type)
                 .Include(x => x.CreditLimits)
                 .Include(x => x.CreditUtilizeds)
                 .Where(x => x.CompanyId == id)

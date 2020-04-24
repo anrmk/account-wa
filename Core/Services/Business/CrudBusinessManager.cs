@@ -432,12 +432,15 @@ namespace Core.Services.Business {
                     && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
 
                 #region Sort
-                Expression<Func<CustomerEntity, string>> orderPredicate = x => x.Id.ToString();
+                var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
+
+
+                    //x => x.Id.ToString();
                 #endregion
 
                 string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "CreditLimits", "CreditUtilizeds" };
 
-                tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+                tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, sortby, filter.Offset, filter.Limit, include);
             }
 
             var list = tuple.Item1;

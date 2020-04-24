@@ -9,16 +9,18 @@ namespace Core.Data.Dto {
         public int DaysPerPeriod { get; set; }
         public int NumberOfPeriods { get; set; } //Количество периодово
 
-        public int TotalCustomers { get; set; }
-
         public List<AgingSummaryPeriod> Columns { get; set; }
+
+        public int TotalCustomers { get; set; }
+        public int BalanceCustomers { get; set; }
+
         public Dictionary<string, AgingSummaryBalance> Balance { get; set; }
 
         public List<AgingSummaryData> Data { get; set; }
 
         public Dictionary<string, decimal> DoubleDebt { get; set; }
-        
-        public int BalanceCustomers { get; set; }
+
+        public Dictionary<string, int> CustomerTypes { get; set; }
     }
 
     public class AgingSummaryData {
