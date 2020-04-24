@@ -15,5 +15,7 @@ namespace Core.Data.Dto {
         public virtual ICollection<long?> TagsIds { get; set; }
 
         public virtual ICollection<int?> Recheck { get; set; }
+
+        public DateTime? CreatedDate { get; set; }
     }
 }

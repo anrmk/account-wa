@@ -94,11 +94,16 @@ namespace Core.Services.Managers {
         public async Task<List<CustomerEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
             var context = (ApplicationContext)_context;
             var result = new List<CustomerEntity>();
-            var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], " +
+            var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], CUS.[CreatedDate], CUS.[CreatedBy], " +
                             "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, " +
+                            "CACT.[ActiveCreatedDate], CACT.[TotalActive], " +
                             "RCH.[Recheck], INV.[Total], " +
                             "TAGS.[TagLinkIds], TAGS.[TagIds], TAGS.[TagNames] " +
                         "FROM [dbo].[Customers] AS CUS " +
+                        "LEFT JOIN (SELECT Customer_Id, Count(IsActive) AS TotalActive, MIN([CreatedDate]) AS ActiveCreatedDate " +
+                                    "FROM [accountWa].[dbo].[CustomerActivities] " +
+			                        "GROUP BY [Customer_Id]) AS CACT " +
+                            "ON CACT.[Customer_Id] = CUS.[Id]" +
                         "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
                             "ON CUS.[Id] = INV.[Customer_Id] " +
                         "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
@@ -163,7 +168,8 @@ namespace Core.Services.Managers {
                                     TypeId = customerType != null ? customerType.Id : (long?)null,
                                     Type = customerType,
                                     Recheck = reader["Recheck"] != DBNull.Value ? (int)reader["Recheck"] : 0,
-                                    TagLinks = taglinks
+                                    TagLinks = taglinks,
+                                    CreatedDate = reader["ActiveCreatedDate"] != DBNull.Value ? (DateTime)reader["ActiveCreatedDate"] : (DateTime)reader["ActCreatedDate"]
                                 });
                             }
                         }

@@ -33,5 +33,10 @@ namespace Web.ViewModels {
 
         [Display(Name = "Recheck")]
         public List<int> Recheck { get; set; }
+
+        [Display(Name = "Created Date")]
+        [DataType(DataType.Date)]
+        [FromQuery]
+        public DateTime? CreatedDate { get; set; }
     }
 }

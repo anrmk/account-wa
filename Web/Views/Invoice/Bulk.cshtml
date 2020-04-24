@@ -44,16 +44,20 @@
                     <div class="col-3">
                         <label asp-for="TypeIds"></label>
                         <select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
-                            multiple
-                            data-live-search="true">
+                                multiple
+                                data-live-search="true">
                         </select>
                     </div>
                     <div class="col-3">
                         <label asp-for="Recheck">Recheck</label>
                         <select id="recheck" name="Recheck[]" class="form-control selectpicker" data-field="type"
-                            multiple
-                            data-live-search="true">
+                                multiple
+                                data-live-search="true">
                         </select>
+                    </div>
+                    <div class="col-3">
+                        <label asp-for="CreatedDate"></label>
+                        <input asp-for="CreatedDate" type="month" class="form-control" >
                     </div>
                 </div>
                 <button class="btn btn-outline-primary" id="filterApplyBtn">Save</button>
@@ -74,6 +78,7 @@
                         <th data-field="state" data-checkbox="true"></th>
                         <th data-field="no" scope="col" data-sortable="true">No</th>
                         <th data-field="name" scope="col" data-sortable="true">Name</th>
+                        <th data-field="createdDate" scope="col" data-formatter="$.fn.bootstrapTable.formatDate">Created Date</th>
                         <th data-formatter="tagsFormatter" data-field="tags" scope="col">Tags</th>
                         <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
                         <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>

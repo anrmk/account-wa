@@ -404,14 +404,19 @@ namespace Core.Services.Business {
                 var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
                 recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
 
+                var createdMonth = filter.CreatedDate?.Month;
+                var createdYear = filter.CreatedDate?.Year;
+
                 customers = customers.Where(x => (true)
                     && (string.IsNullOrEmpty(filter.Search)
                        || x.Name.ToLower().Contains(filter.Search.ToLower())
                        || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
-                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(x => filter.TagsIds.Contains(x.TagId)).Count() > 0)
+                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(y => filter.TagsIds.Contains(y.TagId)).Count() > 0)
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
                     && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
+                    && ((createdMonth == null) || x.CreatedDate.Month == createdMonth)
+                    && ((createdYear == null) || x.CreatedDate.Year == createdYear)
                    //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
