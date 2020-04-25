@@ -10,6 +10,7 @@ using Core.Data.Dto;
 using Core.Data.Entities;
 using Core.Extension;
 using Core.Services.Managers;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
@@ -400,6 +401,10 @@ namespace Core.Services.Business {
             Tuple<List<CustomerEntity>, int> tuple;
             List<string> recheckFilter = new List<string>();
 
+            #region Sort
+            var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<CustomerEntity>(filter.Sort ?? "No");
+            #endregion
+
             if(filter.DateFrom.HasValue && filter.DateTo.HasValue) {
                 var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
                 recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
@@ -420,7 +425,9 @@ namespace Core.Services.Business {
                    //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
+                customers = filter.Order.Equals("desc") ? customers.OrderByDescending(sortby.Compile()).ToList() : customers.OrderBy(sortby.Compile()).ToList();
                 var filteredCustomers = customers.Skip(filter.Offset ?? 0).Take(filter.Limit ?? customers.Count()).ToList();
+
                 tuple = new Tuple<List<CustomerEntity>, int>(filteredCustomers, customers.Count());
             } else {
                 Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
@@ -432,15 +439,12 @@ namespace Core.Services.Business {
                     && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
 
                 #region Sort
-                var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
-
-
-                    //x => x.Id.ToString();
+              // var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
                 #endregion
 
                 string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "CreditLimits", "CreditUtilizeds" };
 
-                tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, sortby, filter.Offset, filter.Limit, include);
+                tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             }
 
             var list = tuple.Item1;
@@ -998,12 +1002,13 @@ namespace Core.Services.Business {
 
             Tuple<List<InvoiceEntity>, int> tuple;
 
+            #region Sort
+            var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
+            #endregion
+
             if(filter.Date != null && dateFrom != null) {
                 var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
-                //Поиск в разрезе заказчиков с задолжностями более 2х сумм
-                //var doubleInvoice = invoices.Where(x => x.CustomerAccountNumber == "41102").ToList();
-
-
+                
                 //Поиск в разрезе периода
                 List<InvoiceEntity> newList = new List<InvoiceEntity>();
 
@@ -1019,7 +1024,8 @@ namespace Core.Services.Business {
                         ));
                     }
                 }
-
+            
+                //Поиск в разрезе заказчиков с задолжностями более 2х сумм
                 if(filter.MoreThanOne) {
                     var dublCustomers = newList.GroupBy(x => x.Customer.No)
                               .Where(g => g.Count() > 1)
@@ -1029,17 +1035,13 @@ namespace Core.Services.Business {
                 } else {
                     invoices = newList;
                 }
-
-                invoices = invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+                
+                invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() :  invoices.OrderBy(sortby.Compile()).ToList();
+                //invoices = invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());
-
             } else {
-                #region Sort
-                Expression<Func<InvoiceEntity, string>> orderPredicate = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
-                #endregion
-
                 #region Filter
                 Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                       (true)
@@ -1049,32 +1051,12 @@ namespace Core.Services.Business {
                         || x.Subtotal.ToString().Equals(filter.Search.ToLower())
                         )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
-                   && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
-
-                #region MUST BE UNIVERSAL LINQ REQUEST
-                   //&& ((filter.Date == null || dateFrom == null) || (/*x.DueDate >= dateFrom.Value &&*/ x.Date <= filter.Date.Value))
-                   //&& ((filter.Date == null || dateFrom == null) || ((x.Payments.Count == 0) || (!x.Payments.Any(s => s.Date <= filter.Date.Value))))
-                   //&& ((filter.Date == null || dateFrom == null || selectedPeriod == null) ||
-                   //        (x.Date <= filter.Date.Value.AddDays((selectedPeriod.From + 30) * -1) &&
-                   //        x.Date >= filter.Date.Value.AddDays((selectedPeriod.To + 30) * -1))
-                   //)
-                   /*&& ((filter.Date == null || dateFrom == null) || (x.Payments.Count == 0)
-
-                   && (
-                        (filter.Date == null || dateFrom == null) ||
-                        ((x.Subtotal * (1 + x.TaxRate / 100) - (x.Payments.Count > 0 ? x.Payments.Sum(d => d.Amount) : 0 )) >= 0)
-                        //(((x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments.Sum(d => (d.Date < filter.Date.Value ? 0 : d.Amount)))) < 0)
-                   )
-
-                    )*/
-                   //: x.Payments.Sum(x => (x.Date < filter.Date.Value) ? 0 : x.Amount))) >= 0)
-                   ;
-                #endregion
+                   && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId);
                 #endregion
 
                 string[] include = new string[] { "Company", "Customer", "Payments" };
 
-                tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+                tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             }
 
             var list = tuple.Item1;

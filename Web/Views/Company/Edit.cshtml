@@ -30,8 +30,8 @@
                 <a class="nav-link active" data-toggle="tab" id="general-tab" href="#general">General</a>
             </li>
             @*<li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="address-tab" href="#address">Address</a>
-            </li>*@
+                    <a class="nav-link" data-toggle="tab" id="address-tab" href="#address">Address</a>
+                </li>*@
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" id="summary-tab" href="#summary">Summary Range</a>
             </li>
@@ -128,10 +128,10 @@
                 <div class="form-group">
                     <div class="list-group">
                         @foreach(var item in ViewBag.Summary) {
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>@item.From - @item.To</span>
-                                <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
-                            </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@item.From - @item.To</span>
+                            <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                        </div>
                         }
                     </div>
                 </div>
@@ -145,10 +145,10 @@
                     <thead>
                         <tr>
                             <th data-field="no" data-sortable="true">No</th>
-                            <th data-field="isActive" data-formatter="activityFormatter" data-sortable="true">Activity</th>
-                            <th data-field="name" data-formatter="nameFormatter">Customer</th>
-                            <th data-field="phoneNumber">Phone</th>
-                            <th data-field="creditLimit" data-sortable="true">Credit limit</th>
+                            <th data-field="isActive" data-formatter="activityFormatter">Activity</th>
+                            <th data-field="name" data-formatter="nameFormatter" data-sortable="true">Customer</th>
+                            <th data-field="phoneNumber" data-sortable="true">Phone</th>
+                            <th data-field="creditLimit">Credit limit</th>
                             <th data-field="creditUtilized">High credit utilized</th>
                             <th data-field="address">Address</th>
                             <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
@@ -164,10 +164,10 @@
                 <div class="form-group">
                     <div id="exportSettingsFieldsList" class="list-group">
                         @foreach(var setting in ViewBag.ExportSettings) {
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>@setting.Name</span>
-                                <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
-                            </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@setting.Name</span>
+                            <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                        </div>
                         }
                     </div>
                 </div>
