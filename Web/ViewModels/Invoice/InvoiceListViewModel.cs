@@ -27,6 +27,7 @@ namespace Web.ViewModels {
 
         public long CustomerId { get; set; }
         public string CustomerName { get; set; }
+        public string CustomerType { get; set; }
 
         public string Status { get; set; }
     }

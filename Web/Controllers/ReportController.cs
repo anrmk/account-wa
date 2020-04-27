@@ -143,27 +143,51 @@ namespace Web.Controllers.Mvc {
         [HttpPost]
         [Route("savedReport")]
         public async Task<IActionResult> SavedReport([FromBody]ReportFilterViewModel model) {
-            var company = await _crudBusinessManager.GetCompany(model.CompanyId);
-            if(company == null) {
-                return NotFound();
+            try {
+                if(ModelState.IsValid) {
+                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+                    if(company == null) {
+                        return NotFound();
+                    }
+
+                    var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                    if(savedItem != null && savedItem.IsPublished) {
+                        return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
+                    }
+
+                    var result = new SavedReportViewModel() {
+                        CompanyId = model.CompanyId,
+                        Name = company.Name,
+                        Date = model.Date,
+                        NumberOfPeriods = model.NumberOfPeriods
+                    };
+
+                    var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
+                    ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
+
+                    return View("_SavedReportPartial", result);
+                }
+            } catch(Exception er) {
+                Console.WriteLine(er.Message);
             }
+            return BadRequest();
+        }
 
-            var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
-            if(savedItem != null && savedItem.IsPublished) {
-                return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
+        //TODO: Сделать сохранение новых значение CreditLimit & CreditUtilized
+        [HttpPost]
+        [Route("createCustomerCredits")]
+        public async Task<IActionResult> CreateCredits([FromBody]ReportFilterViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var settings = await _crudBusinessManager.GetCompanyExportSettings(model.CompanyId);
+                    if(settings == null) {
+                        return NotFound();
+                    }
+                }
+            } catch(Exception er) {
+                Console.WriteLine(er.Message);
             }
-
-            var result = new SavedReportViewModel() {
-                CompanyId = model.CompanyId,
-                Name = company.Name,
-                Date = model.Date,
-                NumberOfPeriods = model.NumberOfPeriods
-            };
-
-            var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
-            ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
-
-            return View("_SavedReportPartial", result);
+            return BadRequest();
         }
 
         [HttpPost]
@@ -442,7 +466,7 @@ namespace Web.Controllers.Api {
                                         fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
                                     }
 
-                                  //  var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                                    //  var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
                                     files.Add(new SavedReportFileDto() {
                                         Name = fileName,
                                         File = file

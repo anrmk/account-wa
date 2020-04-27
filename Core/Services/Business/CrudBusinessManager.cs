@@ -229,7 +229,6 @@ namespace Core.Services.Business {
             var customers = await _customerManager.FindByCompanyId(entity.Id);
 
             //list of customers to delete
-            //TODO: Проверить работу функции редактирования компании
             var customersForDelete = customers.Where(x => !dto.Customers.Any(y => y.Id == x.Id)).ToList();
             customersForDelete.ForEach(x => x.CompanyId = null);
 
@@ -1035,6 +1034,11 @@ namespace Core.Services.Business {
                 } else {
                     invoices = newList;
                 }
+
+                invoices = invoices.Where(x =>
+                    true
+                    && ((filter.TypeId == null) ||  filter.TypeId == x.Customer.TypeId)
+                ).ToList();
                 
                 invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() :  invoices.OrderBy(sortby.Compile()).ToList();
                 //invoices = invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
@@ -1051,10 +1055,11 @@ namespace Core.Services.Business {
                         || x.Subtotal.ToString().Equals(filter.Search.ToLower())
                         )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
-                   && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId);
+                   && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
+                   && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId);
                 #endregion
 
-                string[] include = new string[] { "Company", "Customer", "Payments" };
+                string[] include = new string[] { "Company", "Customer", "Customer.Type", "Payments" };
 
                 tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             }

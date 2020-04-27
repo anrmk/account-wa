@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Core.Context;
 using Core.Data.Entities;
-
+using Core.Data.Entities.Nsi;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
@@ -31,7 +31,7 @@ namespace Core.Services.Managers {
         public async Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
                         "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
-                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, " + //CUS.[CreditLimit] AS CustomerCreditLimit,  CUS.[CreditUtilized] AS CustomerCreditUtilized,
+                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CustomerType_Id] AS CustomerTypeId, CUST.[Name] AS CustomerTypeName, " +
                         "CACT.[Id] AS ActivityId, CACT.[CreatedDate] AS ActivityDate, CACT.[IsActive] AS ActivityStatus, " +
                         "CLIM.[Id] AS CreditLimitId, CLIM.[Value] AS CreditLimit, CLIM.[CreatedDate] AS CreditLimitDate, " +
                         "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, " +
@@ -41,6 +41,7 @@ namespace Core.Services.Managers {
                         "FROM [accountWa].[dbo].[Invoices] AS INV  " +
                         "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
+                        "LEFT JOIN [accountWa].[dbo].[nsi.CustomerType] as CUST ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities] " + //проверяем на активность пользователя
                             "WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
                             "ORDER BY [CreatedDate] DESC) AS CACT " +
@@ -53,7 +54,6 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
                         "WHERE INV.[Company_Id] = @COMPANYID AND CACT.[Id] IS NOT NULL AND INV.[Date] <= @DATETO " +
-                        //"WHERE INV.[Company_Id] = @COMPANYID AND INV.[DueDate] >= @DATEFROM AND INV.[Date] <= @DATETO " + //предыдущая логика
                         "ORDER BY CUS.[AccountNumber] ASC ";
 
             var result = new List<InvoiceEntity>();
@@ -114,6 +114,16 @@ namespace Core.Services.Managers {
 
                                         customer.AddressId = (long)reader["CustomerAddressId"];
                                         customer.Address = address;
+                                    }
+
+                                    if(reader["CustomerTypeId"] != DBNull.Value) {
+                                        var customerType = new CustomerTypeEntity() {
+                                            Id = (long)reader["CustomerTypeId"],
+                                            Name = reader["CustomerTypeName"] as string
+                                        };
+
+                                        customer.TypeId = (long)reader["CustomerTypeId"];
+                                        customer.Type = customerType;
                                     }
 
                                     if(reader["ActivityId"] != DBNull.Value) {

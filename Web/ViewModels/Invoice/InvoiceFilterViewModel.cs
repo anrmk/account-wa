@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Core.Data.Entities.Nsi;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {
@@ -26,5 +27,9 @@ namespace Web.ViewModels {
 
         [FromQuery(Name = "periods")]
         public string Periods { get; set; } = "";
+
+        //public CustomerTypeEntity CustomerType = "";
+        [Display(Name = "Customer type")]
+        public long? TypeId { get; set; }
     }
 }
