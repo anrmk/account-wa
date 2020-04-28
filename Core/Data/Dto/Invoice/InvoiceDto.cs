@@ -31,7 +31,7 @@ namespace Core.Data.Dto {
                 var totalPaymentAmount = Payments.TotalAmount();
                 if(Subtotal == totalPaymentAmount) {
                     return "Paid";
-                } else if(totalPaymentAmount >0 && totalPaymentAmount < Subtotal) {
+                } else if(totalPaymentAmount > 0 && totalPaymentAmount < Subtotal) {
                     return "Partially paid";
                 } else {
                     return "Unpaid";

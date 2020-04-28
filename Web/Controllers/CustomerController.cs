@@ -548,13 +548,13 @@ namespace Web.Controllers.Api {
         //    return _mapper.Map<List<CustomerListViewModel>>(result);
         //}
 
-        [Obsolete]
-        [HttpGet]
-        [Route("bulk")]
-        public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
-            var result = await _businessManager.GetBulkCustomers(Id, from, to);
-            return _mapper.Map<List<CustomerListViewModel>>(result);
-        }
+        //[Obsolete]
+        //[HttpGet]
+        //[Route("bulk")]
+        //public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
+        //    var result = await _businessManager.GetBulkCustomers(Id, from, to);
+        //    return _mapper.Map<List<CustomerListViewModel>>(result);
+        //}
 
         [HttpPost]
         [Route("create")]

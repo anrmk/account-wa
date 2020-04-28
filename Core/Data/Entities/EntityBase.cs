@@ -21,7 +21,7 @@ namespace Core.Data.Entities {
     public abstract class AuditableEntity<T>: EntityBase<T>, IAuditableEntity {
         [ScaffoldColumn(false)]
         [DataType(DataType.DateTime)]
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [MaxLength(256)]
         [ScaffoldColumn(false)]
@@ -29,7 +29,7 @@ namespace Core.Data.Entities {
 
         [ScaffoldColumn(false)]
         [DataType(DataType.DateTime)]
-        public DateTime UpdatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; } = DateTime.Now;
 
         [MaxLength(256)]
         [ScaffoldColumn(false)]

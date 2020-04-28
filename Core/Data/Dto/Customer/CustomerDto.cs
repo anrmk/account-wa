@@ -70,7 +70,10 @@ namespace Core.Data.Dto {
 
         //only for bulk customers!!!
         [Ignore]
-        public int Total { get; set; }
+        public int TotalInvoices { get; set; }
+
+        [Ignore]
+        public int PaidInvoices { get; set; }
 
         [Ignore]
         public int Recheck { get; set; }

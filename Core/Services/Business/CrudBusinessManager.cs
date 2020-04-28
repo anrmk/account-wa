@@ -47,7 +47,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetUntiedCustomers(long? companyId);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
-        Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
+        //Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
         Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns);
         Task<List<CustomerImportCreditsDto>> CreateOrUpdateCustomerCredits(List<CustomerImportCreditsDto> list, List<string> columns);
@@ -481,10 +481,10 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerDto>>(result);
         }
 
-        public async Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to) {
-            var result = await _customerManager.FindBulks(companyId, from, to);
-            return _mapper.Map<List<CustomerDto>>(result);
-        }
+        //public async Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to) {
+        //    var result = await _customerManager.FindBulks(companyId, from, to);
+        //    return _mapper.Map<List<CustomerDto>>(result);
+        //}
 
         public async Task<CustomerDto> CreateCustomer(CustomerDto dto) {
             var entity = _mapper.Map<CustomerEntity>(dto);

@@ -50,7 +50,10 @@ namespace Core.Data.Entities {
         public virtual ICollection<CustomerTagLinkEntity> TagLinks { get; set; }
 
         [NotMapped]
-        public int Total { get; set; }
+        public int TotalInvoices { get; set; }
+
+        [NotMapped]
+        public int PaidInvoices { get; set; }
 
         [NotMapped]
         public int Recheck { get; set; }

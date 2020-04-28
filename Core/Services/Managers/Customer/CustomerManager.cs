@@ -98,33 +98,37 @@ namespace Core.Services.Managers {
             var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], CUS.[CreatedDate], CUS.[CreatedBy], " +
                             "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, " +
                             "CACT.[ActiveCreatedDate], CACT.[TotalActive], " +
-                            "RCH.[Recheck], INV.[Total], " +
+                            "RCH.[Recheck], INV.[TotalInvoices], INV.[PaidInvoices], " +
                             "TAGS.[TagLinkIds], TAGS.[TagIds], TAGS.[TagNames] " +
-                        "FROM [dbo].[Customers] AS CUS " +
+                        "FROM [accountWa].[dbo].[Customers] AS CUS " +
                         "LEFT JOIN (SELECT Customer_Id, Count(IsActive) AS TotalActive, MIN([CreatedDate]) AS ActiveCreatedDate " +
-                                    "FROM [accountWa].[dbo].[CustomerActivities] " +
-			                        "GROUP BY [Customer_Id]) AS CACT " +
-                            "ON CACT.[Customer_Id] = CUS.[Id]" +
-                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [Total] FROM [dbo].[Invoices] WHERE [Date] > @DATE_FROM AND [DATE] <= @DATE_TO GROUP BY [Customer_Id]) AS INV " +
+                                "FROM [accountWa].[dbo].[CustomerActivities] " +
+                                "GROUP BY [Customer_Id]) AS CACT " +
+                            "ON CACT.[Customer_Id] = CUS.[Id] " +
+                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [TotalInvoices], COUNT(P.[PaymentCount]) AS [PaidInvoices] FROM [accountWa].[dbo].[Invoices] AS I " +
+                                "LEFT JOIN (SELECT [Invoice_Id], SUM(Amount) AS [PaymentAmount], COUNT(*) AS [PaymentCount] FROM [accountWa].[dbo].[Payments] GROUP BY [Invoice_Id]) AS P " +
+                                "ON I.[Id] = P.[Invoice_Id] AND I.[Subtotal] <= P.[PaymentAmount] " +
+                                "WHERE I.[Date] >= @DATEFROM AND I.[DATE] <= @DATETO GROUP BY I.[Customer_Id]) AS INV " +
                             "ON CUS.[Id] = INV.[Customer_Id] " +
-                        "LEFT JOIN (SELECT * FROM [dbo].[nsi.CustomerType]) AS CUST " +
+                        "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[nsi.CustomerType]) AS CUST " +
                             "ON CUS.[CustomerType_Id] = CUST.[Id] " +
-                        "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
+                        "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
                             "ON CUS.[Id] = RCH.[Customer_Id] " +
-                        "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [dbo].[CustomerTags] AS CT " +
-                            "LEFT JOIN [dbo].[CustomerTagLinks] AS CTL " +
+                        "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [accountWa].[dbo].[CustomerTags] AS CT " +
+                            "LEFT JOIN [accountWa].[dbo].[CustomerTagLinks] AS CTL " +
                             "ON CT.[Id] = CTL.[CustomerTag_Id] WHERE CTL.[Customer_Id] = CUS.[Id]) AS TAGS " +
-                        "WHERE CUS.[Company_Id] = @COMPANYID";
+                        "WHERE CUS.[Company_Id] = @COMPANYID " +
+                        "ORDER BY INV.[PaidInvoices] DESC";
             try {
                 using(var connection = context.Database.GetDbConnection()) {
                     using(var command = connection.CreateCommand()) {
                         command.CommandText = query;
                         command.Parameters.Add(new SqlParameter("@COMPANYID", System.Data.SqlDbType.BigInt));
-                        command.Parameters.Add(new SqlParameter("@DATE_FROM", System.Data.SqlDbType.Date));
-                        command.Parameters.Add(new SqlParameter("@DATE_TO", System.Data.SqlDbType.Date));
+                        command.Parameters.Add(new SqlParameter("@DATEFROM", System.Data.SqlDbType.Date));
+                        command.Parameters.Add(new SqlParameter("@DATETO", System.Data.SqlDbType.Date));
                         command.Parameters["@COMPANYID"].Value = companyId;
-                        command.Parameters["@DATE_FROM"].Value = from;
-                        command.Parameters["@DATE_TO"].Value = to;
+                        command.Parameters["@DATEFROM"].Value = from;
+                        command.Parameters["@DATETO"].Value = to;
 
                         if(connection.State == System.Data.ConnectionState.Closed) {
                             await connection.OpenAsync();
@@ -160,7 +164,8 @@ namespace Core.Services.Managers {
 
                                 result.Add(new CustomerEntity() {
                                     Id = (long)reader["Id"],
-                                    Total = reader["Total"] != DBNull.Value ? (int)reader["Total"] : 0,
+                                    TotalInvoices = reader["TotalInvoices"] != DBNull.Value ? (int)reader["TotalInvoices"] : 0,
+                                    PaidInvoices = reader["PaidInvoices"] != DBNull.Value ? (int)reader["PaidInvoices"] : 0,
                                     No = reader["No"] as string,
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,

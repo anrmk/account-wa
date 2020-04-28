@@ -38,5 +38,8 @@ namespace Web.ViewModels {
         [DataType(DataType.Date)]
         [FromQuery]
         public DateTime? CreatedDate { get; set; }
+
+        [Display(Name = "Random sort")]
+        public bool RandomSort { get; set; } = false;
     }
 }

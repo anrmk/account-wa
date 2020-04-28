@@ -26,8 +26,11 @@ namespace Web.ViewModels {
         [Display(Name = "Is active")]
         public bool IsActive { get; set; }
 
-        [Display(Name = "Total Invoice")]
-        public int Total { get; set; }
+        [Display(Name = "Total Invoices")]
+        public int TotalInvoices { get; set; }
+
+        [Display(Name = "Paid Invoices")]
+        public int PaidInvoices { get; set; }
 
         public int Recheck { get; set; }
 

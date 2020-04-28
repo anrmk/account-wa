@@ -24,11 +24,11 @@
                         <label asp-for="SummaryRangeId"></label>
                         <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control" required></select>
                     </div>
-                    <div class="col">
+                    <div class="col-3">
                         <label asp-for="DateFrom"></label>
                         <input asp-for="DateFrom" type="date" class="form-control" required>
                     </div>
-                    <div class="col">
+                    <div class="col-3">
                         <label asp-for="DateTo"></label>
                         <input asp-for="DateTo" type="date" class="form-control" required>
                     </div>
@@ -57,12 +57,15 @@
                     </div>
                     <div class="col-3">
                         <label asp-for="CreatedDate"></label>
-                        <input asp-for="CreatedDate" type="month" class="form-control" >
+                        <input asp-for="CreatedDate" type="month" class="form-control">
                     </div>
+                </div>
+                <div class="form-check mb-3 col">
+                    <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
+                    <label asp-for="RandomSort" class="form-check-label"></label>
                 </div>
                 <button class="btn btn-outline-primary" id="filterApplyBtn">Save</button>
             </fieldset>
-
 
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
                    data-query-params="queryParams"
@@ -82,7 +85,7 @@
                         <th data-formatter="tagsFormatter" data-field="tags" scope="col">Tags</th>
                         <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
                         <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>
-                        <th data-field="total" scope="col" data-width="10" data-width-unit="%">Total</th>
+                        <th data-field="totalInvoices" data-formatter="invoicesFormatter" scope="col" data-width="10" data-width-unit="%">Invoices</th>
                         <th data-field="terms" scope="col" data-width="20" data-width-unit="%">Terms</th>
                     </tr>
                 </thead>
@@ -96,11 +99,26 @@
 
 </div>
 
-
-<div id="content"></div>
+<div class="card mb-3">
+    <div class="card-body">
+        <h3>Formed invoices</h3>
+        <div class="btn-toolbar mb-3">
+            <div class="btn-group mr-2">
+                <button id="applyBtn" type="button" class="btn btn-outline-secondary">Apply</button>
+            </div>
+        </div>
+        <div id="content" class="mb-3"></div>
+        <hr />
+        <h3>Invoices prepared for saving</h3>
+        <div id="savedContent"></div>
+    </div>
+    <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
+        <button id="saveBtn" type="button" class="btn btn-primary" form="submitForm">Save</button>
+    </div>
+</div>
 
 @section Scripts {
-    <script src="~/lib/bootstrap-table/extensions/toolbar/bootstrap-table-toolbar.min.js"></script>
+    @*<script src="~/lib/bootstrap-table/extensions/toolbar/bootstrap-table-toolbar.min.js"></script>*@
     <script type="text/javascript">
         window.ajaxOptions = {
             traditional: true,
@@ -112,10 +130,9 @@
                     var recheckFilter = jqXHR.responseJSON.filter["Recheck"];
                     if (recheckFilter !== undefined) {
                         var recheckSelected = window.localStorage.getItem("recheckSelected").split(',');
-                        var opt = recheckFilter.map((val, i) => { return `<option value='${val}' ${recheckSelected.includes(val) ? "selected='selected'" : null }>${val}</option>` });
+                        var opt = recheckFilter.map((val, i) => { return `<option value='${val}' ${recheckSelected.includes(val) ? "selected='selected'" : null}>${val}</option>` });
                         $("#recheck").html(opt).selectpicker('refresh')
                     }
-
                 }
             }
         }
@@ -126,11 +143,16 @@
             }
             var filterForm = $('#submitForm').serializeJSON({ parseNumbers: true });
 
-            return $.extend({}, params, filterForm );
+            return $.extend({}, params, filterForm);
         }
 
         function tagsFormatter(value, row) {
             return value.map((t) => `<span class='badge badge-info'>${t.name}</span>`).join(' ');
+        }
+
+        function invoicesFormatter(value, row) {
+            var unpaid = value - row['paidInvoices'];
+            return unpaid == 0 ? value : `${value} <span class='font-weight-bold'>(${unpaid})<span>`;
         }
 
         $(document).ready(e => {
@@ -148,13 +170,19 @@
                 });
             });
 
+            var $applyBtn = $('#applyBtn').on('click', e => {
+                e.preventDefault();
+                $('#content form').clone().appendTo('#savedContent');
+                $('#content form').remove();
+            })
+
             //on criteria change
-            $('#companyId').on('change', (e) => {
+            $('#companyId').on('change', e => {
                 e.preventDefault();
                 let $fieldset = $submitForm.find('fieldset').attr('disabled', 'disabled');
 
                 $.fn.getCompanySummaryRange(e.currentTarget.value).done((data) => {
-                    var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>`});
+                    var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>` });
                     $("#summaryRange").html(opt).selectpicker('refresh');
 
                     $fieldset.removeAttr('disabled');
@@ -163,17 +191,19 @@
             });
 
             //Create invoice
-            $('#content').on('submit', e => {
+            $('#saveBtn').on('click', e => {
                 e.preventDefault();
-                var $target = $(e.target);
-
-                $target.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                    if (status === 'success') {
-                        form.parent().addClass('bg-success').delay(1500).fadeOut(1000, function () {
-                            $('#content').empty();
-                        });
-                        $table.bootstrapTable('refresh');
-                    }
+                var forms = $('#savedContent form').each(function (index, value) {
+                    $(value).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                        if (status === 'success') {
+                            //var fieldset = form.find('fieldset');
+                            //fieldset.attr('disabled', 'disabled')
+                            form.delay(1500).fadeOut(1000, function () {
+                                $(this).remove();
+                            });
+                            $table.bootstrapTable('refresh');
+                        }
+                    });
                 });
             });
         });

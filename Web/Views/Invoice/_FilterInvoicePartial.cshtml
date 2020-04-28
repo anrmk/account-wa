@@ -5,46 +5,44 @@
 
 <form id="filterInvoicePartialForm">
     <fieldset>
-        <div role="toolbar">
-            <div class="form-row mb-3">
-                <div class="col-6">
-                    <label asp-for="CompanyId"></label>
-                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" data-live-search="true">
-                        <option value="">Choose one of the following...</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <label asp-for="Date"></label>
-                    <input asp-for="Date" type="date" class="form-control" min="0" />
-                </div>
-                <div class="col">
-                    <label asp-for="NumberOfPeriods"></label>
-                    <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" />
-                </div>
+        <div class="form-row mb-3">
+            <div class="col-6">
+                <label asp-for="CompanyId"></label>
+                <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" data-live-search="true">
+                    <option value="">Choose one of the following...</option>
+                </select>
             </div>
+            <div class="col">
+                <label asp-for="Date"></label>
+                <input asp-for="Date" type="date" class="form-control" min="0" />
+            </div>
+            <div class="col">
+                <label asp-for="NumberOfPeriods"></label>
+                <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="0" />
+            </div>
+        </div>
 
-            <div class="form-row mb-3">
-                <div class="col">
-                    <label asp-for="Periods"></label>
-                    <input asp-for="Periods" class="form-control" />
-                </div>
-                <div class="col">
-                    <label asp-for="TypeId"></label>
-                    <select asp-for="TypeId" asp-items="@ViewBag.CustomerTypes" class="form-control" data-live-search="true">
-                        <option value="">Choose one of the following...</option>
-                    </select>
-                </div>
+        <div class="form-row mb-3">
+            <div class="col">
+                <label asp-for="Periods"></label>
+                <input asp-for="Periods" class="form-control" />
             </div>
+            <div class="col">
+                <label asp-for="TypeId"></label>
+                <select asp-for="TypeId" asp-items="@ViewBag.CustomerTypes" class="form-control" data-live-search="true">
+                    <option value="">Choose one of the following...</option>
+                </select>
+            </div>
+        </div>
 
-            <div class="form-check col">
-                <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
-                <label asp-for="RandomSort" class="form-check-label"></label>
-            </div>
+        <div class="form-check col">
+            <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
+            <label asp-for="RandomSort" class="form-check-label"></label>
+        </div>
 
-            <div class="form-check col">
-                <input type="checkbox" class="form-check-input" @(Model.MoreThanOne ? "checked" : "") name="MoreThanOne:boolean" id="MoreThanOne" data-val="true" data-value-type="boolean" />
-                <label asp-for="MoreThanOne" class="form-check-label"></label>
-            </div>
+        <div class="form-check col">
+            <input type="checkbox" class="form-check-input" @(Model.MoreThanOne ? "checked" : "") name="MoreThanOne:boolean" id="MoreThanOne" data-val="true" data-value-type="boolean" />
+            <label asp-for="MoreThanOne" class="form-check-label"></label>
         </div>
     </fieldset>
 </form>
