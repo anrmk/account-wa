@@ -27,7 +27,6 @@ namespace Core.Services.Managers {
             _invoiceManager = invoiceManager;
         }
 
-        //5177 - restore customer
         public async Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
             var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
                         "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
@@ -97,8 +96,6 @@ namespace Core.Services.Managers {
                                         Name = reader["CustomerName"] as string,
                                         PhoneNumber = reader["CustomerPhoneNumber"] as string,
                                         Terms = reader["CustomerTerms"] as string
-                                        //CreditLimit = reader["CustomerCreditLimit"] != DBNull.Value ? (decimal)reader["CustomerCreditLimit"] : (decimal?)null,
-                                        //CreditUtilized = reader["CustomerCreditUtilized"] != DBNull.Value ? (decimal)reader["CustomerCreditUtilized"] : (decimal?)null
                                     };
 
                                     if(reader["CustomerAddressId"] != DBNull.Value) {
@@ -145,6 +142,7 @@ namespace Core.Services.Managers {
                                             CreatedDate = (DateTime)reader["CreditLimitDate"],
                                             Value = reader["CreditLimit"] != DBNull.Value ? (decimal)reader["CreditLimit"] : 0
                                         };
+
                                         customer.CreditLimits = new Collection<CustomerCreditLimitEntity>();
                                         customer.CreditLimits.Add(creditLimit);
                                     }
@@ -156,6 +154,7 @@ namespace Core.Services.Managers {
                                             CreatedDate = (DateTime)reader["CreditUtilizedDate"],
                                             Value = reader["CreditUtilized"] != DBNull.Value ? (decimal)reader["CreditUtilized"] : 0
                                         };
+
                                         customer.CreditUtilizeds = new Collection<CustomerCreditUtilizedEntity>();
                                         customer.CreditUtilizeds.Add(creditUtilized);
                                     }

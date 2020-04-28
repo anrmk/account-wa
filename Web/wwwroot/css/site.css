@@ -109,6 +109,12 @@ div.document p {
   overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
 }
 
+.sidebar-sticky-content {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
 @supports ((position: -webkit-sticky) or (position: sticky)) {
   .sidebar-sticky {
     position: -webkit-sticky;

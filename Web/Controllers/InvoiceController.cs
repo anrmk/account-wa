@@ -232,7 +232,9 @@ namespace Web.Controllers.Api {
         [HttpGet]
         public async Task<Pager<InvoiceListViewModel>> GetInvoices([FromQuery] InvoiceFilterViewModel model) {
             var result = await _businessManager.GetInvoicePage(_mapper.Map<InvoiceFilterDto>(model));
-            return new Pager<InvoiceListViewModel>(_mapper.Map<List<InvoiceListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            
+            var list = _mapper.Map<List<InvoiceListViewModel>>(result.Items);
+            return new Pager<InvoiceListViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
         }
 
         [HttpGet]

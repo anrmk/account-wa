@@ -10,6 +10,7 @@ using Core.Data.Dto;
 using Core.Data.Entities;
 using Core.Extension;
 using Core.Services.Managers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Core.Services.Business {
@@ -431,14 +432,14 @@ namespace Core.Services.Business {
             } else {
                 Expression<Func<CustomerEntity, bool>> wherePredicate = x =>
                     (true)
-                    && (string.IsNullOrEmpty(filter.Search) 
-                        || x.Name.ToLower().Contains(filter.Search.ToLower()) 
+                    && (string.IsNullOrEmpty(filter.Search)
+                        || x.Name.ToLower().Contains(filter.Search.ToLower())
                         || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
                     && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
 
                 #region Sort
-              // var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
+                // var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
                 #endregion
 
                 string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "CreditLimits", "CreditUtilizeds" };
@@ -1000,6 +1001,7 @@ namespace Core.Services.Business {
             DateTime? dateFrom = filter.Date?.AddDays(30 * filter.NumberOfPeriods * -1);
 
             Tuple<List<InvoiceEntity>, int> tuple;
+            var totalAmount = 0m;
 
             #region Sort
             var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
@@ -1007,41 +1009,43 @@ namespace Core.Services.Business {
 
             if(filter.Date != null && dateFrom != null) {
                 var invoices = await _reportManager.GetAgingInvoices(filter.CompanyId.Value, filter.Date.Value, 30, filter.NumberOfPeriods);
-                
+
                 //Поиск в разрезе периода
-                List<InvoiceEntity> newList = new List<InvoiceEntity>();
+                if(filter.Periods.Count > 0) {
+                    List<InvoiceEntity> newList = new List<InvoiceEntity>();
 
-                foreach(var p in filter.Periods) {
-                    var dash = p.LastIndexOf('-');
-                    int filterFrom, filterTo;
+                    foreach(var p in filter.Periods) {
+                        var dash = p.LastIndexOf('-');
+                        int filterFrom, filterTo;
 
-                    if(int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
-                        newList.AddRange(invoices.Where(x =>
-                        true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
-                             && ((filter.Date.Value - x.DueDate).Days <= filterTo)
-                             && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
-                        ));
+                        if(int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
+                            newList.AddRange(invoices.Where(x =>
+                            true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                                 && ((filter.Date.Value - x.DueDate).Days <= filterTo)
+                                 && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                            ));
+                        }
                     }
+                    invoices = newList;
                 }
-            
+
                 //Поиск в разрезе заказчиков с задолжностями более 2х сумм
                 if(filter.MoreThanOne) {
-                    var dublCustomers = newList.GroupBy(x => x.Customer.No)
+                    var dublCustomers = invoices.GroupBy(x => x.Customer.No)
                               .Where(g => g.Count() > 1)
                               .Select(y => y.Key)
                               .ToList();
-                    invoices = newList.Where(x => dublCustomers.Contains(x.Customer.No)).ToList();
-                } else {
-                    invoices = newList;
+                    invoices = invoices.Where(x => dublCustomers.Contains(x.Customer.No)).ToList();
                 }
 
                 invoices = invoices.Where(x =>
                     true
-                    && ((filter.TypeId == null) ||  filter.TypeId == x.Customer.TypeId)
+                    && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
                 ).ToList();
-                
-                invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() :  invoices.OrderBy(sortby.Compile()).ToList();
-                //invoices = invoices.OrderBy(x => filter.RandomSort ? Guid.NewGuid().ToString() : "No").ToList();
+
+                invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() : invoices.OrderBy(sortby.Compile()).ToList();
+
+                totalAmount = invoices.Sum(x => x.Subtotal);
 
                 var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());
@@ -1061,6 +1065,8 @@ namespace Core.Services.Business {
 
                 string[] include = new string[] { "Company", "Customer", "Customer.Type", "Payments" };
 
+                totalAmount = (await _invoiceManager.Filter(wherePredicate)).Sum(x => x.Subtotal);
+
                 tuple = await _invoiceManager.Pager<InvoiceEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             }
 
@@ -1073,7 +1079,7 @@ namespace Core.Services.Business {
             var page = (filter.Offset + filter.Limit) / filter.Limit;
 
             var result = _mapper.Map<List<InvoiceDto>>(list);
-            return new Pager<InvoiceDto>(result, count, page, filter.Limit);
+            return new Pager<InvoiceDto>(result, count, page, filter.Limit, new string[] { totalAmount.ToString(), totalAmount.ToCurrency() });
         }
 
         public async Task<List<InvoiceDto>> GetUnpaidInvoices(long customerId) {

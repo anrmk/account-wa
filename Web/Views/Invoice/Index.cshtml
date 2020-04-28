@@ -3,6 +3,33 @@
     ViewData["Title"] = "Invoices";
 }
 
+@section SidebarContent {
+    <div class="card">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                <span>Total rows:</span>
+                <span><span id="totalRows">0</span></span>
+            </li>
+            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                <span>Total amount:</span>
+                <span><span id="totalAmount">$0.00</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Checked/unchecked:</span>
+                <span><span id="totalChecked">0</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Total checked amount:</span>
+                <span><span id="totalCheckedAmount">$0.00</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Total unchecked amount:</span>
+                <span><span id="balanceAmount">$0.00</span></span>
+            </li>
+        </ul>
+    </div>
+}
+
 
 <div class="card">
     <div class="card-body">
@@ -57,6 +84,7 @@
     </div>
 </div>
 
+
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
@@ -103,16 +131,34 @@
                     });
                 }
             });
+            $table.on('load-success.bs.table', function (e, data, jqXHR) {
+                $('#totalAmount').html(data?.params[1]).data('value', data?.params[0]);
+
+                statPanel();
+            });
 
             $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
                 var selections = $table.bootstrapTable('getSelections');
-                $bulkPaymentBtn.prop('disabled', !selections.length)
+                $bulkPaymentBtn.prop('disabled', !selections.length);
 
-                invoices = $.map(selections, function (row) {
-                    return row.id
-                });
+                statPanel();
             });
         });
+
+        function statPanel() {
+            var options = $table.bootstrapTable('getOptions');
+            var selections = $table.bootstrapTable('getSelections');
+
+            $('#totalRows').html(options.totalRows);
+            $('#totalChecked').html(`${selections.length}/${options.totalRows - selections.length}`);
+
+            var totalCheckedamount = 0, totalAmount = $('#totalAmount').data('value');
+            $.each(selections, function () { totalCheckedamount += this.subtotal || 0; });
+
+            $('#totalCheckedAmount').html(`$${totalCheckedamount.toFixed(2)}`);
+
+            $('#balanceAmount').html(`$${(totalAmount - totalCheckedamount).toFixed(2)}`);
+        }
 
         function queryParams(params) {
             if (!params.search) {
@@ -129,7 +175,7 @@
 
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
-                                    <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
+                                                        <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
         }
     </script>
 }

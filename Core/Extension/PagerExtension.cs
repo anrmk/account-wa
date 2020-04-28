@@ -11,8 +11,9 @@ namespace Core.Extension {
         public int EndPage { get; private set; }
         public IEnumerable<T> Items { get; private set; }
         public Dictionary<string, List<string>> Filter { get; set; } = new Dictionary<string, List<string>>();
+        public string[] Params { get; set; }
 
-        public Pager(IEnumerable<T> list, int totalItems, int? page, int? pageSize) {
+        public Pager(IEnumerable<T> list, int totalItems, int? page, int? pageSize, params string[] args) {
             var t = (decimal)totalItems / (decimal)(pageSize ?? totalItems);
             var totalPages = (int)Math.Ceiling(t);
             var currentPage = page ?? 1;
@@ -36,6 +37,7 @@ namespace Core.Extension {
             StartPage = startPage;
             EndPage = endPage;
             Items = list;
+            Params = args;
         }
     }
 

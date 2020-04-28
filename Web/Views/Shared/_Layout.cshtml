@@ -13,6 +13,9 @@
         <div class="row">
             <nav class="col-lg-2 col-md-3 d-none d-md-block bg-white sidebar">
                 <partial name="_SidebarPartial" />
+                <div class="sidebar-sticky-content">
+                    @RenderSection("SidebarContent", required: false)
+                </div>
             </nav>
 
             <main role="main" class="col-lg-10 col-md-9 ml-sm-auto px-4">

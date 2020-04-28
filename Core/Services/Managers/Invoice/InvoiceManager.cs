@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using Core.Context;
@@ -16,6 +17,7 @@ namespace Core.Services.Managers {
         Task<List<InvoiceEntity>> AllInclude();
         Task<List<InvoiceEntity>> FindUnpaidByCustomerId(long id);
         Task<List<InvoiceEntity>> FindUnpaidByCompanyId(long companyId, DateTime from, DateTime to);
+        Task<decimal> GetTotalAmount(Expression<Func<InvoiceEntity, bool>> where);
     }
 
     public class InvoiceManager: AsyncEntityManager<InvoiceEntity>, IInvoiceManager {
@@ -67,6 +69,12 @@ namespace Core.Services.Managers {
             var invoice = serachPayment.Where(x => x.Payments.Where(y => y.Id == 14474).Any()).FirstOrDefault();
 
             return result;
+        }
+
+        public async Task<decimal> GetTotalAmount(Expression<Func<InvoiceEntity, bool>> where) {
+            return await DbSet
+                .Where(where)
+                .SumAsync(x => x.Subtotal);
         }
     }
 }
