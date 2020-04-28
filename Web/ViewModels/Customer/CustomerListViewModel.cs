@@ -29,8 +29,8 @@ namespace Web.ViewModels {
         [Display(Name = "Total Invoices")]
         public int TotalInvoices { get; set; }
 
-        [Display(Name = "Paid Invoices")]
-        public int PaidInvoices { get; set; }
+        [Display(Name = "Unaid Invoices")]
+        public int UnpaidInvoices { get; set; }
 
         public int Recheck { get; set; }
 

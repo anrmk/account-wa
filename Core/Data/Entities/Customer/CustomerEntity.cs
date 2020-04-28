@@ -53,7 +53,7 @@ namespace Core.Data.Entities {
         public int TotalInvoices { get; set; }
 
         [NotMapped]
-        public int PaidInvoices { get; set; }
+        public int UnpaidInvoices { get; set; }
 
         [NotMapped]
         public int Recheck { get; set; }

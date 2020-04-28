@@ -179,7 +179,6 @@ namespace Core.Services.Business {
 
             #region CUSTOMER TYPES
             var customerTypes = customers.GroupBy(x => x.Type == null ? "No types" : x.Type.Name).ToDictionary(x => x.Key, x => x.Count());
-
             #endregion
 
             return new AgingSummaryReport() {

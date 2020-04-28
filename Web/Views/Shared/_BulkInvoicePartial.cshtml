@@ -4,65 +4,47 @@
     var guid = Guid.NewGuid();
 }
 
-@*<div class="card mb-3">
-    <div class="card-header">
-        <div class="navbar p-0">
-            <span>Summary Range @Model.Header</span>
-            <ul class="nav justify-content-end">
-                <li class="nav-item">
-                    <button class="close" aria-label="Close" onclick="javascript:$(this).close()"><span aria-hidden="true">&times;</span></button>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <div class="card-body">*@
-        <form action="/api/invoice/bulkcreate" method="post" id="@guid">
-            <fieldset>
-                <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
-                <input type="hidden" name="SummaryRangeId" value="@Model.SummaryRangeId" />
-                <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
-                <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
-                <table class="table">
-                    <caption>Summary range: @Model.Header</caption>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>No</th>
-                            <th>Customer</th>
-                            <th>Subtotal</th>
-                            <th>Date</th>
-                            <th>Due Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for(var i = 0; i < Model.Invoices.Count; i++) {
-                            var item = Model.Invoices[i];
-                            <tr>
-                                <td>
-                                    @(i + 1)
-                                    <input type="hidden" name="Customers[]" value="@item.CustomerId" />
-                                    <input type="hidden" name="Invoices[][No]" value="@item.No" />
-                                    <input type="hidden" name="Invoices[][CompanyId]" value="@item.CompanyId" />
-                                    <input type="hidden" name="Invoices[][CustomerId]" value="@item.CustomerId" />
-                                    <input type="hidden" name="Invoices[][Subtotal]" value="@item.Subtotal" />
-                                    <input type="hidden" name="Invoices[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
-                                    <input type="hidden" name="Invoices[][DueDate]" value="@item.DueDate.ToString("yyyy-MM-dd")" />
-                                </td>
-                                <td>@item.No</td>
-                                <td>@item.Customer?.Name</td>
-                                <td>@item.Subtotal</td>
-                                <td>@item.Date</td>
-                                <td>@item.DueDate</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </fieldset>
-        </form>
-    @*</div>
-    <div class="card-footer">
-        <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-outline-primary" form="@guid">Save</button>
-        </div>
-    </div>
-</div>*@
+
+<form action="/api/invoice/bulkcreate" method="post" id="@guid">
+    <fieldset>
+        <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+        <input type="hidden" name="SummaryRangeId" value="@Model.SummaryRangeId" />
+        <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+        <table class="table">
+            <caption>Summary range: @Model.Header</caption>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>No</th>
+                    <th>Customer</th>
+                    <th>Subtotal</th>
+                    <th>Date</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(var i = 0; i < Model.Invoices.Count; i++) {
+                    var item = Model.Invoices[i];
+                <tr>
+                    <td>
+                        @(i + 1)
+                        <input type="hidden" name="Customers[]" value="@item.CustomerId" />
+                        <input type="hidden" name="Invoices[][No]" value="@item.No" />
+                        <input type="hidden" name="Invoices[][CompanyId]" value="@item.CompanyId" />
+                        <input type="hidden" name="Invoices[][CustomerId]" value="@item.CustomerId" />
+                        <input type="hidden" name="Invoices[][Subtotal]" value="@item.Subtotal" />
+                        <input type="hidden" name="Invoices[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                        <input type="hidden" name="Invoices[][DueDate]" value="@item.DueDate.ToString("yyyy-MM-dd")" />
+                    </td>
+                    <td>@item.No</td>
+                    <td>@item.Customer?.Name</td>
+                    <td>@item.Subtotal</td>
+                    <td>@item.Date</td>
+                    <td>@item.DueDate</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </fieldset>
+</form>

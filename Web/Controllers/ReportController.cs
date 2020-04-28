@@ -179,10 +179,17 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> CreateCredits([FromBody]ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var settings = await _crudBusinessManager.GetCompanyExportSettings(model.CompanyId);
-                    if(settings == null) {
-                        return NotFound();
+                    var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                    if(savedItem != null && savedItem.IsPublished) {
+                        // Отправить сообщение о невозможности сохранения
+                        //return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
                     }
+
+                    //var settings = await _crudBusinessManager.GetInvoi(model.CompanyId);
+                    //if(settings == null) {
+                    //    return NotFound();
+
+                    //}
                 }
             } catch(Exception er) {
                 Console.WriteLine(er.Message);

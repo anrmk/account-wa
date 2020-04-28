@@ -98,18 +98,26 @@ namespace Core.Services.Managers {
             var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], CUS.[CreatedDate], CUS.[CreatedBy], " +
                             "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, " +
                             "CACT.[ActiveCreatedDate], CACT.[TotalActive], " +
-                            "RCH.[Recheck], INV.[TotalInvoices], INV.[PaidInvoices], " +
+                            "RCH.[Recheck], INV.[TotalInvoices], INV2.[TotalUnpaidInvoices], " +
                             "TAGS.[TagLinkIds], TAGS.[TagIds], TAGS.[TagNames] " +
                         "FROM [accountWa].[dbo].[Customers] AS CUS " +
                         "LEFT JOIN (SELECT Customer_Id, Count(IsActive) AS TotalActive, MIN([CreatedDate]) AS ActiveCreatedDate " +
                                 "FROM [accountWa].[dbo].[CustomerActivities] " +
                                 "GROUP BY [Customer_Id]) AS CACT " +
                             "ON CACT.[Customer_Id] = CUS.[Id] " +
-                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [TotalInvoices], COUNT(P.[PaymentCount]) AS [PaidInvoices] FROM [accountWa].[dbo].[Invoices] AS I " +
-                                "LEFT JOIN (SELECT [Invoice_Id], SUM(Amount) AS [PaymentAmount], COUNT(*) AS [PaymentCount] FROM [accountWa].[dbo].[Payments] GROUP BY [Invoice_Id]) AS P " +
-                                "ON I.[Id] = P.[Invoice_Id] AND I.[Subtotal] <= P.[PaymentAmount] " +
+
+                        //GET TOTAL INVOICES COUNT
+                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [TotalInvoices] FROM [accountWa].[dbo].[Invoices] AS I " +
                                 "WHERE I.[Date] >= @DATEFROM AND I.[DATE] <= @DATETO GROUP BY I.[Customer_Id]) AS INV " +
                             "ON CUS.[Id] = INV.[Customer_Id] " +
+
+                        //GET UNPAID INVOICES COUNT
+                        "LEFT JOIN (SELECT Customer_Id, COUNT(*) AS [TotalUnpaidInvoices] FROM [accountWa].[dbo].[Invoices] AS I " +
+                                "LEFT JOIN (SELECT [Invoice_Id], SUM(Amount) AS [PaymentAmount], COUNT(*) AS [PaymentCount] FROM [accountWa].[dbo].[Payments] WHERE [Date] <= @DATETO GROUP BY [Invoice_Id]) AS P " +
+                                "ON I.[Id] = P.[Invoice_Id] AND I.[Subtotal] = P.[PaymentAmount] " +
+                                "WHERE I.[Date] < @DATEFROM AND P.[PaymentCount] IS NULL GROUP BY I.[Customer_Id]) AS INV2 " +
+                            "ON CUS.[Id] = INV2.[Customer_Id] " +
+
                         "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[nsi.CustomerType]) AS CUST " +
                             "ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
@@ -117,8 +125,7 @@ namespace Core.Services.Managers {
                         "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [accountWa].[dbo].[CustomerTags] AS CT " +
                             "LEFT JOIN [accountWa].[dbo].[CustomerTagLinks] AS CTL " +
                             "ON CT.[Id] = CTL.[CustomerTag_Id] WHERE CTL.[Customer_Id] = CUS.[Id]) AS TAGS " +
-                        "WHERE CUS.[Company_Id] = @COMPANYID " +
-                        "ORDER BY INV.[PaidInvoices] DESC";
+                        "WHERE CUS.[Company_Id] = @COMPANYID ";
             try {
                 using(var connection = context.Database.GetDbConnection()) {
                     using(var command = connection.CreateCommand()) {
@@ -165,7 +172,7 @@ namespace Core.Services.Managers {
                                 result.Add(new CustomerEntity() {
                                     Id = (long)reader["Id"],
                                     TotalInvoices = reader["TotalInvoices"] != DBNull.Value ? (int)reader["TotalInvoices"] : 0,
-                                    PaidInvoices = reader["PaidInvoices"] != DBNull.Value ? (int)reader["PaidInvoices"] : 0,
+                                    UnpaidInvoices = reader["TotalUnpaidInvoices"] != DBNull.Value ? (int)reader["TotalUnpaidInvoices"] : 0,
                                     No = reader["No"] as string,
                                     Name = reader["Name"] as string,
                                     Description = reader["Description"] as string,

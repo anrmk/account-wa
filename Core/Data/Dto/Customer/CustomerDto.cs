@@ -73,7 +73,7 @@ namespace Core.Data.Dto {
         public int TotalInvoices { get; set; }
 
         [Ignore]
-        public int PaidInvoices { get; set; }
+        public int UnpaidInvoices { get; set; }
 
         [Ignore]
         public int Recheck { get; set; }
