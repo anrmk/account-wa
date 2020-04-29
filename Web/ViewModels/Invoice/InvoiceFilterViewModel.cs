@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Core.Data.Entities.Nsi;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {

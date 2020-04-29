@@ -183,18 +183,41 @@ namespace Web.Controllers.Mvc {
                     if(savedItem != null && savedItem.IsPublished) {
                         // Отправить сообщение о невозможности сохранения
                         //return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
+                    } else {
+                        var date = model.Date.LastDayOfMonth();
+                        var settings = await _crudBusinessManager.GetCompanyAllExportSettings(model.CompanyId);
+
+                        //if(settings.CanSaveCredits) { } //Есть ли возможнсоть сохранения новых значений кредитов
+
+                        var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
+
+                        foreach(var data in report.Data) {
+                            var customer = data.Customer;
+                            var heightCreditUtilized = data.Data["Total"]; //new height credit
+                            var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
+
+                            if(creditUtilizeds != null && creditUtilizeds.Count > 0) {
+                                var creditUtilized = creditUtilizeds.OrderByDescending(x => x.CreatedDate)
+                                    .Where(x => x.CreatedDate <= date).FirstOrDefault();
+
+                                if(creditUtilized != null && creditUtilized.Value < heightCreditUtilized) {
+                                    var dto = new CustomerCreditUtilizedDto() {
+                                        CreatedDate = date,
+                                        Value = heightCreditUtilized, //Округление
+                                        CustomerId = customer.Id
+                                    };
+
+                                    //сохранить
+                                    await _crudBusinessManager.CreateCustomerCreditUtilized(dto);
+                                }
+                            }
+                        }
                     }
-
-                    //var settings = await _crudBusinessManager.GetInvoi(model.CompanyId);
-                    //if(settings == null) {
-                    //    return NotFound();
-
-                    //}
                 }
             } catch(Exception er) {
                 Console.WriteLine(er.Message);
             }
-            return BadRequest();
+            return Ok();
         }
 
         [HttpPost]

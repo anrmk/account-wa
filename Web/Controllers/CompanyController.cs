@@ -80,9 +80,6 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            //var customers = await _businessManager.GetUntiedCustomers(item.Id);
-            //ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
             var summary = await _businessManager.GetCompanyAllSummaryRange(item.Id);
             ViewBag.Summary = summary;
 
@@ -105,17 +102,24 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-                    model = _mapper.Map<CompanyViewModel>(item);
+                    return RedirectToAction(nameof(Edit), new { id = item.Id });
                 }
             } catch(Exception er) {
                 _logger.LogError(er, er.Message);
             }
 
-            var customers = await _businessManager.GetUntiedCustomers(id);
-            ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            //TODO: Change user interface on editing 
+            var address = await _businessManager.GetCompanyAddress(id);
+            ViewBag.Address = address;
+
+            var settings = await _businessManager.GetCompanySettings(id);
+            ViewBag.Settings = settings;
 
             var summary = await _businessManager.GetCompanyAllSummaryRange(id);
             ViewBag.Summary = summary;
+
+            var exportSetting = await _businessManager.GetCompanyAllExportSettings(id);
+            ViewBag.ExportSettings = exportSetting;
 
             return View(model);
         }
@@ -136,6 +140,48 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
+
+        #region ADDRESS
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditAddress(long companyId, CompanyAddressViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var dto = _mapper.Map<CompanyAddressDto>(model);
+                    var item = await _businessManager.UpdateCompanyAddress(companyId, dto);
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return RedirectToAction(nameof(Edit), new { Id = companyId });
+        }
+        #endregion
+
+        #region SETTINGS
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditSettings(long companyId, CompanySettingsViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var companyEntity = await _businessManager.GetCompany(companyId);
+
+                    var dto = _mapper.Map<CompanySettingsDto>(model);
+                    var item = await _businessManager.UpdateCompanySettings(companyId, dto);
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return RedirectToAction(nameof(Edit), new { Id = companyId });
+        }
+        #endregion
 
         #region SUMMARY RANGE
         [HttpGet]

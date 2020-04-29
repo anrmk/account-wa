@@ -27,6 +27,11 @@ namespace Core.Data.Entities {
         public long? AddressId { get; set; }
         public virtual CompanyAddressEntity Address { get; set; }
 
+        [ForeignKey("Settings")]
+        [Column("CompanySettings_Id")]
+        public long? SettingsId { get; set; }
+        public virtual CompanySettingsEntity Settings { get; set; }
+
         [Ignore]
         public virtual ICollection<CustomerEntity> Customers { get; set; }
 

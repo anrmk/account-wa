@@ -33,7 +33,7 @@ namespace Core.Context {
             // CustomerInitializer($"{rootPath}\\Db\\arbear_customers_feb_2020.json");
 
             //InvoceInitializerDraft($"{folder}\\invoices_jan_2020.json");
-           // InvoceInitializerDraft($"{folder}\\invoices_feb_2020.json");
+            // InvoceInitializerDraft($"{folder}\\invoices_feb_2020.json");
             //InvoceInitializerDraft($"{folder}\\invoices_march_2020.json");
 
             //PaymentInitializerDraft($"{folder}\\invoices_jan_2020.json",

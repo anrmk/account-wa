@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -13,6 +12,7 @@ using Core.Services.Business;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
@@ -72,7 +72,7 @@ namespace Web.Controllers.Mvc {
                     if(item == null) {
                         return NotFound();
                     }
-                    
+
                     return RedirectToAction(nameof(Edit), new { id = item.Id });
                 }
             } catch(Exception er) {

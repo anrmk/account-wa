@@ -21,6 +21,7 @@ namespace Core.Services.Managers {
         public async Task<CompanyEntity> FindInclude(long id) {
             return await DbSet
                 .Include(x => x.Address)
+                .Include(x => x.Settings)
                 .Include(x => x.Customers)
                 .Include(x => x.SummaryRange)
                 .Where(x => x.Id == id)

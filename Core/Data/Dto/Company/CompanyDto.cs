@@ -17,6 +17,9 @@ namespace Core.Data.Dto {
         public long? AddressId { get; set; }
         public virtual CompanyAddressDto Address { get; set; }
 
+        public long? SettingsId { get; set; }
+        public virtual CompanySettingsDto Settings { get; set; }
+
         public virtual ICollection<CustomerDto> Customers { get; set; }
 
         [Ignore]

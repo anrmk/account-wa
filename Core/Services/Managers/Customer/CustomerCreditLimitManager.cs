@@ -26,7 +26,7 @@ namespace Core.Services.Managers {
         }
 
         public async Task<CustomerCreditLimitEntity> FindByCustomerIdAndDate(long customerId, DateTime date) {
-            return await DbSet.Where(x => x.CustomerId == customerId && x.CreatedDate == date ).FirstOrDefaultAsync();
+            return await DbSet.Where(x => x.CustomerId == customerId && x.CreatedDate == date).FirstOrDefaultAsync();
         }
 
         public async Task<CustomerCreditLimitEntity> FindInclude(long id) {

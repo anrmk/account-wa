@@ -1,4 +1,5 @@
-﻿    using System.Linq;
+﻿using System.Linq;
+
 using AutoMapper;
 
 using Core.Data.Dto;
@@ -15,12 +16,15 @@ namespace Core {
 
             #region COMPANY
             CreateMap<CompanyDto, CompanyEntity>()
+                .ForMember(d => d.Address, o => o.Ignore())
+                .ForMember(d => d.Settings, o => o.Ignore())
                 .ForMember(d => d.Customers, o => o.Ignore())
                 .ForMember(d => d.SummaryRange, o => o.Ignore())
                 .ReverseMap()
                 ;
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
             CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
+            CreateMap<CompanySettingsDto, CompanySettingsEntity>().ReverseMap();
             CreateMap<CompanyExportSettingsDto, CompanyExportSettingsEntity>()
                 .ForMember(d => d.Fields, o => o.Ignore())
                 .ReverseMap();
@@ -47,7 +51,7 @@ namespace Core {
                 .ReverseMap()
                 // .ForMember(d => d.AccountNumber, o => o.MapFrom(s => s.AccountNumber))
                 .ForMember(d => d.TagsIds, o => o.MapFrom(s => s.TagLinks != null ? s.TagLinks.Select(r => r.TagId) : null))
-                .ForMember(d => d.Tags, o => o.MapFrom(s => s.TagLinks != null ? s.TagLinks.Select(r => new CustomerTagDto() { Id = r.Tag.Id , Name = r.Tag.Name }) : null))
+                .ForMember(d => d.Tags, o => o.MapFrom(s => s.TagLinks != null ? s.TagLinks.Select(r => new CustomerTagDto() { Id = r.Tag.Id, Name = r.Tag.Name }) : null))
                 //.ForMember(d => d.Tags, o => o.MapFrom(s => s.TagLinks != null ? s.TagLinks.Select(r => new CustomerTagDto() { Id = r.Tag.Id, Name = r.Tag.Name }) : null))
                 .ForMember(d => d.IsActive, o => o.MapFrom(s => s.Activities.IsActive()));
             ;

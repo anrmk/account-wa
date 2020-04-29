@@ -21,7 +21,6 @@ namespace Core.Data.Entities {
     }
 
     [Table(name: "CompanyExportSettingsFields")]
-
     public class CompanyExportSettingsFieldEntity: EntityBase<long> {
         [ForeignKey("ExportSettings")]
         [Column("CompanyExportSettings_Id", Order = 0)]

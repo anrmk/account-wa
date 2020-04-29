@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Context;
 using Core.Data.Entities;
 using Core.Data.Entities.Nsi;
+
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 

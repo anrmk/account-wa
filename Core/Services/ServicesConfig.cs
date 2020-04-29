@@ -30,6 +30,7 @@ namespace Core.Services {
             services.AddTransient<ICompanyManager, CompanyManager>();
             services.AddTransient<ICompanyAddressMananger, CompanyAddressManager>();
             services.AddTransient<ICompanySummaryRangeManager, CompanySummaryRangeManager>();
+            services.AddTransient<ICompanySettingsManager, CompanySettingsManager>();
             services.AddTransient<ICompanyExportSettingsManager, CompanyExportSettingsManager>();
             services.AddTransient<ICompanyExportSettingsFieldManager, CompanyExportSettingsFieldManager>();
 

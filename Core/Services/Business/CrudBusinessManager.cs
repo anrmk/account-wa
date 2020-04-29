@@ -10,7 +10,7 @@ using Core.Data.Dto;
 using Core.Data.Entities;
 using Core.Extension;
 using Core.Services.Managers;
-using Microsoft.EntityFrameworkCore;
+
 using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Core.Services.Business {
@@ -23,6 +23,10 @@ namespace Core.Services.Business {
         Task<CompanyDto> CreateCompany(CompanyDto dto);
         Task<CompanyDto> UpdateCompany(long id, CompanyDto dto);
         Task<bool> DeleteCompany(long id);
+
+        Task<CompanyAddressDto> GetCompanyAddress(long id);
+        Task<CompanySettingsDto> CreateCompanyAddress(CompanyAddressDto dto);
+        Task<CompanyAddressDto> UpdateCompanyAddress(long companyId, CompanyAddressDto dto);
 
         Task<CompanyExportSettingsDto> GetCompanyExportSettings(long id);
         Task<List<CompanyExportSettingsDto>> GetCompanyAllExportSettings(long companyId);
@@ -39,6 +43,10 @@ namespace Core.Services.Business {
         Task<CompanySummaryRangeDto> CreateCompanySummaryRange(CompanySummaryRangeDto dto);
         Task<CompanySummaryRangeDto> UpdateCompanySummaryRange(long id, CompanySummaryRangeDto dto);
         Task<bool> DeleteCompanySummaryRange(long id);
+
+        Task<CompanySettingsDto> GetCompanySettings(long id);
+        Task<CompanySettingsDto> CreateCompanySettings(CompanySettingsDto dto);
+        Task<CompanySettingsDto> UpdateCompanySettings(long companyId, CompanySettingsDto dto);
         #endregion
 
         #region CUSTOMER
@@ -124,6 +132,8 @@ namespace Core.Services.Business {
         private readonly IMapper _mapper;
         private readonly ICompanyManager _companyManager;
         private readonly ICompanyAddressMananger _companyAddressManager;
+        private readonly ICompanySettingsManager _companySettingsManager;
+        
         private readonly ICompanySummaryRangeManager _companySummaryManager;
         private readonly ICompanyExportSettingsManager _companyExportSettingsManager;
         private readonly ICompanyExportSettingsFieldManager _companyExportSettingsFieldManager;
@@ -146,6 +156,7 @@ namespace Core.Services.Business {
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICompanyAddressMananger companyAddressManager,
+            ICompanySettingsManager companySettingsManager,
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
@@ -156,6 +167,7 @@ namespace Core.Services.Business {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
+            _companySettingsManager = companySettingsManager;
             _companySummaryManager = companySummaryManager;
             _companyExportSettingsManager = companyExportSettingsManager;
             _companyExportSettingsFieldManager = companyExportSettingsFieldManager;
@@ -214,12 +226,16 @@ namespace Core.Services.Business {
         }
 
         public async Task<CompanyDto> CreateCompany(CompanyDto dto) {
-            var entity = await _companyManager.Create(_mapper.Map<CompanyEntity>(dto));
+            var newEntity = _mapper.Map<CompanyEntity>(dto);
+            newEntity.Address = new CompanyAddressEntity();
+            newEntity.Settings = new CompanySettingsEntity();
+
+            var entity = await _companyManager.Create(newEntity);
             return _mapper.Map<CompanyDto>(entity);
         }
 
         public async Task<CompanyDto> UpdateCompany(long id, CompanyDto dto) {
-            var entity = await _companyManager.FindInclude(id);
+            var entity = await _companyManager.Find(id);
             if(entity == null) {
                 return null;
             }
@@ -227,19 +243,19 @@ namespace Core.Services.Business {
             entity = await _companyManager.Update(newEntity);
 
             #region UPDATE CUSTOMER LIST
-            var customers = await _customerManager.FindByCompanyId(entity.Id);
+            //var customers = await _customerManager.FindByCompanyId(entity.Id);
 
-            //list of customers to delete
-            var customersForDelete = customers.Where(x => !dto.Customers.Any(y => y.Id == x.Id)).ToList();
-            customersForDelete.ForEach(x => x.CompanyId = null);
+            ////list of customers to delete
+            //var customersForDelete = customers.Where(x => !dto.Customers.Any(y => y.Id == x.Id)).ToList();
+            //customersForDelete.ForEach(x => x.CompanyId = null);
 
-            //list of customres to insert
-            var selectedCustomersIds = dto.Customers.Where(x => customers.Where(p => p.Id == x.Id).FirstOrDefault() == null).ToList();
-            var customersForInsert = await _customerManager.FindByIds(selectedCustomersIds.Select(x => x.Id).ToArray());
-            customersForInsert.ForEach(x => x.CompanyId = entity.Id);
+            ////list of customres to insert
+            //var selectedCustomersIds = dto.Customers.Where(x => customers.Where(p => p.Id == x.Id).FirstOrDefault() == null).ToList();
+            //var customersForInsert = await _customerManager.FindByIds(selectedCustomersIds.Select(x => x.Id).ToArray());
+            //customersForInsert.ForEach(x => x.CompanyId = entity.Id);
 
-            var customersUpdate = customersForDelete.Union(customersForInsert);
-            await _customerManager.Update(customersUpdate);
+            //var customersUpdate = customersForDelete.Union(customersForInsert);
+            //await _customerManager.Update(customersUpdate);
             #endregion
 
             return _mapper.Map<CompanyDto>(entity);
@@ -253,6 +269,64 @@ namespace Core.Services.Business {
             int result = await _companyManager.Delete(entity);
             return result != 0;
         }
+
+        #region COMPANY ADDRESS
+        public async Task<CompanyAddressDto> GetCompanyAddress(long id) {
+            var result = await _companyAddressManager.Find(id);
+            return _mapper.Map<CompanyAddressDto>(result);
+        }
+
+        public async Task<CompanySettingsDto> CreateCompanyAddress(CompanyAddressDto dto) {
+            var settings = await _companyAddressManager.Find(dto.Id);
+            if(settings == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map<CompanyAddressEntity>(dto);
+            var entity = await _companyAddressManager.Create(newEntity);
+            return _mapper.Map<CompanySettingsDto>(entity);
+        }
+
+        public async Task<CompanyAddressDto> UpdateCompanyAddress(long companyId, CompanyAddressDto dto) {
+            var entity = await _companyAddressManager.Find(dto.Id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _companyAddressManager.Update(newEntity);
+            return _mapper.Map<CompanyAddressDto>(entity);
+        }
+        #endregion
+
+        #region COMPANY SETTINGS
+        public async Task<CompanySettingsDto> GetCompanySettings(long id) {
+            var result = await _companySettingsManager.Find(id);
+            return _mapper.Map<CompanySettingsDto>(result);
+        }
+
+        public async Task<CompanySettingsDto> CreateCompanySettings(CompanySettingsDto dto) {
+            var settings = await _companySettingsManager.Find(dto.Id);
+            if(settings == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map<CompanySettingsEntity>(dto);
+            var entity = await _companySettingsManager.Create(newEntity);
+            return _mapper.Map<CompanySettingsDto>(entity);
+        }
+
+        public async Task<CompanySettingsDto> UpdateCompanySettings(long companyId, CompanySettingsDto dto) {
+            var entity = await _companySettingsManager.Find(dto.Id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _companySettingsManager.Update(newEntity);
+            return _mapper.Map<CompanySettingsDto>(entity);
+        }
+        #endregion
 
         #region COMPANY SUMMARY RANGE
         /// <summary>

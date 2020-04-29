@@ -27,27 +27,33 @@
     <div class="card-header">
         <ul id="companyTab" class="nav nav-tabs card-header-tabs" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" data-toggle="tab" id="general-tab" href="#general">General</a>
-            </li>
-            @*<li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" id="address-tab" href="#address">Address</a>
-                </li>*@
-            <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="summary-tab" href="#summary">Summary Range</a>
+                <a class="nav-link active" data-toggle="tab" id="general-tab" href="#general" data-form="submitGeneralForm">General</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="customers-tab" href="#customers">Customers</a>
+                <a class="nav-link" data-toggle="tab" id="address-tab" href="#address" data-form="submitAddressForm">Address</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="exportSettings-tab" href="#exportSettings">Export Settings</a>
+                <a class="nav-link" data-toggle="tab" id="summary-tab" href="#summary" data-form="">Summary Range</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="customers-tab" href="#customers" data-form="">Customers</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="exportSettings-tab" href="#settings" data-form="submitSettingsForm">Settings</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="exportSettings-tab" href="#exportSettings" data-form="">Export Settings</a>
             </li>
         </ul>
     </div>
     <div class="card-body">
         <div class="tab-content">
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
-                <form id="submitForm" method="POST" asp-action="Edit">
+                <form id="submitGeneralForm" method="POST" asp-action="Edit">
                     <input asp-for="Id" type="hidden" />
+                    <input asp-for="SettingsId" type="hidden" />
+                    <input asp-for="AddressId" type="hidden" />
+
                     <div class="form-group row mb-3">
                         <div class="col-3">
                             <label asp-for="No">Company Id</label>
@@ -72,16 +78,21 @@
                             <span asp-validation-for="TaxRate" class="text-danger"></span>
                         </div>
                     </div>
+                </form>
+            </div>
 
-                    <input asp-for="AddressId" type="hidden" />
+            <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                <form id="submitAddressForm" method="POST" asp-action="EditAddress">
+                    <input name="CompanyId" type="hidden" value="@Model.Id" />
+                    <input asp-for="Id" type="hidden" value="@Model.AddressId" />
                     <div class="form-group row mb-3">
                         <div class="col-8">
-                            <label asp-for="Address">Address</label>
+                            <label asp-for="Address"></label>
                             <input asp-for="Address" type="text" class="form-control">
                             <span asp-validation-for="Address" class="form-text text-danger"></span>
                         </div>
                         <div class="col-4">
-                            <label asp-for="City">City</label>
+                            <label asp-for="City"></label>
                             <input asp-for="City" type="text" class="form-control">
                             <span asp-validation-for="City" class="form-text text-danger"></span>
                         </div>
@@ -95,30 +106,25 @@
                     </div>
                     <div class="form-group row mb-3">
                         <div class="col">
-                            <label asp-for="Country">Country</label>
+                            <label asp-for="Country"></label>
                             <input asp-for="Country" type="text" class="form-control">
                             <span asp-validation-for="Country" class="form-text text-danger"></span>
                         </div>
 
                         <div class="col">
-                            <label asp-for="State">State</label>
+                            <label asp-for="State"></label>
                             <input asp-for="State" type="text" class="form-control">
                             <span asp-validation-for="State" class="form-text text-danger"></span>
                         </div>
 
                         <div class="col">
-                            <label asp-for="ZipCode">Zip Code</label>
+                            <label asp-for="ZipCode"></label>
                             <input asp-for="ZipCode" type="text" class="form-control">
                             <span asp-validation-for="ZipCode" class="form-text text-danger"></span>
                         </div>
                     </div>
                 </form>
             </div>
-
-            @*<div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
-
-                </div>*@
-
 
             <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
                 <div class="form-group">
@@ -128,10 +134,10 @@
                 <div class="form-group">
                     <div class="list-group">
                         @foreach(var item in ViewBag.Summary) {
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@item.From - @item.To</span>
-                            <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
-                        </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@item.From - @item.To</span>
+                                <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                            </div>
                         }
                     </div>
                 </div>
@@ -157,6 +163,27 @@
                 </table>
             </div>
 
+            <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+                <form id="submitSettingsForm" method="POST" asp-action="EditSettings">
+                    <input name="CompanyId" type="hidden" value="@Model.Id" />
+                    <input asp-for="Id" type="hidden" value="@Model.SettingsId" />
+                    <div class="form-group row mb-3">
+                        <div class="col">
+                            <label asp-for="SaveCreditValues"></label>
+                            <select asp-for="SaveCreditValues" class="form-control">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+
+                        <div class="col">
+                            <label asp-for="RoundType"></label>
+                            <select asp-for="RoundType" asp-items="Html.GetEnumSelectList<Core.Data.Enum.RoundType>()" class="form-control"> </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
             <div class="tab-pane fade" id="exportSettings" role="tabpanel" aria-labelledby="exportSettings-tab">
                 <div class="form-group">
                     <a asp-controller="Company" asp-action="CreateExportSettings" asp-route-id="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
@@ -164,10 +191,10 @@
                 <div class="form-group">
                     <div id="exportSettingsFieldsList" class="list-group">
                         @foreach(var setting in ViewBag.ExportSettings) {
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>@setting.Name</span>
-                            <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
-                        </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@setting.Name</span>
+                                <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                            </div>
                         }
                     </div>
                 </div>
@@ -176,7 +203,7 @@
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-outline-primary" form="submitForm">Save</button>
+            <button id="saveBtn" type="submit" class="btn btn-outline-primary" form="submitGeneralForm">Save</button>
             <a asp-action="index" class="btn btn-link">Cancel</a>
         </div>
     </div>
@@ -205,5 +232,11 @@
         function actionFormatter(value, row) {
             return `<a href='/customer/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
         }
+
+        $(document).ready(function () {
+            $('#companyTab a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                $('#saveBtn').attr('form', $(e.target).data('form'));
+            })
+        });
     </script>
 }

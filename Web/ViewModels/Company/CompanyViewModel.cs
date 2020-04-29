@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+using Core.Data.Enum;
+
 namespace Web.ViewModels {
     public class CompanyListViewModel {
         public long Id { get; set; }
@@ -60,6 +62,16 @@ namespace Web.ViewModels {
 
         [MaxLength(60)]
         public string Country { get; set; }
+        #endregion
+
+        #region SETTINGS
+        public long SettingsId { get; set; }
+
+        [Display(Name = "Round Type")]
+        public RoundType RoundType { get; set; }
+
+        [Display(Name = "Save High Credit Utilized")]
+        public bool SaveCreditValues { get; set; }
         #endregion
 
         public IList<long> Customers { get; set; }

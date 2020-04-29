@@ -21,8 +21,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 
-using Newtonsoft.Json;
-
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {

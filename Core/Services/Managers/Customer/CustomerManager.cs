@@ -73,6 +73,7 @@ namespace Core.Services.Managers {
                 .Where(x => x.CompanyId == id).ToListAsync();
         }
 
+        [Obsolete]
         public async Task<List<CustomerEntity>> FindByCompanyId(long id, DateTime till) {
             var result = await DbSet
                 .Include(x => x.Address)
