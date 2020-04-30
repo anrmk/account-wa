@@ -52,7 +52,8 @@ namespace Core.Services.Business {
                    && (x.Name.Contains(search) || x.Code.Contains(search));
 
             #region Sort
-            var sortby = GetExpression<ReportFieldEntity>(sort ?? "Name");
+            //var sortby = GetExpression<ReportFieldEntity>(sort ?? "Name");
+            var sortby = sort ?? "Name";
             #endregion
 
             Tuple<List<ReportFieldEntity>, int> tuple = await _reportFieldManager.Pager<ReportFieldEntity>(wherePredicate, sortby, offset, limit);

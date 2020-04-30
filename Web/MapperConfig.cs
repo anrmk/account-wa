@@ -108,6 +108,7 @@ namespace Web {
                 .ReverseMap()
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
+                .ForMember(d => d.CustomerTags, o => o.MapFrom(s => s.Customer.Tags != null ? s.Customer.Tags.Select(x => x.Name).ToArray() : new string[] { }))
                 .ForMember(d => d.CustomerType, o => o.MapFrom(s => s.Customer.Type != null ? s.Customer.Type.Name : ""))
                 .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.ToCurrency()))
                 .ForMember(d => d.Balance, o => o.MapFrom(s => s.Balance.ToCurrency()))

@@ -167,8 +167,6 @@ namespace Web.Controllers.Mvc {
         public async Task<ActionResult> EditSettings(long companyId, CompanySettingsViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var companyEntity = await _businessManager.GetCompany(companyId);
-
                     var dto = _mapper.Map<CompanySettingsDto>(model);
                     var item = await _businessManager.UpdateCompanySettings(companyId, dto);
                     if(item == null) {
@@ -406,6 +404,7 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
+        //public async Task<Pager<CompanyListViewModel>> GetCompanies([FromQuery] PagerFilterViewModel model) {
         public async Task<Pager<CompanyListViewModel>> GetCompanies(string search, string sort, string order, int offset = 0, int limit = 10) {
             var result = await _businessManager.GetCompanyPage(search ?? "", sort, order, offset, limit);
             var pager = new Pager<CompanyListViewModel>(_mapper.Map<List<CompanyListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);

@@ -72,11 +72,13 @@
                     <th data-field="no" data-sortable="true">Invoice</th>
                     <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
                     <th data-field="customerType">Customer Type</th>
-                    <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate">Date</th>
+                    <th data-field="customerTags" data-formatter="tagsFormatter">Tags</th>
+                    <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sortable="true">Date</th>
                     <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
                     <th data-field="balance">Balance</th>
-                    <th data-field="amount">Amount</th>
+                    <th data-field="amount" data-sortable="true" data-sort-name="subtotal">Amount</th>
                     <th data-field="status">Status</th>
+                    <th data-field="createdDate" data-sortable="true">Created Date</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                 </tr>
             </thead>
@@ -171,6 +173,10 @@
 
         function nameFormatter(value, row) {
             return `${value} <p class='text-muted'>${row.companyName}</p>`;
+        }
+
+        function tagsFormatter(value, row) {
+            return value.map((t) => `<span class='badge badge-info'>${t.name}</span>`).join(' ');
         }
 
         function actionFormatter(value, row) {

@@ -173,51 +173,82 @@ namespace Web.Controllers.Mvc {
             return BadRequest();
         }
 
-        //TODO: Сделать сохранение новых значение CreditLimit & CreditUtilized
         [HttpPost]
         [Route("createCustomerCredits")]
         public async Task<IActionResult> CreateCredits([FromBody]ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
-                    if(savedItem != null && savedItem.IsPublished) {
-                        // Отправить сообщение о невозможности сохранения
-                        //return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
-                    } else {
+                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+                    if(company != null && company.Settings != null && company.Settings.SaveCreditValues) { //возможно ли сохранение лимитов
                         var date = model.Date.LastDayOfMonth();
-                        var settings = await _crudBusinessManager.GetCompanyAllExportSettings(model.CompanyId);
+                        var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                        //if(settings.CanSaveCredits) { } //Есть ли возможнсоть сохранения новых значений кредитов
+                        var savedReport = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
 
-                        var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
+                        if(savedReport != null && savedReport.IsPublished) {
+                            var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
 
-                        foreach(var data in report.Data) {
-                            var customer = data.Customer;
-                            var heightCreditUtilized = data.Data["Total"]; //new height credit
-                            var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
+                            foreach(var data in report.Data) {
+                                var customer = data.Customer;
+                                var value = data.Data["Total"]; //new height credit
+                                if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                                    value = Math.Ceiling(value);
+                                } else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                                    value = Math.Floor(value);
+                                }
 
-                            if(creditUtilizeds != null && creditUtilizeds.Count > 0) {
-                                var creditUtilized = creditUtilizeds.OrderByDescending(x => x.CreatedDate)
-                                    .Where(x => x.CreatedDate <= date).FirstOrDefault();
+                                var dto = new CustomerCreditUtilizedDto() {
+                                    CreatedDate = date,
+                                    Value = value, //Округление
+                                    CustomerId = customer.Id
+                                };
 
-                                if(creditUtilized != null && creditUtilized.Value < heightCreditUtilized) {
-                                    var dto = new CustomerCreditUtilizedDto() {
-                                        CreatedDate = date,
-                                        Value = heightCreditUtilized, //Округление
-                                        CustomerId = customer.Id
-                                    };
+                                var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
 
-                                    //сохранить
+                                if(creditUtilizeds != null && creditUtilizeds.Count > 0) {
+                                    var creditUtilized = creditUtilizeds.OrderByDescending(x => x.CreatedDate)
+                                        .Where(x => x.CreatedDate <= date).FirstOrDefault();
+
+                                    if(creditUtilized != null) {
+                                        if(creditUtilized.Value < value)
+                                            await _crudBusinessManager.CreateCustomerCreditUtilized(dto);
+                                        else if(creditUtilized.Value > value && creditUtilized.CreatedDate == date) {
+                                            creditUtilized.Value = value;
+                                            await _crudBusinessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                        }
+                                    }
+                                } else {
                                     await _crudBusinessManager.CreateCustomerCreditUtilized(dto);
                                 }
                             }
+                        } else {
+                            return Ok($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
                         }
                     }
                 }
             } catch(Exception er) {
                 Console.WriteLine(er.Message);
             }
-            return Ok();
+            return Ok("Save High Credit Utilized command complete!");
+        }
+
+        [HttpPost]
+        [Route("checkTheAbilityToSaveCredits")]
+        public async Task<IActionResult> CheckAbilityToSaveCresits([FromBody]ReportFilterViewModel model) {
+            var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+            if(company != null  && company.Settings != null) {
+                var settings = company.Settings;
+                var date = model.Date.AddMonths(-1).LastDayOfMonth();
+
+                var savedReport = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
+
+                if(settings != null && settings.SaveCreditValues && savedReport != null && savedReport.IsPublished)
+                    return Ok(true);
+                else
+                    return Ok(false);
+            }
+
+            return Ok(false);
         }
 
         [HttpPost]
@@ -346,60 +377,6 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
-
-        #region OLD EXPORT
-        /*
-        [HttpPost]
-        [Route("Export/{id}")]
-        public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var settings = _crudBusinessManager.GetCompanyExportSettings(id);
-                    if(settings == null) {
-                        return NotFound();
-                    }
-
-                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, _daysPerPeriod, model.NumberOfPeriods);
-
-                    var mem = new MemoryStream();
-                    var writer = new StreamWriter(mem);
-                    var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-                    //csvWriter.Configuration.Delimiter = ";";
-                    //csvWriter.Configuration.HasHeaderRecord = true;
-                    //csvWriter.Configuration.AutoMap<ExpandoObject>();
-
-                    csvWriter.WriteField("No");
-                    csvWriter.WriteField("CustomerName");
-                    foreach(var header in result.Columns) {
-                        csvWriter.WriteField(header);
-                    }
-                    csvWriter.NextRecord();
-
-                    foreach(var summary in result.Data) {
-                        csvWriter.WriteField(summary.AccountNo);
-                        csvWriter.WriteField(summary.CustomerName);
-                        foreach(var column in result.Columns) {
-                            csvWriter.WriteField(summary.Data.ContainsKey(column) ? summary.Data[column].ToString() : "");
-                        }
-
-                        csvWriter.NextRecord();
-                    }
-
-                    writer.Flush();
-                    //var res = Encoding.UTF8.GetString(mem.ToArray());
-                    mem.Position = 0;
-
-                    FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
-                    fileStreamResult.FileDownloadName = $"{result.CompanyName}_Report_{DateTime.Now.ToShortTimeString()}.csv";
-                    return fileStreamResult;
-                }
-            } catch(Exception er) {
-                Console.Write(er.Message);
-            }
-            return BadRequest();
-        }*/
-        #endregion
     }
 }
 

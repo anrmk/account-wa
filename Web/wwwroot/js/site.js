@@ -18,7 +18,8 @@ $(document).ready(() => {
     $.validator.unobtrusive.options = settings;
 
 }).ajaxError((e, jqxhr, settings, thrownError) => {
-    window.console.log("Error", jqxhr);
+    window.console.log("Error", jqxhr.responseText);
+    alert(jqxhr.responseText);
 });;
 
 $.fn.dialog = function (header, callback) {

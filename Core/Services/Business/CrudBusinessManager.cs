@@ -201,7 +201,7 @@ namespace Core.Services.Business {
                    && (x.No.Contains(search) || x.Name.Contains(search));
 
             #region Sort
-            var sortby = GetExpression<CompanyEntity>(sort ?? "Name");
+            var sortby = sort ?? "Name";
             #endregion
 
             string[] include = new string[] { "Address" };
@@ -319,7 +319,16 @@ namespace Core.Services.Business {
         public async Task<CompanySettingsDto> UpdateCompanySettings(long companyId, CompanySettingsDto dto) {
             var entity = await _companySettingsManager.Find(dto.Id);
             if(entity == null) {
-                return null;
+                var companyEntity = await _companyManager.Find(companyId);
+                if(companyEntity == null) {
+                    return null;
+                }
+                if(!companyEntity.SettingsId.HasValue) {
+                    entity = await _companySettingsManager.Create(_mapper.Map<CompanySettingsEntity>(dto));
+                    companyEntity.SettingsId = entity.Id;
+                    await _companyManager.Update(companyEntity);
+                    return _mapper.Map<CompanySettingsDto>(entity);
+                }
             }
 
             var newEntity = _mapper.Map(dto, entity);
@@ -476,7 +485,8 @@ namespace Core.Services.Business {
             List<string> recheckFilter = new List<string>();
 
             #region Sort
-            var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<CustomerEntity>(filter.Sort ?? "No");
+            //var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<CustomerEntity>(filter.Sort ?? "No");
+            var sortby = filter.RandomSort ? "" : filter.Sort ?? "No";
             #endregion
 
             if(filter.DateFrom.HasValue && filter.DateTo.HasValue) {
@@ -499,8 +509,15 @@ namespace Core.Services.Business {
                    //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
-                customers = filter.Order.Equals("desc") ? customers.OrderByDescending(sortby.Compile()).ToList() : customers.OrderBy(sortby.Compile()).ToList();
-                var filteredCustomers = customers.Skip(filter.Offset ?? 0).Take(filter.Limit ?? customers.Count()).ToList();
+                //TODO: BUG FIX
+                customers = string.IsNullOrEmpty(sortby) ?
+                    customers.OrderBy(x => Guid.NewGuid().ToString()).ToList() :
+                    SortExtension.OrderByDynamic(customers.AsQueryable(), sortby, filter.Order.Equals("desc")).ToList();
+                //customers = filter.Order.Equals("desc") ? customers.OrderByDescending(sortby.Compile()).ToList() : customers.OrderBy(sortby.Compile()).ToList();
+                //SortExtension.OrderByDynamic(query, order, descSort)
+
+                //var filteredCustomers = customers.Skip(filter.Offset ?? 0).Take(filter.Limit ?? customers.Count()).ToList();
+                var filteredCustomers = customers.Skip(filter.Offset).Take(filter.Limit).ToList();
 
                 tuple = new Tuple<List<CustomerEntity>, int>(filteredCustomers, customers.Count());
             } else {
@@ -511,10 +528,6 @@ namespace Core.Services.Business {
                         || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
                     && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
-
-                #region Sort
-                // var sortby = GetExpression<CustomerEntity>(filter.Sort ?? "Name");
-                #endregion
 
                 string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "CreditLimits", "CreditUtilizeds" };
 
@@ -976,12 +989,12 @@ namespace Core.Services.Business {
                 || x.Name.ToLower().Contains(filter.Search.ToLower()));
 
             #region Sort
-            Expression<Func<CustomerTagEntity, string>> orderPredicate = x => x.Id.ToString();
+            var sortBy = "Id";
             #endregion
 
             string[] include = new string[] { };
 
-            Tuple<List<CustomerTagEntity>, int> tuple = await _customerTagManager.Pager<CustomerTagEntity>(wherePredicate, orderPredicate, filter.Offset, filter.Limit, include);
+            Tuple<List<CustomerTagEntity>, int> tuple = await _customerTagManager.Pager<CustomerTagEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -1078,7 +1091,7 @@ namespace Core.Services.Business {
             var totalAmount = 0m;
 
             #region Sort
-            var sortby = filter.RandomSort ? x => Guid.NewGuid().ToString() : GetExpression<InvoiceEntity>(filter.Sort ?? "No");
+            var sortby = filter.RandomSort ? "" : filter.Sort ?? "No";
             #endregion
 
             if(filter.Date != null && dateFrom != null) {
@@ -1117,11 +1130,17 @@ namespace Core.Services.Business {
                     && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
                 ).ToList();
 
-                invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() : invoices.OrderBy(sortby.Compile()).ToList();
+                //TODO: BUG FIX
+                invoices  = string.IsNullOrEmpty(sortby) ?
+                    invoices.OrderBy(x => Guid.NewGuid().ToString()).ToList() :
+                    SortExtension.OrderByDynamic(invoices.AsQueryable(), sortby, filter.Order.Equals("desc")).ToList();
+
+                //invoices = filter.Order.Equals("desc") ? invoices.OrderByDescending(sortby.Compile()).ToList() : invoices.OrderBy(sortby.Compile()).ToList();
 
                 totalAmount = invoices.Sum(x => x.Subtotal);
 
-                var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
+                //var filterInvoices = invoices.Skip(filter.Offset ?? 0).Take(filter.Limit ?? invoices.Count()).ToList();
+                var filterInvoices = invoices.Skip(filter.Offset).Take(filter.Limit).ToList();
                 tuple = new Tuple<List<InvoiceEntity>, int>(filterInvoices, invoices.Count());
             } else {
                 #region Filter
@@ -1203,7 +1222,7 @@ namespace Core.Services.Business {
             //&& (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
 
             #region Sort
-            Expression<Func<PaymentEntity, string>> orderPredicate = x => x.Id.ToString();
+            var orderPredicate = "Id";
             #endregion
 
             string[] include = new string[] { "Invoice" };
