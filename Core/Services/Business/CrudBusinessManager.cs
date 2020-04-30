@@ -1105,7 +1105,7 @@ namespace Core.Services.Business {
                         var dash = p.LastIndexOf('-');
                         int filterFrom, filterTo;
 
-                        if(int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
+                        if(dash != -1 && int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
                             newList.AddRange(invoices.Where(x =>
                             true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
                                  && ((filter.Date.Value - x.DueDate).Days <= filterTo)
@@ -1128,6 +1128,8 @@ namespace Core.Services.Business {
                 invoices = invoices.Where(x =>
                     true
                     && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
+                    && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
+                    && ((filter.DateTo == null) || filter.DateTo >= x.Date)
                 ).ToList();
 
                 //TODO: BUG FIX
@@ -1153,10 +1155,12 @@ namespace Core.Services.Business {
                         )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
                    && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
-                   && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId);
+                   && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
+                   && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
+                   && ((filter.DateTo == null) || filter.DateTo >= x.Date);
                 #endregion
 
-                string[] include = new string[] { "Company", "Customer", "Customer.Type", "Payments" };
+                string[] include = new string[] { "Company", "Customer", "Customer.Type", "Customer.Activities",  "Payments" };
 
                 totalAmount = (await _invoiceManager.Filter(wherePredicate)).Sum(x => x.Subtotal);
 

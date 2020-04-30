@@ -16,5 +16,8 @@ namespace Core.Data.Dto {
         //public int? To { get; set; }
         public List<string> Periods { get; set; }
         public bool MoreThanOne { get; set; }
+
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
     }
 }

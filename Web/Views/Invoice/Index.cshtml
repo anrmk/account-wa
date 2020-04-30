@@ -53,6 +53,8 @@
                     <input type="hidden" asp-for="NumberOfPeriods" />
                     <input type="hidden" asp-for="Periods" />
                     <input type="hidden" asp-for="TypeId" />
+                    <input type="hidden" asp-for="DateFrom" />
+                    <input type="hidden" asp-for="DateTo" />
                     <input type="hidden" name="RandomSort:boolean" id="RandomSort" data-val="@Model.RandomSort" data-value-type="boolean" value="@Model.RandomSort" />
                     <input type="hidden" name="MoreThanOne:boolean" id="MoreThanOne" data-val="@Model.MoreThanOne" data-value-type="boolean" value="@Model.MoreThanOne" />
                 </form>
@@ -71,14 +73,14 @@
                     <th data-checkbox="true"></th>
                     <th data-field="no" data-sortable="true">Invoice</th>
                     <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
-                    <th data-field="customerType">Customer Type</th>
+                    <th data-field="customerType">Type</th>
                     <th data-field="customerTags" data-formatter="tagsFormatter">Tags</th>
+                    <th data-field="customerCreatedDate" data-formatter="$.fn.bootstrapTable.formatDate">Customer<br />Created Date</th>
                     <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sortable="true">Date</th>
                     <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
                     <th data-field="balance">Balance</th>
                     <th data-field="amount" data-sortable="true" data-sort-name="subtotal">Amount</th>
                     <th data-field="status">Status</th>
-                    <th data-field="createdDate" data-sortable="true">Created Date</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                 </tr>
             </thead>
@@ -176,7 +178,7 @@
         }
 
         function tagsFormatter(value, row) {
-            return value.map((t) => `<span class='badge badge-info'>${t.name}</span>`).join(' ');
+            return value.map((t) => `<span class='badge badge-info'>${t}</span>`).join(' ');
         }
 
         function actionFormatter(value, row) {

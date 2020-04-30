@@ -30,6 +30,7 @@ namespace Web.ViewModels {
         public string CustomerName { get; set; }
         public string CustomerType { get; set; }
         public string[] CustomerTags { get; set; }
+        public string CustomerCreatedDate { get; set; }
 
         public string Status { get; set; }
 

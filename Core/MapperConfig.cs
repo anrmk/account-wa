@@ -21,6 +21,7 @@ namespace Core {
                 .ForMember(d => d.Customers, o => o.Ignore())
                 .ForMember(d => d.SummaryRange, o => o.Ignore())
                 .ReverseMap()
+
                 ;
             CreateMap<CompanyAddressDto, CompanyAddressEntity>().ReverseMap();
             CreateMap<CompanySummaryRangeDto, CompanySummaryRangeEntity>().ReverseMap();
@@ -36,7 +37,44 @@ namespace Core {
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Payments, o => o.Ignore())
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(d => d.Company, o => o.MapFrom(s => new CompanyDto() {
+                    Id = s.Company.Id,
+                    No = s.Company.No,
+                    Name = s.Company.Name,
+                    PhoneNumber = s.Company.PhoneNumber,
+                    AddressId = s.Company.AddressId,
+                    SettingsId = s.Company.SettingsId,
+                    TaxRate = s.Company.TaxRate,
+                    CreatedBy = s.Company.CreatedBy,
+                    CreatedDate = s.Company.CreatedDate,
+                    UpdatedBy = s.Company.UpdatedBy,
+                    UpdatedDate = s.Company.UpdatedDate,
+                }))
+                .ForMember(d => d.Customer, o => o.MapFrom(s => new CustomerDto() {
+                    Id = s.Customer.Id,
+                    No = s.Customer.No,
+                    Name = s.Customer.Name,
+                    AddressId = s.Customer.AddressId,
+                    CompanyId = s.Customer.CompanyId,
+                    TypeId = s.Customer.TypeId,
+                    Type = s.Customer.Type != null ? new NsiDto {
+                        Id = s.Customer.Type.Id,
+                        Code = s.Customer.Type.Code,
+                        Name = s.Customer.Type.Name
+                    } : null,
+                    Activities = s.Customer.Activities != null ? s.Customer.Activities.Select(x => new CustomerActivityDto() {
+                        Id = x.Id,
+                        CustomerId = x.CustomerId,
+                        CreatedDate = x.CreatedDate,
+                        IsActive = x.IsActive
+                    }).ToList() : null,
+                    CreatedBy = s.Customer.CreatedBy,
+                    CreatedDate = s.Customer.CreatedDate,
+                    UpdatedBy = s.Customer.UpdatedBy,
+                    UpdatedDate = s.Customer.UpdatedDate
+                }))
+                ;
 
             #endregion
 

@@ -232,8 +232,14 @@ namespace Web.Controllers.Api {
         [HttpGet]
         public async Task<Pager<InvoiceListViewModel>> GetInvoices([FromQuery] InvoiceFilterViewModel model) {
             var result = await _businessManager.GetInvoicePage(_mapper.Map<InvoiceFilterDto>(model));
-
             var list = _mapper.Map<List<InvoiceListViewModel>>(result.Items);
+            
+            foreach(var invoice in list) {
+                var tags = await _businessManager.GetCustomerTags(invoice.CustomerId);
+                if(tags != null)
+                    invoice.CustomerTags = tags.Select(x => x.Name).ToArray();
+            }
+
             return new Pager<InvoiceListViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
         }
 

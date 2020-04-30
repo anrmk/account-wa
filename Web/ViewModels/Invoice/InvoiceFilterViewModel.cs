@@ -31,5 +31,13 @@ namespace Web.ViewModels {
         //public CustomerTypeEntity CustomerType = "";
         [Display(Name = "Customer type")]
         public long? TypeId { get; set; }
+
+        [Display(Name = "Date From")]
+        [DataType(DataType.Date)]
+        public DateTime? DateFrom { get; set; }
+
+        [Display(Name = "Date To")]
+        [DataType(DataType.Date)]
+        public DateTime? DateTo { get; set; }
     }
 }
