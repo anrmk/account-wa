@@ -133,8 +133,8 @@ namespace Web.Controllers.Mvc {
 
             var model = new CustomerFilterViewModel() {
                 CompanyId = selectedCompany?.Id ?? 0,
-                DateFrom = DateTime.Now,
-                DateTo = DateTime.Now.AddDays(30)
+                DateFrom = DateTime.Now.FirstDayOfMonth(),
+                DateTo = DateTime.Now.LastDayOfMonth()
             };
 
             var summaryRange = await _businessManager.GetCompanyAllSummaryRange(selectedCompany?.Id ?? 0);
