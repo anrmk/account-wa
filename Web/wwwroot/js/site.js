@@ -17,10 +17,14 @@ $(document).ready(() => {
     $.validator.setDefaults(settings);
     $.validator.unobtrusive.options = settings;
 
+}).ajaxStart(() => {
+    $('form fieldset').attr('disabled', 'disabled');
+}).ajaxStop(() => {
+    $('form fieldset').removeAttr('disabled')
 }).ajaxError((e, jqxhr, settings, thrownError) => {
     window.console.log("Error", jqxhr.responseText);
     alert(jqxhr.responseText);
-});;
+});
 
 $.fn.dialog = function (header, callback) {
     callback = callback || function () { };

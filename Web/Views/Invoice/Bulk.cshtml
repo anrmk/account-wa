@@ -39,6 +39,7 @@
                         <select asp-for="TagsIds" asp-items="@ViewBag.Tags" name="TagsIds[]" class="form-control selectpicker"
                                 multiple
                                 data-live-search="true">
+                            <option value="0">No tags</option>
                         </select>
                     </div>
                     <div class="col-3">
@@ -64,7 +65,7 @@
                     <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
                     <label asp-for="RandomSort" class="form-check-label"></label>
                 </div>
-                <button class="btn btn-outline-primary" id="filterApplyBtn">Save</button>
+                <button class="btn btn-outline-primary" id="filterApplyBtn">Filter</button>
             </fieldset>
 
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"

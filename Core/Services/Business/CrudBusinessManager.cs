@@ -103,6 +103,7 @@ namespace Core.Services.Business {
         Task<InvoiceDto> CreateInvoice(InvoiceDto dto);
         Task<List<InvoiceDto>> CreateInvoice(List<InvoiceDto> list);
         Task<bool> DeleteInvoice(long id);
+        Task<bool> DeleteInvoice(long[] ids);
         #endregion
 
         #region PAYMENT
@@ -501,12 +502,12 @@ namespace Core.Services.Business {
                        || x.Name.ToLower().Contains(filter.Search.ToLower())
                        || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
-                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) || x.TagLinks.Where(y => filter.TagsIds.Contains(y.TagId)).Count() > 0)
+                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) 
+                        || x.TagLinks.Where(y => filter.TagsIds.Contains(y.TagId)).Count() > 0 || (filter.TagsIds.Contains(0) && x.TagLinks.Count == 0))
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
                     && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
                     && ((createdMonth == null) || x.CreatedDate.Month == createdMonth)
                     && ((createdYear == null) || x.CreatedDate.Year == createdYear)
-                   //|| x.TagLinks.Where(x => filter.TagsId.Contains(x.TagId)).Count() > 0)
                    ).ToList();
 
                 //TODO: BUG FIX
@@ -1102,16 +1103,29 @@ namespace Core.Services.Business {
                     List<InvoiceEntity> newList = new List<InvoiceEntity>();
 
                     foreach(var p in filter.Periods) {
-                        var dash = p.LastIndexOf('-');
+                        //var dash = p.Contains('+') ? p.LastIndexOf('+') : p.LastIndexOf('-');
                         int filterFrom, filterTo;
 
-                        if(dash != -1 && int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
-                            newList.AddRange(invoices.Where(x =>
-                            true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
-                                 && ((filter.Date.Value - x.DueDate).Days <= filterTo)
-                                 && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
-                            ));
+                        if(p.Contains('+')) {
+                            var dash = p.LastIndexOf('+');
+                            if(dash != -1 && int.TryParse(p.Substring(0, dash), out filterFrom)) {
+                                newList.AddRange(invoices.Where(x =>
+                                true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                                     && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                                ));
+                            }
+                        } else if(p.Contains('-')) {
+                            var dash = p.LastIndexOf('-');
+                            if(dash != -1 && int.TryParse(p.Substring(0, dash), out filterFrom) && int.TryParse(p.Substring(dash + 1), out filterTo)) {
+                                newList.AddRange(invoices.Where(x =>
+                                true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                                     && ((filter.Date.Value - x.DueDate).Days <= filterTo)
+                                     && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                                ));
+                            }
                         }
+
+                        
                     }
                     invoices = newList;
                 }
@@ -1196,6 +1210,18 @@ namespace Core.Services.Business {
             }
             int result = await _invoiceManager.Delete(entity);
             return result != 0;
+        }
+
+        public async Task<bool> DeleteInvoice(long[] ids) {
+            var invoices = await _invoiceManager.FindByIds(ids);
+            var hasPayments = invoices.Any(x => x.Payments != null && x.Payments.Count > 0);
+
+            if(!hasPayments) {
+                int result = await _invoiceManager.Delete(invoices);
+                return result != 0;
+            }
+            
+            return false;
         }
 
         public async Task<InvoiceDto> UpdateInvoice(long id, InvoiceDto dto) {

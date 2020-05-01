@@ -211,6 +211,17 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<ActionResult> BulkDelete(long[] ids) {
+            if(ids.Length > 0) {
+                var result = await _businessManager.DeleteInvoice(ids);
+                return Ok(result);
+            }
+
+            return Ok(false);
+        }
     }
 }
 
@@ -233,7 +244,7 @@ namespace Web.Controllers.Api {
         public async Task<Pager<InvoiceListViewModel>> GetInvoices([FromQuery] InvoiceFilterViewModel model) {
             var result = await _businessManager.GetInvoicePage(_mapper.Map<InvoiceFilterDto>(model));
             var list = _mapper.Map<List<InvoiceListViewModel>>(result.Items);
-            
+
             foreach(var invoice in list) {
                 var tags = await _businessManager.GetCustomerTags(invoice.CustomerId);
                 if(tags != null)

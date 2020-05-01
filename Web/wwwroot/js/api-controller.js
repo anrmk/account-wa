@@ -51,7 +51,7 @@ $.fn.uploadFile = function (callback) {
 
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
-    var fieldset = this.find('fieldset');
+    //var fieldset = this.find('fieldset');
 
     var options = $.extend({
         'url': this.attr('action'),
@@ -61,12 +61,12 @@ $.fn.ajaxSubmit = function (opt, callback) {
         'contentType': 'application/json; charset=utf-8'
     }, opt);
 
-    fieldset.attr('disabled', 'disabled');
+    //fieldset.attr('disabled', 'disabled');
     $.ajax(options).done((data, status, jqXHR) => {
-        fieldset.removeAttr('disabled');
+        //fieldset.removeAttr('disabled');
         callback(this, data, status, jqXHR);
     }).fail((jqXHR, status) => {
-        fieldset.removeAttr('disabled');
+        //fieldset.removeAttr('disabled');
         callback(this, null, status, jqXHR);
     });
 }

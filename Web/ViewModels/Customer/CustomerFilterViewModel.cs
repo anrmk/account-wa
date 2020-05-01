@@ -9,12 +9,12 @@ namespace Web.ViewModels {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
 
-        [Display(Name = "Period Date")]
+        [Display(Name = "Date From")]
         [DataType(DataType.Date)]
         [FromQuery]
         public DateTime? DateFrom { get; set; }
 
-        [Display(Name = "Period Date")]
+        [Display(Name = "Date To")]
         [DataType(DataType.Date)]
         [FromQuery]
         public DateTime? DateTo { get; set; }
