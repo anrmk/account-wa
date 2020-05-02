@@ -329,12 +329,17 @@ namespace Web.Controllers.Api {
                 return BadRequest(model);
             }
 
-            var invoiceList = _mapper.Map<List<InvoiceDto>>(model.Invoices);
-            var result = await _businessManager.CreateInvoice(invoiceList);
-            if(result == null || result.Count == 0) {
-                return BadRequest(model);
+            if(model.Invoices != null && model.Invoices?.Count != 0) {
+                var invoiceList = _mapper.Map<List<InvoiceDto>>(model.Invoices);
+
+                var result = await _businessManager.CreateInvoice(invoiceList);
+                if(result == null || result.Count == 0) {
+                    return BadRequest(model);
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            
+            return Ok("");
         }
     }
 }

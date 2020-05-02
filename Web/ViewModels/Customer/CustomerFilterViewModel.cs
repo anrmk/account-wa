@@ -33,6 +33,12 @@ namespace Web.ViewModels {
         [Display(Name = "Recheck")]
         public List<int> Recheck { get; set; }
 
+        [Display(Name = "Current Invoices")]
+        public int? CurrentInvoices { get; set; }
+
+        [Display(Name = "Late Invoices")]
+        public int? LateInvoices { get; set; }
+
         [Display(Name = "Created Date")]
         [DataType(DataType.Date)]
         [FromQuery]

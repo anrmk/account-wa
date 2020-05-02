@@ -16,25 +16,25 @@
         <form class="need-validation" id="submitForm" action="/api/invoice/bulk" method="post">
             <fieldset>
                 <div class="form-row mb-3">
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="CompanyId"></label>
                         <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required></select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="SummaryRangeId"></label>
                         <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control" required></select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="DateFrom"></label>
                         <input asp-for="DateFrom" type="date" class="form-control" required>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="DateTo"></label>
                         <input asp-for="DateTo" type="date" class="form-control" required>
                     </div>
                 </div>
                 <div class="form-row mb-3">
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="TagsIds"></label>
                         <select asp-for="TagsIds" asp-items="@ViewBag.Tags" name="TagsIds[]" class="form-control selectpicker"
                                 multiple
@@ -42,30 +42,42 @@
                             <option value="0">No tags</option>
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="TypeIds"></label>
                         <select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
                                 multiple
                                 data-live-search="true">
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="Recheck">Recheck</label>
                         <select id="recheck" name="Recheck[]" class="form-control selectpicker" data-field="type"
                                 multiple
                                 data-live-search="true">
                         </select>
                     </div>
-                    <div class="col-3">
+                    <div class="col-md-3">
                         <label asp-for="CreatedDate"></label>
                         <input asp-for="CreatedDate" type="month" class="form-control">
                     </div>
                 </div>
+                <div class="form-row mb-3">
+                    <div class="col-md-2">
+                        <label asp-for="CurrentInvoices"></label>
+                        <input asp-for="CurrentInvoices" class="form-control" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="LateInvoices"></label>
+                        <input asp-for="LateInvoices" class="form-control" />
+                    </div>
+                </div>
+
                 <div class="form-check mb-3 col">
                     <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
                     <label asp-for="RandomSort" class="form-check-label"></label>
                 </div>
-                <button class="btn btn-outline-primary" id="filterApplyBtn">Filter</button>
+                <button type="button" class="btn btn-outline-primary" id="filterApplyBtn">Filter</button>
             </fieldset>
 
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
@@ -86,7 +98,8 @@
                         <th data-formatter="tagsFormatter" data-field="tags" scope="col">Tags</th>
                         <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
                         <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>
-                        <th data-field="totalInvoices" data-formatter="invoicesFormatter" scope="col" data-width="10" data-width-unit="%">Invoices</th>
+                        <th data-field="totalInvoices" scope="col" data-sortable="true">Current Invoices</th>
+                        <th data-field="unpaidInvoices" scope="col" data-sortable="true">Late Invoices</th>
                         <th data-field="terms" scope="col" data-width="20" data-width-unit="%">Terms</th>
                     </tr>
                 </thead>
@@ -94,27 +107,35 @@
         </form>
     </div>
     <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
-        <button type="submit" class="btn btn-primary" form="submitForm">Generate</button>
+        <button type="button" class="btn btn-primary" id="generateBtn">Generate</button>
         <a asp-action="index" class="btn btn-link">Cancel</a>
     </div>
-
 </div>
 
-<div class="card mb-3">
-    <div class="card-body">
-        <h3>Formed invoices</h3>
-        <div class="btn-toolbar mb-3">
-            <div class="btn-group mr-2">
-                <button id="applyBtn" type="button" class="btn btn-outline-secondary">Apply</button>
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+                    <h5 class="m-0">Formed invoices</h5>
+                    <button id="applyBtn" type="button" class="btn btn-sm btn-outline-secondary">Apply <i class="fa fa-chevron-right ml-1"></i></button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="content"></div>
             </div>
         </div>
-        <div id="content" class="mb-3"></div>
-        <hr />
-        <h3>Invoices prepared for saving</h3>
-        <div id="savedContent"></div>
     </div>
-    <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
-        <button id="saveBtn" type="button" class="btn btn-primary" form="submitForm">Save</button>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5>Invoices prepared for saving</h5></div>
+            <div class="card-body">
+                <div id="savedContent"></div>
+            </div>
+            <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
+                <button id="saveBtn" type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -164,10 +185,14 @@
                 $table.bootstrapTable('refresh');
             });
 
-            var $submitForm = $('#submitForm').on('submit', e => {
+            var $generateBtn = $('#generateBtn').on('click', e => {
                 e.preventDefault();
-                $(e.currentTarget).ajaxSubmit({}, (target, data, status) => {
+                $(e.currentTarget).disabled();
+
+                var submitForm = $('#submitForm');
+                submitForm.ajaxSubmit({}, (target, data, status) => {
                     status === 'success' ? $('#content').html(data) : $('#content').empty();
+                    $(e.currentTarget).enabled();
                 });
             });
 
@@ -180,13 +205,13 @@
             //on criteria change
             $('#companyId').on('change', e => {
                 e.preventDefault();
-                let $fieldset = $submitForm.find('fieldset').attr('disabled', 'disabled');
+                //let $fieldset = $submitForm.find('fieldset').attr('disabled', 'disabled');
 
                 $.fn.getCompanySummaryRange(e.currentTarget.value).done((data) => {
                     var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>` });
                     $("#summaryRange").html(opt).selectpicker('refresh');
 
-                    $fieldset.removeAttr('disabled');
+                    //$fieldset.removeAttr('disabled');
                     $table.bootstrapTable('refresh');
                 });
             });
@@ -194,18 +219,23 @@
             //Create invoice
             $('#saveBtn').on('click', e => {
                 e.preventDefault();
-                var forms = $('#savedContent form').each(function (index, value) {
-                    $(value).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                        if (status === 'success') {
-                            //var fieldset = form.find('fieldset');
-                            //fieldset.attr('disabled', 'disabled')
-                            form.delay(1500).fadeOut(1000, function () {
-                                $(this).remove();
-                            });
-                            $table.bootstrapTable('refresh');
-                        }
+
+                var forms = $('#savedContent form');
+                if (forms.length > 0) {
+                    $(e.currentTarget).disabled();
+                    forms.each(function (index, value) {
+                        $(value).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                            if (status === 'success') {
+                                form.delay(500).fadeOut(500, function () {
+                                    $(this).remove();
+                                });
+                            }
+                        });
+                    }).promise().done(function () {
+                        $(e.currentTarget).enabled();
+                        $table.bootstrapTable('refresh');
                     });
-                });
+                }
             });
         });
 

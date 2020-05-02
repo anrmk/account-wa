@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -508,6 +509,8 @@ namespace Core.Services.Business {
                     && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
                     && ((createdMonth == null) || x.CreatedDate.Month == createdMonth)
                     && ((createdYear == null) || x.CreatedDate.Year == createdYear)
+                    && ((!filter.CurrentInvoices.HasValue) || x.TotalInvoices == filter.CurrentInvoices)
+                    && ((!filter.LateInvoices.HasValue) || x.UnpaidInvoices == filter.LateInvoices)
                    ).ToList();
 
                 //TODO: BUG FIX

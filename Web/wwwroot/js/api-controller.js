@@ -51,8 +51,6 @@ $.fn.uploadFile = function (callback) {
 
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
-    //var fieldset = this.find('fieldset');
-
     var options = $.extend({
         'url': this.attr('action'),
         'type': this.attr('method'),
@@ -61,12 +59,9 @@ $.fn.ajaxSubmit = function (opt, callback) {
         'contentType': 'application/json; charset=utf-8'
     }, opt);
 
-    //fieldset.attr('disabled', 'disabled');
     $.ajax(options).done((data, status, jqXHR) => {
-        //fieldset.removeAttr('disabled');
         callback(this, data, status, jqXHR);
     }).fail((jqXHR, status) => {
-        //fieldset.removeAttr('disabled');
         callback(this, null, status, jqXHR);
     });
 }
@@ -79,4 +74,12 @@ $.fn.randomDate = function (from, to) {
     const fromTime = from.getTime();
     const toTime = to.getTime();
     return new Date(fromTime + Math.random() * (toTime - fromTime));
+}
+
+$.fn.disabled = function () {
+    $(this).attr('disabled', 'disabled');
+}
+
+$.fn.enabled = function () {
+    $(this).removeAttr('disabled');
 }
