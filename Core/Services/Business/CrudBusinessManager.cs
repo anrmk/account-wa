@@ -115,6 +115,7 @@ namespace Core.Services.Business {
         Task<List<PaymentDto>> CreatePayment(List<PaymentDto> list);
         Task<PaymentDto> UpdatePayment(long id, PaymentDto dto);
         Task<bool> DeletePayment(long id);
+        Task<bool> DeletePayment(long[] ids);
         #endregion
 
         #region SAVED REPORT
@@ -1245,7 +1246,7 @@ namespace Core.Services.Business {
             var result = await _paymentManager.FindInclude(id);
             return _mapper.Map<PaymentDto>(result);
         }
-        
+
         public async Task<Pager<PaymentDto>> GetPaymentPages(PaymentFilterDto filter) {
             Expression<Func<PaymentEntity, bool>> wherePredicate = x =>
                    (true)
@@ -1313,6 +1314,12 @@ namespace Core.Services.Business {
                 return false;
             }
             int result = await _paymentManager.Delete(entity);
+            return result != 0;
+        }
+
+        public async Task<bool> DeletePayment(long[] ids) {
+            var payments = await _paymentManager.FindByIds(ids);
+            int result = await _paymentManager.Delete(payments);
             return result != 0;
         }
         #endregion

@@ -110,7 +110,6 @@ namespace Web {
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
                 .ForMember(d => d.CustomerTags, o => o.MapFrom(s => s.Customer.Tags != null ? s.Customer.Tags.Select(x => x.Name).ToArray() : new string[] { }))
                 .ForMember(d => d.CustomerCreatedDate, o => o.MapFrom(s => s.Customer.Activities != null ? s.Customer.Activities.OrderByDescending(x => x.CreatedDate).FirstOrDefault().CreatedDate.ToString() : ""))
-
                 .ForMember(d => d.CustomerType, o => o.MapFrom(s => s.Customer.Type != null ? s.Customer.Type.Name : ""))
                 .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.ToCurrency()))
                 .ForMember(d => d.Balance, o => o.MapFrom(s => s.Balance.ToCurrency()))
@@ -129,7 +128,9 @@ namespace Web {
                 .ReverseMap();
 
             CreateMap<PaymentListViewModel, PaymentDto>()
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.ToCurrency()))
+                ;
 
             CreateMap<PaymentFilterViewModel, PaymentFilterDto>().ReverseMap();
 

@@ -11,7 +11,7 @@
         //Convert to currency
         // Output: $0,000.00
         public static string ToCurrency(this decimal value) {
-            return $"{value:C}";
+            return $"{value:C}".Trim(new char[] { '(', ')' });
         }
     }
 }

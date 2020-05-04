@@ -10,12 +10,8 @@ namespace Web.ViewModels {
         public decimal TaxRate { get; set; }
         public string Amount => (Subtotal * (1 + TaxRate / 100)).ToCurrency();
 
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public string Date { get; set; }
 
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public string DueDate { get; set; }
 
         public string Balance { get; set; }

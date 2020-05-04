@@ -5,18 +5,28 @@
 <div class="card">
     <div class="card-body">
         <div id="toolbar" role="toolbar">
-            <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
-            <a asp-controller="Payment" asp-action="Bulk" class="btn btn-outline-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
+            <div class="btn-group mr-1" role="group">
+                <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                <a asp-controller="Payment" asp-action="Bulk" class="btn btn-outline-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
+            </div>
+
+            <div class="btn-group mr-1" role="group" aria-label="Payment active button group">
+                <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </div>
         </div>
         <table id="datatable" data-toggle="table" data-url="/api/payment"
+               data-query-params="queryParams"
                data-total-field="totalItems"
-               data-data-field="items">
+               data-data-field="items"
+               data-filter-control="true"
+               data-filter-control-container="true"
+               data-click-to-select="true">
             <thead>
                 <tr>
+                    <th data-field="state" data-checkbox="true"></th>
                     <th data-field="no" data-sortable="true">No</th>
-                    <th data-field="amount">Amount</th>
-                    <th data-field="date" data-formatter="dateFormat" data-sortable="true">Date</th>
-                    <th data-field="dueDate" data-formatter="dateFormat" data-sortable="true">Due Date</th>
+                    <th data-field="amount" data-sortable="true">Amount</th>
+                    <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sortable="true">Date</th>
                     <th data-field="invoiceNo" data-formatter="invoiceFormatter">Invoice</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                 </tr>
@@ -27,13 +37,53 @@
 
 @section Scripts {
     <script type="text/javascript">
+        $(document).ready(e => {
+            var $table = $('#datatable');
+
+            $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+                if (!confirm('Are you sure want to delete this?')) { return false; }
+
+                var selections = $table.bootstrapTable('getSelections');
+                var ids = selections.map(x => x.id);
+
+                if (ids.length > 0) {
+                    var options = {
+                        'type': 'post',
+                        'url': '/payment/bulkdelete',
+                        'data': { ids: ids }
+                    };
+
+                    $.ajax(options).done((data, status, jqXHR) => {
+                        if (data == true) {
+                            $table.bootstrapTable('refresh');
+                        } else {
+                            alert("Can't delete payments!");
+                        }
+                    });
+                }
+            });
+
+            $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+                var selections = $table.bootstrapTable('getSelections');
+                $bulkDeleteBtn.prop('disabled', !selections.length);
+            });
+        })
+
+        function queryParams(params) {
+            if (!params.search) {
+                params.search = $('div.search input').val();
+            }
+            var filterForm = $('#filterForm').serializeJSON({ parseNumbers: true });
+
+            return $.extend({}, params, filterForm);
+        }
+
         function dateFormat(value, row, index) {
             return moment(value).format('MMM/DD/YYYY');
         }
 
         function actionFormatter(value, row) {
-            return `<a href='/payment/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>
-                    <a href='/payment/details/${row.id}' class='btn btn-outline-secondary mr-1'>Detail</a>`;
+            return `<a href='/payment/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
         }
 
         function invoiceFormatter(value, row) {

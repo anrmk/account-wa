@@ -212,8 +212,6 @@ namespace Web.Controllers.Mvc {
             }
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
         public async Task<ActionResult> BulkDelete(long[] ids) {
             if(ids.Length > 0) {
                 var result = await _businessManager.DeleteInvoice(ids);

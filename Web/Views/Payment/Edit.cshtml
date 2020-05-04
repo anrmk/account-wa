@@ -10,7 +10,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-outline-danger" onclick="if (!confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
     </div>

@@ -10,6 +10,10 @@ namespace Web.ViewModels {
         public string InvoiceNo { get; set; }
         public long InvoiceId { get; set; }
         public decimal InvoiceAmount { get; set; }
-        public decimal Amount { get; set; }
+        public string Amount { get; set; }
+
+        public string Date { get; set; }
+
+        public string DueDate { get; set; }
     }
 }

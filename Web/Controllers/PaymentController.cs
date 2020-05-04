@@ -180,6 +180,15 @@ namespace Web.Controllers.Mvc {
                 return BadRequest(er);
             }
         }
+
+        public async Task<ActionResult> BulkDelete(long[] ids) {
+            if(ids.Length > 0) {
+                var result = await _businessManager.DeletePayment(ids);
+                return Ok(result);
+            }
+
+            return Ok(false);
+        }
     }
 }
 
