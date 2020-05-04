@@ -198,8 +198,11 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<Pager<PaymentDto>> GetPayments(string search, string sort, string order, int offset = 0, int limit = 10) {
-            return await _businessManager.GetPaymentPages(search ?? "", sort, order, offset, limit);
+        public async Task<Pager<PaymentListViewModel>> GetPayments([FromQuery] PaymentFilterViewModel model) {
+            var result = await _businessManager.GetPaymentPages(_mapper.Map<PaymentFilterDto>(model));
+            var list = _mapper.Map<List<PaymentListViewModel>>(result.Items);
+
+            return new Pager<PaymentListViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
         }
 
         /// <summary>

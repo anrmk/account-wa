@@ -38,7 +38,7 @@ namespace Web {
                 .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""))
                 .ForMember(d => d.ZipCode, o => o.MapFrom(s => (s.Address != null) ? s.Address.ZipCode : ""))
 
-                .ForMember(d => d.SettingsId, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.Id: 0))
+                .ForMember(d => d.SettingsId, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.Id : 0))
                 .ForMember(d => d.RoundType, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.RoundType : 0))
                 .ForMember(d => d.SaveCreditValues, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.SaveCreditValues : false))
 
@@ -49,7 +49,7 @@ namespace Web {
                 .ReverseMap()
                 .ForMember(d => d.Address, o => o.MapFrom(s => (s.Address != null) ? s.Address.ToString() : ""));
 
-            
+
             CreateMap<CompanyAddressViewModel, CompanyAddressDto>().ReverseMap();
             CreateMap<CompanySummaryRangeViewModel, CompanySummaryRangeDto>().ReverseMap();
             CreateMap<CompanySettingsViewModel, CompanySettingsDto>().ReverseMap();
@@ -109,7 +109,7 @@ namespace Web {
                 .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Company.Name))
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer.Name))
                 .ForMember(d => d.CustomerTags, o => o.MapFrom(s => s.Customer.Tags != null ? s.Customer.Tags.Select(x => x.Name).ToArray() : new string[] { }))
-                .ForMember(d => d.CustomerCreatedDate, o => o.MapFrom(s => s.Customer.Activities != null ? s.Customer.Activities.OrderByDescending(x => x.CreatedDate).FirstOrDefault().CreatedDate.ToString() :"" ))
+                .ForMember(d => d.CustomerCreatedDate, o => o.MapFrom(s => s.Customer.Activities != null ? s.Customer.Activities.OrderByDescending(x => x.CreatedDate).FirstOrDefault().CreatedDate.ToString() : ""))
 
                 .ForMember(d => d.CustomerType, o => o.MapFrom(s => s.Customer.Type != null ? s.Customer.Type.Name : ""))
                 .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.ToCurrency()))
@@ -128,8 +128,10 @@ namespace Web {
             CreateMap<PaymentViewModel, PaymentDto>()
                 .ReverseMap();
 
-            CreateMap<PaymentViewModelList, PaymentDto>()
+            CreateMap<PaymentListViewModel, PaymentDto>()
                 .ReverseMap();
+
+            CreateMap<PaymentFilterViewModel, PaymentFilterDto>().ReverseMap();
 
             #endregion
 

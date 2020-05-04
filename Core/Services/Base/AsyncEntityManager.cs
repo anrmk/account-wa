@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Core.Context;
 using Core.Extension;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Services.Base {
@@ -132,8 +133,8 @@ namespace Core.Services.Base {
             var query = where is null ? DbSet.AsQueryable() : DbSet.Where(where).AsQueryable();
             int count = await query.CountAsync();
 
-            query = string.IsNullOrEmpty(order) ? 
-                query.OrderBy(x => Guid.NewGuid().ToString()).Skip(offset) : 
+            query = string.IsNullOrEmpty(order) ?
+                query.OrderBy(x => Guid.NewGuid().ToString()).Skip(offset) :
                 SortExtension.OrderByDynamic(query, order, descSort).Skip(offset);
 
             //if(order is null) {

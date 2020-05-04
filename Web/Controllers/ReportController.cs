@@ -236,7 +236,7 @@ namespace Web.Controllers.Mvc {
         [Route("checkTheAbilityToSaveCredits")]
         public async Task<IActionResult> CheckAbilityToSaveCresits([FromBody]ReportFilterViewModel model) {
             var company = await _crudBusinessManager.GetCompany(model.CompanyId);
-            if(company != null  && company.Settings != null) {
+            if(company != null && company.Settings != null) {
                 var settings = company.Settings;
                 var date = model.Date.AddMonths(-1).LastDayOfMonth();
 

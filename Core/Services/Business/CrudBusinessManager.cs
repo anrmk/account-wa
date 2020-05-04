@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -109,7 +108,7 @@ namespace Core.Services.Business {
 
         #region PAYMENT
         Task<PaymentDto> GetPayment(long id);
-        Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset = 0, int limit = 10);
+        Task<Pager<PaymentDto>> GetPaymentPages(PaymentFilterDto filter);
         Task<List<PaymentDto>> GetPaymentByInvoiceId(long id);
         Task<List<InvoiceDto>> GetInvoices(long[] ids);
         Task<PaymentDto> CreatePayment(PaymentDto dto);
@@ -135,7 +134,7 @@ namespace Core.Services.Business {
         private readonly ICompanyManager _companyManager;
         private readonly ICompanyAddressMananger _companyAddressManager;
         private readonly ICompanySettingsManager _companySettingsManager;
-        
+
         private readonly ICompanySummaryRangeManager _companySummaryManager;
         private readonly ICompanyExportSettingsManager _companyExportSettingsManager;
         private readonly ICompanyExportSettingsFieldManager _companyExportSettingsFieldManager;
@@ -503,7 +502,7 @@ namespace Core.Services.Business {
                        || x.Name.ToLower().Contains(filter.Search.ToLower())
                        || x.No.ToLower().Contains(filter.Search.ToLower())
                     )
-                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0) 
+                    && ((filter.TagsIds == null || filter.TagsIds.Count == 0)
                         || x.TagLinks.Where(y => filter.TagsIds.Contains(y.TagId)).Count() > 0 || (filter.TagsIds.Contains(0) && x.TagLinks.Count == 0))
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
                     && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
@@ -1128,7 +1127,7 @@ namespace Core.Services.Business {
                             }
                         }
 
-                        
+
                     }
                     invoices = newList;
                 }
@@ -1150,7 +1149,7 @@ namespace Core.Services.Business {
                 ).ToList();
 
                 //TODO: BUG FIX
-                invoices  = string.IsNullOrEmpty(sortby) ?
+                invoices = string.IsNullOrEmpty(sortby) ?
                     invoices.OrderBy(x => Guid.NewGuid().ToString()).ToList() :
                     SortExtension.OrderByDynamic(invoices.AsQueryable(), sortby, filter.Order.Equals("desc")).ToList();
 
@@ -1166,8 +1165,8 @@ namespace Core.Services.Business {
                 Expression<Func<InvoiceEntity, bool>> wherePredicate = x =>
                       (true)
                    && (string.IsNullOrEmpty(filter.Search)
-                        || (x.No.ToLower().Contains(filter.Search.ToLower())
-                        || x.Customer.Name.ToLower().Contains(filter.Search.ToLower()))
+                        || x.No.ToLower().Contains(filter.Search.ToLower())
+                        || x.Customer.Name.ToLower().Contains(filter.Search.ToLower())
                         || x.Subtotal.ToString().Equals(filter.Search.ToLower())
                         )
                    && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId)
@@ -1177,7 +1176,7 @@ namespace Core.Services.Business {
                    && ((filter.DateTo == null) || filter.DateTo >= x.Date);
                 #endregion
 
-                string[] include = new string[] { "Company", "Customer", "Customer.Type", "Customer.Activities",  "Payments" };
+                string[] include = new string[] { "Company", "Customer", "Customer.Type", "Customer.Activities", "Payments" };
 
                 totalAmount = (await _invoiceManager.Filter(wherePredicate)).Sum(x => x.Subtotal);
 
@@ -1223,7 +1222,7 @@ namespace Core.Services.Business {
                 int result = await _invoiceManager.Delete(invoices);
                 return result != 0;
             }
-            
+
             return false;
         }
 
@@ -1246,34 +1245,33 @@ namespace Core.Services.Business {
             var result = await _paymentManager.FindInclude(id);
             return _mapper.Map<PaymentDto>(result);
         }
-
-        public async Task<Pager<PaymentDto>> GetPaymentPages(string search, string sort, string order, int offset, int limit) {
+        
+        public async Task<Pager<PaymentDto>> GetPaymentPages(PaymentFilterDto filter) {
             Expression<Func<PaymentEntity, bool>> wherePredicate = x =>
                    (true)
-                && (string.IsNullOrEmpty(search) || (x.No.ToLower().Contains(search.ToLower())) || (x.Amount.ToString().Contains(search.ToLower())));
-            //&& (string.IsNullOrEmpty(search) || (x.Invoice..ToLower().Contains(search.ToLower())))
-            //&& (string.IsNullOrEmpty(search) || (x.Description.ToLower().Contains(search.ToLower())));
+                && (string.IsNullOrEmpty(filter.Search)
+                    || x.No.ToLower().Contains(filter.Search.ToLower())
+                    || x.Amount.ToString().Contains(filter.Search.ToLower())
+                    || x.Invoice.No.Contains(filter.Search.ToLower())
+                    );
 
             #region Sort
-            var orderPredicate = "Id";
+            var sortby = filter.RandomSort ? "" : filter.Sort ?? "No";
             #endregion
 
             string[] include = new string[] { "Invoice" };
 
-            Tuple<List<PaymentEntity>, int> tuple = await _paymentManager.Pager<PaymentEntity>(wherePredicate, orderPredicate, offset, limit, include);
+            Tuple<List<PaymentEntity>, int> tuple = await _paymentManager.Pager<PaymentEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
             if(count == 0)
-                return new Pager<PaymentDto>(new List<PaymentDto>(), 0, offset, limit);
+                return new Pager<PaymentDto>(new List<PaymentDto>(), 0, filter.Offset, filter.Limit);
 
-            var page = (offset + limit) / limit;
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
 
             var result = _mapper.Map<List<PaymentDto>>(list);
-            return new Pager<PaymentDto>(result, count, page, limit);
-
-            //var result = await _paymentManager.FindAllInclude();
-            //return _mapper.Map<List<PaymentDto>>(result);
+            return new Pager<PaymentDto>(result, count, page, filter.Limit);
         }
 
         public async Task<PaymentDto> CreatePayment(PaymentDto dto) {
