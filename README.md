@@ -71,3 +71,10 @@ Simple accounting software for internal use in the company
 	) 
 	--DELETE FROM cte WHERE [RowNum] > 1
 	SELECT * FROM cte WHERE [RowNum] > 1 ORDER BY [Id];
+
+## Remove unrelated Addresses from Customers
+	--DELETE FROM [dbo].[CustomerAddresses]
+	SELECT * FROM [dbo].[CustomerAddresses]
+	WHERE [Id] NOT IN (
+		SELECT CustomerAddress_Id FROM [dbo].[Customers]  
+	)
