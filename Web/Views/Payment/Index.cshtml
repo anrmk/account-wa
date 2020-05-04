@@ -1,4 +1,6 @@
-﻿@{
+﻿@model Web.ViewModels.PaymentFilterViewModel
+
+@{
     ViewData["Title"] = "Payments";
 }
 
@@ -13,6 +15,17 @@
             <div class="btn-group mr-1" role="group" aria-label="Payment active button group">
                 <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </div>
+
+            <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
+                <button id="filterBtn" class="btn btn-outline-secondary">Filter</button>
+            </div>
+
+            <form id="filterForm">
+                <input type="hidden" asp-for="CompanyId" />
+                <input type="hidden" asp-for="DateFrom" />
+                <input type="hidden" asp-for="DateTo" />
+                <input type="hidden" name="RandomSort:boolean" id="RandomSort" data-val="@Model.RandomSort" data-value-type="boolean" value="@Model.RandomSort" />
+            </form>
         </div>
         <table id="datatable" data-toggle="table" data-url="/api/payment"
                data-query-params="queryParams"
@@ -39,6 +52,32 @@
     <script type="text/javascript">
         $(document).ready(e => {
             var $table = $('#datatable');
+
+            $filterBtn = $('#filterBtn').click(_ => {
+                var options = {
+                    'url': '/payment/filter',
+                    'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" })
+                };
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    $(data).dialog('Filter', (action, e, content) => {
+                        switch (action) {
+                            case 'modal.on.load':
+                                $(content).on('submit', evt => {
+                                    evt.preventDefault();
+                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" }));
+                                    $table.bootstrapTable('refresh');
+                                    window.modal.modal('hide');
+                                });
+                                break;
+                            case 'shown.bs.modal':
+                                break;
+                            case 'hidden.bs.modal':
+                                break;
+                        }
+                    });
+                });
+            });
 
             $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
                 if (!confirm('Are you sure want to delete this?')) { return false; }
@@ -86,8 +125,12 @@
             return `<a href='/payment/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
         }
 
+        //function nameFormatter(value, row) {
+        //    return `${value} <p class='text-muted'>${row.companyName}</p>`;
+        //}
+
         function invoiceFormatter(value, row) {
-            return `<a href='/invoice/details/${row.invoiceId}'>${value}</a>`
+            return `<a href='/invoice/details/${row.invoiceId}'>${value}</a> <p class='text-muted'>${row.companyName}</p>`
         }
     </script>
 }

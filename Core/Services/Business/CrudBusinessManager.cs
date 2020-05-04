@@ -1254,13 +1254,16 @@ namespace Core.Services.Business {
                     || x.No.ToLower().Contains(filter.Search.ToLower())
                     || x.Amount.ToString().Contains(filter.Search.ToLower())
                     || x.Invoice.No.Contains(filter.Search.ToLower())
-                    );
+                    )
+                && ((filter.CompanyId == null) || filter.CompanyId == x.Invoice.CompanyId)
+                && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
+                && ((filter.DateTo == null) || filter.DateTo >= x.Date);
 
             #region Sort
             var sortby = filter.RandomSort ? "" : filter.Sort ?? "No";
             #endregion
 
-            string[] include = new string[] { "Invoice" };
+            string[] include = new string[] { "Invoice", "Invoice.Company" };
 
             Tuple<List<PaymentEntity>, int> tuple = await _paymentManager.Pager<PaymentEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             var list = tuple.Item1;

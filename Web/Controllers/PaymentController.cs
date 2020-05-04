@@ -27,7 +27,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public IActionResult Index() {
-            return View();
+            return View(new PaymentFilterViewModel());
         }
 
         public async Task<IActionResult> Details(long id) {
@@ -53,6 +53,14 @@ namespace Web.Controllers.Mvc {
             };
 
             return View(paymentModel);
+        }
+
+        // GET: Filter Partial
+        public async Task<ActionResult> Filter([FromQuery] PaymentFilterViewModel model) {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View("_FilterPaymentPartial", model);
         }
 
         [HttpPost]

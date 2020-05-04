@@ -28,7 +28,6 @@ namespace Web.ViewModels {
         [FromQuery(Name = "periods")]
         public string Periods { get; set; } = "";
 
-        //public CustomerTypeEntity CustomerType = "";
         [Display(Name = "Customer type")]
         public long? TypeId { get; set; }
 

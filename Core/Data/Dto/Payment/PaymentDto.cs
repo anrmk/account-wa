@@ -9,5 +9,6 @@ namespace Core.Data.Dto {
         public long? InvoiceId { get; set; }
         public string InvoiceNo { get; set; }
         public long? CustomerId { get; set; }
+        public string CompanyName { get; set; }
     }
 }

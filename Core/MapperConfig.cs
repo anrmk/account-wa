@@ -111,7 +111,10 @@ namespace Core {
                 .ForMember(d => d.Invoice, o => o.Ignore())
                 .ReverseMap()
                 .ForMember(d => d.InvoiceNo, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.No : ""))
-                .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null));
+                .ForMember(d => d.CustomerId, o => o.MapFrom(s => s.Invoice != null ? s.Invoice.CustomerId : null))
+                .ForMember(d => d.CompanyName, o => o.MapFrom(s => s.Invoice != null && s.Invoice.Company != null ? s.Invoice.Company.Name : ""))
+
+                ;
             #endregion
 
             #region SAVED REPORT

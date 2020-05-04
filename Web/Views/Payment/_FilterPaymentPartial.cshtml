@@ -1,0 +1,31 @@
+﻿@model Web.ViewModels.PaymentFilterViewModel
+@{
+    Layout = null;
+}
+
+<form id="filterInvoicePartialForm">
+    <fieldset>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <label asp-for="CompanyId"></label>
+                <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" data-live-search="true">
+                    <option value="">Choose one of the following...</option>
+                </select>
+            </div>
+            <div class="col">
+                <label asp-for="DateFrom"></label>
+                <input asp-for="DateFrom" type="date" class="form-control" />
+            </div>
+            <div class="col">
+                <label asp-for="DateTo"></label>
+                <input asp-for="DateTo" type="date" class="form-control" />
+            </div>
+        </div>
+
+        <div class="form-check col">
+            <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
+            <label asp-for="RandomSort" class="form-check-label"></label>
+        </div>
+
+    </fieldset>
+</form>
