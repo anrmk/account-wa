@@ -59,3 +59,15 @@ Simple accounting software for internal use in the company
 				   GROUP BY [Customer_Id]) AS CACT 
 		ON CACT.[Customer_Id] = CUS.[Id]
 	WHERE CACT.[CreatedDate] != CUS.[CreatedDate]
+	
+## Remove dublicates from "Payments"
+	WITH cte AS (
+	    SELECT [Id], [No], [Invoice_Id], [Amount],
+		ROW_NUMBER() OVER (
+		    PARTITION BY [No], [Invoice_Id], [Amount]
+		    ORDER BY [No]) [RowNum]
+	    FROM 
+		[accountWa].[dbo].[Payments]
+	) 
+	--DELETE FROM cte WHERE [RowNum] > 1
+	SELECT * FROM cte WHERE [RowNum] > 1 ORDER BY [Id];
