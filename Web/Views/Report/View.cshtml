@@ -16,42 +16,43 @@
         <div class="table-responsive">
             <table id="savedReportTable" class="table table-bordered">
                 @foreach(var row in Model.Keys) {
-                    <tr>
-                        @if(row == "Name") {
-                            <th scope="col" width="160px">@row</th>
-                            @foreach(var col in Model[row]) {
-                                <th scope="col" width="160px">@col</th>
-                            }
-                        } else if(row == "Files") {
-                            <th scope="row">@row</th>
-                            @foreach(var col in Model[row]) {
-                                <td>
-                                    @if(!string.IsNullOrEmpty(col)) {
-                                        @foreach(var d in col.Split(";")) {
-                                            <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                    @if(row != "Id") {
+                        <tr>
+                            @if(row == "Name") {
+                                <th scope="col" width="160px">@row</th>
+                                @foreach(var col in Model[row]) {
+                                    <th scope="col" width="160px">@col</th>
+                                }
+                            } else if(row == "Files") {
+                                <th scope="row">@row</th>
+                                @foreach(var col in Model[row]) {
+                                    <td>
+                                        @if(!string.IsNullOrEmpty(col)) {
+                                            @foreach(var d in col.Split(";")) {
+                                                <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                            }
                                         }
-                                    }
-                                </td>
+                                    </td>
+                                }
+                            } else {
+                                <th scope="row">@(row == "-31-0" ? "Current" : row )</th>
+                                @foreach(var col in Model[row]) {
+                                    <td>
+                                        @if(col.Split("|").Length >= 2) {
+                                            <span>@col.Split("|")[0]</span><br />
+                                            <span>
+                                                @col.Split("|")[1]
+                                                @*@(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))*@
+                                            </span>
+                                        } else {
+                                            <span>@col</span>
+                                        }
+                                    </td>
+                                }
                             }
-                        } else if(row != "Id") {
-                            <th scope="row">
-                                @(row == "-31-0" ? "Current" : row )
-                            </th>
-                            @foreach(var col in Model[row]) {
-                                <td>
-                                    @if(col.Split("|").Length >= 2) {
-                                        <span>@col.Split("|")[0] </span><br />
-                                        <span>
-                                            @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
-                                        </span>
-                                    } else {
-                                        <span>@col</span>
-                                    }
-                                </td>
-                            }
-                        }
-                        <th scope="row"></th>
-                    </tr>
+                            <th scope="row"></th>
+                        </tr>
+                    }
                 }
 
                 @foreach(var row in Model.Keys) {

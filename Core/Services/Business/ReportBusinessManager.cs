@@ -44,8 +44,8 @@ namespace Core.Services.Business {
             var allCustomers = await _customerManager.FindByCompanyId(companyId, dateTo);
             var customers = allCustomers.Where(x => x.Activities.IsActive(dateTo)).ToList();
 
-            var allInvoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
-            var invoices = allInvoices;//.Where(x => x.Customer?.Activities.IsActive(dateTo)).ToList(); //check invoices for Inactive customers
+            var invoices = await _reportManager.GetAgingInvoices(companyId, dateTo, daysPerPeriod, numberOfPeriods);
+            //invoices = invoices.Where(x => x.Customer?.Activities.IsActive(dateTo)).ToList(); //check invoices for Inactive customers
 
             if(includeAllCustomers) {
                 //Добавить всех недостающих Customers

@@ -86,11 +86,30 @@ namespace Web.Controllers.Mvc {
             ViewData["Title"] = company.Name;
 
             var result = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
+            var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+            var customerTypesList = customerTypes.Select(x => x.Name).ToList();
 
             Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
-            rows.Add("Name", new List<string>());
             rows.Add("Id", new List<string>());
+            rows.Add("Name", new List<string>());
+
+            //Add Customers Type fields
+            rows.Add("Total Customers", new List<string>());
+            foreach(var ctype in customerTypes) {
+                rows.Add(ctype.Name, new List<string>());
+            }
+
             foreach(var report in result) {
+                foreach(var ctype in customerTypes) {
+                    var containField = report.Fields.Any(x => x.Name.Equals(ctype.Name));
+                    if(!containField) {
+                        report.Fields.Add(new SavedReportFieldDto() {
+                            Name = ctype.Name,
+                            Value = ""
+                        });
+                    }
+                }
+
                 if(rows.ContainsKey("Id")) {
                     rows["Id"].Add(report.IsPublished ? "" : report.Id.ToString());
                 }
@@ -384,6 +403,7 @@ namespace Web.Controllers.Api {
     [Route("api/[controller]")]
     [ApiController]
     public class ReportController: ControllerBase {
+        private readonly INsiBusinessManager _nsiBusinessManager;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
@@ -392,10 +412,12 @@ namespace Web.Controllers.Api {
 
         public ReportController(IMemoryCache memoryCache,
             IMapper mapper, IViewRenderService viewRenderService,
+            INsiBusinessManager nsiBusinessManager,
             ICrudBusinessManager crudBusinessManager,
             IReportBusinessManager businessManager) {
             _memoryCache = memoryCache;
             _mapper = mapper;
+            _nsiBusinessManager = nsiBusinessManager;
             _viewRenderService = viewRenderService;
             _reportBusinessManager = businessManager;
             _crudBusinessManager = crudBusinessManager;
@@ -429,23 +451,34 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+                    var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
 
                     #region Fields
-                    var fields = new List<SavedReportFieldDto>() {
-                        new SavedReportFieldDto() {
-                            Name = "Total Customers",
-                            Value = report.TotalCustomers.ToString()
-                        },
-                        new SavedReportFieldDto() {
-                            Name = "Balance",
-                            Value = report.BalanceCustomers.ToString()
-                        },
+                    var fields = new List<SavedReportFieldDto>();
+                    fields.Add(new SavedReportFieldDto() {
+                        Name = "Total Customers",
+                        Value = report.TotalCustomers.ToString()
+                    });
 
-                        new SavedReportFieldDto() {
-                            Name = "No balance",
-                            Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
-                        },
-                    };
+                    //Add customer types
+                    foreach(var ctype in customerTypes) {
+                        fields.Add(new SavedReportFieldDto() {
+                            Name = ctype.Name,
+                            Value = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name].ToString() : "0"
+                        });
+                    }
+
+                    fields.Add(new SavedReportFieldDto() {
+                        Name = "Balance",
+                        Value = report.BalanceCustomers.ToString()
+                    });
+
+                    fields.Add(new SavedReportFieldDto() {
+                        Name = "No balance",
+                        Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
+                    });
+
+
                     foreach(var column in report.Columns) {
                         fields.Add(new SavedReportFieldDto() {
                             Name = column.Name,

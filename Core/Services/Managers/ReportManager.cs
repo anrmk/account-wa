@@ -43,7 +43,8 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[nsi.CustomerType] as CUST ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities] " + //проверяем на активность пользователя
-                            "WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
+                            //"WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
+                            "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +
                             "ORDER BY [CreatedDate] DESC) AS CACT " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditLimit] " +
                             "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +
@@ -54,6 +55,7 @@ namespace Core.Services.Managers {
                         "LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  " +
                         "WHERE INV.[Company_Id] = @COMPANYID AND CACT.[Id] IS NOT NULL AND INV.[Date] <= @DATETO " +
+                        "AND CACT.[IsActive] = 'TRUE' " +
                         "ORDER BY CUS.[AccountNumber] ASC ";
 
             var result = new List<InvoiceEntity>();

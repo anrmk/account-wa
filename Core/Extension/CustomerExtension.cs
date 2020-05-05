@@ -19,8 +19,8 @@ namespace Core.Extension {
         public static bool IsActive(this ICollection<CustomerActivityEntity> collection, DateTime dateTo) {
             if(collection != null && collection.Count > 0) {
                 var lastRecord = collection.OrderByDescending(x => x.CreatedDate);
-                var where = lastRecord.Where(x => x.CreatedDate <= dateTo);
-                var select = where.Select(x => x.IsActive).FirstOrDefault();
+                var where = lastRecord.Where(x => x.CreatedDate <= dateTo).FirstOrDefault();
+                var select = where.IsActive;
 
                 return select || false;
             }
