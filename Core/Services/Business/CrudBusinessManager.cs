@@ -495,8 +495,8 @@ namespace Core.Services.Business {
                 var customers = await _customerManager.FindBulks(filter.CompanyId ?? 0, filter.DateFrom.Value, filter.DateTo.Value);
                 recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
 
-                var createdMonth = filter.CreatedDate?.Month;
-                var createdYear = filter.CreatedDate?.Year;
+                //var createdMonth = filter.CreatedDate?.Month;
+                //var createdYear = filter.CreatedDate?.Year;
 
                 customers = customers.Where(x => (true)
                     && (string.IsNullOrEmpty(filter.Search)
@@ -507,13 +507,14 @@ namespace Core.Services.Business {
                         || x.TagLinks.Where(y => filter.TagsIds.Contains(y.TagId)).Count() > 0 || (filter.TagsIds.Contains(0) && x.TagLinks.Count == 0))
                     && ((filter.TypeIds == null || filter.TypeIds.Count == 0) || filter.TypeIds.Contains(x.TypeId))
                     && ((filter.Recheck == null || filter.Recheck.Count == 0) || filter.Recheck.Contains(x.Recheck))
-                    && ((createdMonth == null) || x.CreatedDate.Month == createdMonth)
-                    && ((createdYear == null) || x.CreatedDate.Year == createdYear)
+
+                    && ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
+                    && ((filter.CreatedDateTo == null) || filter.CreatedDateTo >= x.CreatedDate)
+
                     && ((!filter.CurrentInvoices.HasValue) || x.TotalInvoices == filter.CurrentInvoices)
                     && ((!filter.LateInvoices.HasValue) || x.UnpaidInvoices == filter.LateInvoices)
                    ).ToList();
-
-                //TODO: BUG FIX
+                
                 customers = string.IsNullOrEmpty(sortby) ?
                     customers.OrderBy(x => Guid.NewGuid().ToString()).ToList() :
                     SortExtension.OrderByDynamic(customers.AsQueryable(), sortby, filter.Order.Equals("desc")).ToList();

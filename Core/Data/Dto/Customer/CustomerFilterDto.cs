@@ -16,7 +16,9 @@ namespace Core.Data.Dto {
 
         public virtual ICollection<int?> Recheck { get; set; }
 
-        public DateTime? CreatedDate { get; set; }
+        public DateTime? CreatedDateTo { get; set; }
+
+        public DateTime? CreatedDateFrom { get; set; }
 
         public int? CurrentInvoices { get; set; }
 

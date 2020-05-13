@@ -39,10 +39,15 @@ namespace Web.ViewModels {
         [Display(Name = "Late Invoices")]
         public int? LateInvoices { get; set; }
 
-        [Display(Name = "Created Date")]
+        [Display(Name = "Created Date From")]
         [DataType(DataType.Date)]
         [FromQuery]
-        public DateTime? CreatedDate { get; set; }
+        public DateTime? CreatedDateFrom { get; set; }
+
+        [Display(Name = "Created Date To")]
+        [DataType(DataType.Date)]
+        [FromQuery]
+        public DateTime? CreatedDateTo { get; set; }
 
         [Display(Name = "Random sort")]
         public bool RandomSort { get; set; } = false;

@@ -79,6 +79,8 @@ $.extend($.fn.bootstrapTable.defaults, {
     sortStable: true,
     pagination: true,
     maintainMetaData: true,
+    filterControl: true,
+    showSearchClearButton: true,
     filterOptions: {
         filterAlgorithm: 'or'
     }

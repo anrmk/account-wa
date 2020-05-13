@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div class="form-row mb-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label asp-for="TagsIds"></label>
                         <select asp-for="TagsIds" asp-items="@ViewBag.Tags" name="TagsIds[]" class="form-control selectpicker"
                                 multiple
@@ -42,14 +42,14 @@
                             <option value="0">&#8249; No tags &#8250;</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label asp-for="TypeIds"></label>
                         <select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
                                 multiple
                                 data-live-search="true">
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label asp-for="Recheck">Recheck</label>
                         <select id="recheck" name="Recheck[]" class="form-control selectpicker" data-field="type"
                                 multiple
@@ -57,8 +57,12 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label asp-for="CreatedDate"></label>
-                        <input asp-for="CreatedDate" type="month" class="form-control">
+                        <label asp-for="CreatedDateFrom"></label>
+                        <input asp-for="CreatedDateFrom" type="date" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label asp-for="CreatedDateTo"></label>
+                        <input asp-for="CreatedDateTo" type="date" class="form-control">
                     </div>
                 </div>
                 <div class="form-row mb-3">
@@ -182,7 +186,12 @@
 
             var $filterApplyBtn = $('#filterApplyBtn').on('click', e => {
                 e.preventDefault();
-                $table.bootstrapTable('refresh');
+                //reset filter
+                $table.bootstrapTable('refreshOptions', {
+                    sortName: '',
+                    sortOrder: "asc"
+                });
+                //$table.bootstrapTable('refresh');
             });
 
             var $generateBtn = $('#generateBtn').on('click', e => {
