@@ -60,9 +60,16 @@ $.fn.bootstrapTable.formatDate = function (value, row, index) {
     //return value == null ? "" : moment(value, 'MM-DD-YYYY').format('MM-DD-YYYY');
 };
 
+$.fn.bootstrapTable.sortDate = function (a, b) {
+    if (new Date(a) < new Date(b)) return 1;
+    if (new Date(a) > new Date(b)) return -1;
+    return 0;
+}
+
 $.extend($.fn.bootstrapTable.defaults, {
     classes: 'table table-hover',
-    widthUnit : "%",
+    sortClass: 'table-active',
+    widthUnit: "%",
     sidePagination: 'server',
     toolbar: '#toolbar',
     showPaginationSwitch: false,
@@ -77,6 +84,7 @@ $.extend($.fn.bootstrapTable.defaults, {
     showColumns: true,
     showToggle: true,
     sortStable: true,
+    serverSort: true,
     pagination: true,
     maintainMetaData: true,
     filterControl: true,
