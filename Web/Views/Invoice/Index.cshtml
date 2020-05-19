@@ -102,7 +102,7 @@
             $filterBtn = $('#filterBtn').click(_ => {
                 var options = {
                     'url': '/invoice/filter',
-                    'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" })
+                    'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: false })
                 };
 
                 $.ajax(options).done((data, status, jqXHR) => {
@@ -111,7 +111,7 @@
                             case 'modal.on.load':
                                 $(content).on('submit', evt => {
                                     evt.preventDefault();
-                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" }));
+                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: false }));
                                     $table.bootstrapTable('refresh');
                                     window.modal.modal('hide');
                                 });

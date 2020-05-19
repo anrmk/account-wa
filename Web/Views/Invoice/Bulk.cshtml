@@ -154,7 +154,6 @@
 </div>
 
 @section Scripts {
-    @*<script src="~/lib/bootstrap-table/extensions/toolbar/bootstrap-table-toolbar.min.js"></script>*@
     <script type="text/javascript">
         window.ajaxOptions = {
             traditional: true,
@@ -193,10 +192,11 @@
 
         $(document).ready(e => {
             var $table = $('#datatable');
-            var $checkByBtn = $('#checkByBtn');
             var $checkInput = $('#checkInput');
 
-            $checkByBtn.click(function () {
+            $('#checkByBtn').on('click', e => {
+                e.preventDefault();
+
                 var data = $table.bootstrapTable('getData');
                 var check = $checkInput.val();
 
@@ -210,7 +210,7 @@
                 }
             })
 
-            var $filterApplyBtn = $('#filterApplyBtn').on('click', e => {
+            $('#filterApplyBtn').on('click', e => {
                 e.preventDefault();
                 //reset filter
                 $table.bootstrapTable('refreshOptions', {
@@ -220,7 +220,7 @@
                 //$table.bootstrapTable('refresh');
             });
 
-            var $generateBtn = $('#generateBtn').on('click', e => {
+            $('#generateBtn').on('click', e => {
                 e.preventDefault();
                 $(e.currentTarget).disabled();
 
@@ -231,7 +231,7 @@
                 });
             });
 
-            var $applyBtn = $('#applyBtn').on('click', e => {
+            $('#applyBtn').on('click', e => {
                 e.preventDefault();
                 $('#content form').clone().appendTo('#savedContent');
                 $('#content form').remove();
@@ -240,13 +240,11 @@
             //on criteria change
             $('#companyId').on('change', e => {
                 e.preventDefault();
-                //let $fieldset = $submitForm.find('fieldset').attr('disabled', 'disabled');
 
-                $.fn.getCompanySummaryRange(e.currentTarget.value).done((data) => {
+                $.when($.fn.getCompanySummaryRange(e.currentTarget.value)).then(function (data, textStatus, jqXHR) {
                     var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>` });
                     $("#summaryRange").html(opt).selectpicker('refresh');
 
-                    //$fieldset.removeAttr('disabled');
                     $table.bootstrapTable('refresh');
                 });
             });
@@ -266,7 +264,7 @@
                                 });
                             }
                         });
-                    }).promise().done(function () {
+                    }).promise().then(function (data, textStatus, jqXHR) {
                         $(e.currentTarget).enabled();
                         $table.bootstrapTable('refresh');
                     });
