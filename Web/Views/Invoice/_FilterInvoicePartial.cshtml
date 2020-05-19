@@ -19,12 +19,20 @@
                 </select>
             </div>
             <div class="col">
-                <label asp-for="DateFrom"></label>
-                <input asp-for="DateFrom" type="date" class="form-control" />
+                <label asp-for="DateFrom">Date From/To</label>
+                <div class="input-group">
+                    <input asp-for="DateFrom" type="date" class="form-control" />
+                    <input asp-for="DateTo" type="date" class="form-control" />
+                </div>
             </div>
-            <div class="col">
-                <label asp-for="DateTo"></label>
-                <input asp-for="DateTo" type="date" class="form-control" />
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <label asp-for="CreatedDateFrom">Record Date From/To</label>
+                <div class="input-group">
+                    <input asp-for="CreatedDateFrom" type="date" class="form-control" />
+                    <input asp-for="CreatedDateTo" type="date" class="form-control" />
+                </div>
             </div>
         </div>
 

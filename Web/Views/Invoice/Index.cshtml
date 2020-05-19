@@ -59,6 +59,8 @@
                 <input type="hidden" asp-for="TypeId" />
                 <input type="hidden" asp-for="DateFrom" />
                 <input type="hidden" asp-for="DateTo" />
+                <input type="hidden" asp-for="CreatedDateFrom" />
+                <input type="hidden" asp-for="CreatedDateTo" />
                 <input type="hidden" name="RandomSort:boolean" id="RandomSort" data-val="@Model.RandomSort" data-value-type="boolean" value="@Model.RandomSort" />
                 <input type="hidden" name="MoreThanOne:boolean" id="MoreThanOne" data-val="@Model.MoreThanOne" data-value-type="boolean" value="@Model.MoreThanOne" />
             </form>
@@ -83,6 +85,7 @@
                     <th data-field="balance">Balance</th>
                     <th data-field="amount" data-sortable="true" data-sort-name="subtotal">Amount</th>
                     <th data-field="status">Status</th>
+                    <th data-field="createdDate" class="text-nowrap text-right" data-formatter="$.fn.bootstrapTable.formatDateTime" data-sorter="$.fn.bootstrapTable.sortDate" data-sortable="true">Record Date</th>
                     <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                 </tr>
             </thead>

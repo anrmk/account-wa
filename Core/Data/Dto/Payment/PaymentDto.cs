@@ -10,5 +10,10 @@ namespace Core.Data.Dto {
         public string InvoiceNo { get; set; }
         public long? CustomerId { get; set; }
         public string CompanyName { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime UpdatedDate { get; set; }
+        public string UpdatedBy { get; set; }
     }
 }

@@ -514,7 +514,7 @@ namespace Core.Services.Business {
                     && ((!filter.CurrentInvoices.HasValue) || x.TotalInvoices == filter.CurrentInvoices)
                     && ((!filter.LateInvoices.HasValue) || x.UnpaidInvoices == filter.LateInvoices)
                    ).ToList();
-                
+
                 customers = string.IsNullOrEmpty(sortby) ?
                     customers.OrderBy(x => Guid.NewGuid().ToString()).ToList() :
                     SortExtension.OrderByDynamic(customers.AsQueryable(), sortby, filter.Order.Equals("desc")).ToList();
@@ -1148,6 +1148,8 @@ namespace Core.Services.Business {
                     && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
                     && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
                     && ((filter.DateTo == null) || filter.DateTo >= x.Date)
+                    && ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
+                    && ((filter.CreatedDateTo == null) || filter.CreatedDateTo >= x.CreatedDate)
                 ).ToList();
 
                 //TODO: BUG FIX
@@ -1175,7 +1177,9 @@ namespace Core.Services.Business {
                    && ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
                    && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
                    && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
-                   && ((filter.DateTo == null) || filter.DateTo >= x.Date);
+                   && ((filter.DateTo == null) || filter.DateTo >= x.Date)
+                   && ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
+                   && ((filter.CreatedDateTo == null) || filter.CreatedDateTo >= x.CreatedDate);
                 #endregion
 
                 string[] include = new string[] { "Company", "Customer", "Customer.Type", "Customer.Activities", "Payments" };
@@ -1258,7 +1262,9 @@ namespace Core.Services.Business {
                     )
                 && ((filter.CompanyId == null) || filter.CompanyId == x.Invoice.CompanyId)
                 && ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
-                && ((filter.DateTo == null) || filter.DateTo >= x.Date);
+                && ((filter.DateTo == null) || filter.DateTo >= x.Date)
+                && ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
+                && ((filter.CreatedDateTo == null) || filter.CreatedDateTo >= x.CreatedDate);
 
             #region Sort
             var sortby = filter.RandomSort ? "" : filter.Sort ?? "No";
