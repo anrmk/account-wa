@@ -84,10 +84,20 @@
                 <button type="button" class="btn btn-outline-primary" id="filterApplyBtn">Filter</button>
             </fieldset>
 
+            <div id="toolbar" role="toolbar">
+                <div class="input-group">
+                    <input type="number" id="checkInput" class="form-control" min="0" aria-describedby="checkByBtn">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" id="checkByBtn">Check by</button>
+                    </div>
+                </div>
+            </div>
+
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
                    data-query-params="queryParams"
                    data-total-field="totalItems"
                    data-data-field="items"
+                   data-unique-id="id"
                    data-select-item-name="Customers[]"
                    data-filter-control="true"
                    data-filter-control-container="true"
@@ -183,6 +193,22 @@
 
         $(document).ready(e => {
             var $table = $('#datatable');
+            var $checkByBtn = $('#checkByBtn');
+            var $checkInput = $('#checkInput');
+
+            $checkByBtn.click(function () {
+                var data = $table.bootstrapTable('getData');
+                var check = $checkInput.val();
+
+                var ids = $.map(data, function (n) {
+                    return n['id'];
+                })
+
+                if (ids.length > 0 && check > 0) {
+                    $table.bootstrapTable('uncheckAll');
+                    $table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
+                }
+            })
 
             var $filterApplyBtn = $('#filterApplyBtn').on('click', e => {
                 e.preventDefault();
