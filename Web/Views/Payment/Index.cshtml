@@ -4,16 +4,16 @@
     ViewData["Title"] = "Payments";
 }
 
+@section Toolbar  {
+    <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+}
+
 <div class="card">
     <div class="card-body">
         <div id="toolbar" role="toolbar">
             <div class="btn-group mr-1" role="group">
                 <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                 <a asp-controller="Payment" asp-action="Bulk" class="btn btn-outline-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
-            </div>
-
-            <div class="btn-group mr-1" role="group" aria-label="Payment active button group">
-                <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
@@ -29,6 +29,7 @@
                 <input type="hidden" name="RandomSort:boolean" id="RandomSort" data-val="@Model.RandomSort" data-value-type="boolean" value="@Model.RandomSort" />
             </form>
         </div>
+
         <table id="datatable" data-toggle="table" data-url="/api/payment"
                data-query-params="queryParams"
                data-total-field="totalItems"

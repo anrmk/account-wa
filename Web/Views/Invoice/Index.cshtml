@@ -3,6 +3,10 @@
     ViewData["Title"] = "Invoices";
 }
 
+@section Toolbar  {
+    <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+}
+
 @section SidebarContent {
     <div class="card">
         <ul class="list-group list-group-flush">
@@ -32,10 +36,6 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="bootstrap-table">
-            <div class="fixed-table-toolbar buttons-toolbar"></div>
-        </div>
-
         <div id="toolbar" class="btn-toolbar" role="toolbar">
             <div class="btn-group mr-1" role="group" aria-label="Invoice active button group">
                 <a asp-controller="Invoice" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
@@ -44,7 +44,6 @@
 
             <div class="btn-group mr-1" role="group" aria-label="Payment active button group">
                 <button id="bulkPaymentBtn" class="btn btn-outline-secondary" disabled>Create payment</button>
-                <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
@@ -70,8 +69,7 @@
                data-query-params="queryParams"
                data-total-field="totalItems"
                data-data-field="items"
-               data-select-item-name="Invoices[]"
-               data-buttons-toolbar=".buttons-toolbar">
+               data-select-item-name="Invoices[]" >
             <thead>
                 <tr>
                     <th data-checkbox="true"></th>
@@ -214,7 +212,7 @@
 
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Edit</a>
-                            <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
+                                <a href='/invoice/details/${row.id}' class='btn btn-sm btn-outline-secondary mr-1'>Detail</a>`
         }
     </script>
 }
