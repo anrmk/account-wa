@@ -64,6 +64,10 @@ $.fn.bootstrapTable.formatDateTime = function (value, row, index) {
     return value == null ? "" : new Date(value).toLocaleString();
 };
 
+$.fn.bootstrapTable.formatCurrency = function (value) {
+    return "$" + value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
+};
+
 $.extend($.fn.bootstrapTable.defaults, {
     classes: 'table table-hover',
     widthUnit : "%",

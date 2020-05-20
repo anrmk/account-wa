@@ -188,9 +188,11 @@
             var totalCheckedamount = 0, totalAmount = $('#totalAmount').data('value');
             $.each(selections, function () { totalCheckedamount += this.subtotal || 0; });
 
-            $('#totalCheckedAmount').html(`$${totalCheckedamount.toFixed(2)}`);
+            var totalCheckedAmountFormatted = $.fn.bootstrapTable.formatCurrency(totalCheckedamount);
+            $('#totalCheckedAmount').html(totalCheckedAmountFormatted);
 
-            $('#balanceAmount').html(`$${(totalAmount - totalCheckedamount).toFixed(2)}`);
+            var balanceAmountFormatted = $.fn.bootstrapTable.formatCurrency(totalAmount - totalCheckedamount);
+            $('#balanceAmount').html(balanceAmountFormatted);
         }
 
         function queryParams(params) {
