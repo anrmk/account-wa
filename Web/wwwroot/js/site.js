@@ -70,7 +70,7 @@ $.extend($.fn.bootstrapTable.defaults, {
     sidePagination: 'server',
     toolbar: '#toolbar',
     showPaginationSwitch: false,
-    //silentSort: false,
+    silentSort: false,
     search: true,
     idField: "id",
     pageSize: 10,

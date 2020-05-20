@@ -41,8 +41,8 @@
                                         @if(col.Split("|").Length >= 2) {
                                             <span>@col.Split("|")[0]</span><br />
                                             <span>
-                                                @col.Split("|")[1]
-                                                @*@(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))*@
+                                                @*@col.Split("|")[1] <br/>*@
+                                                @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
                                             </span>
                                         } else {
                                             <span>@col</span>
