@@ -90,6 +90,14 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomerTag(long id);
 
         Task<List<CustomerTagDto>> GetCustomerTags(long customerId);
+
+        //Recheck
+        Task<List<CustomerRecheckDto>> GetCustomerRechecks();
+        Task<List<CustomerRecheckDto>> GetCustomerRechecks(long customerId);
+        Task<CustomerRecheckDto> GetCustomerRecheck(long id);
+        Task<CustomerRecheckDto> CreateCustomerRecheck(CustomerRecheckDto dto);
+        Task<CustomerRecheckDto> UpdateCustomerRecheck(long id, CustomerRecheckDto dto);
+        Task<bool> DeleteCustomerRecheck(long id);
         #endregion
 
         #region INVOICE
@@ -146,6 +154,7 @@ namespace Core.Services.Business {
         private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
         private readonly ICustomerTagManager _customerTagManager;
         private readonly ICustomerTagLinkManager _customerTagLinkManager;
+        private readonly ICustomerRecheckManager _customerRecheckManager;
 
         private readonly IInvoiceManager _invoiceManager;
         private readonly IPaymentManager _paymentManager;
@@ -162,7 +171,7 @@ namespace Core.Services.Business {
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerRecheckManager customerRecheckManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager,
             IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager,
             INsiBusinessManager nsiBusinessManager) {
@@ -180,6 +189,7 @@ namespace Core.Services.Business {
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
             _customerTagManager = customerTagManager;
             _customerTagLinkManager = customerTagLinkManager;
+            _customerRecheckManager = customerRecheckManager;
 
             _invoiceManager = invoiceManager;
             _paymentManager = paymentManager;
@@ -1061,6 +1071,55 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerTagDto>>(tagList);
         }
 
+        #endregion
+
+        #region RECHECK
+        public async Task<List<CustomerRecheckDto>> GetCustomerRechecks() {
+            var result = await _customerRecheckManager.All();
+            return _mapper.Map<List<CustomerRecheckDto>>(result);
+        }
+
+        public async Task<List<CustomerRecheckDto>> GetCustomerRechecks(long customerId) {
+            var result = await _customerRecheckManager.FindAllByCustomerId(customerId);
+            return _mapper.Map<List<CustomerRecheckDto>>(result);
+        }
+
+        public async Task<CustomerRecheckDto> GetCustomerRecheck(long id) {
+            var result = await _customerRecheckManager.Find(id);
+            return _mapper.Map<CustomerRecheckDto>(result);
+        }
+
+        public async Task<CustomerRecheckDto> CreateCustomerRecheck(CustomerRecheckDto dto) {
+            var customer = await _customerManager.Find(dto.CustomerId);
+            if(customer == null) {
+                return null;
+            }
+            var newEntity = _mapper.Map<CustomerRecheckEntity>(dto);
+
+            var entity = await _customerRecheckManager.Create(newEntity);
+            return _mapper.Map<CustomerRecheckDto>(entity);
+        }
+
+        public async Task<CustomerRecheckDto> UpdateCustomerRecheck(long id, CustomerRecheckDto dto) {
+            var entity = await _customerRecheckManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerRecheckManager.Update(newEntity);
+
+            return _mapper.Map<CustomerRecheckDto>(entity);
+        }
+
+        public async Task<bool> DeleteCustomerRecheck(long id) {
+            var entity = await _customerRecheckManager.Find(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _customerRecheckManager.Delete(entity);
+            return result != 0;
+        }
         #endregion
 
         #endregion

@@ -121,7 +121,7 @@ namespace Core.Services.Managers {
 
                         "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[nsi.CustomerType]) AS CUST " +
                             "ON CUS.[CustomerType_Id] = CUST.[Id] " +
-                        "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[nsi.Recheck] GROUP BY [Customer_Id]) AS RCH " +
+                        "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[CustomerRechecks] GROUP BY [Customer_Id]) AS RCH " +
                             "ON CUS.[Id] = RCH.[Customer_Id] " +
                         "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [accountWa].[dbo].[CustomerTags] AS CT " +
                             "LEFT JOIN [accountWa].[dbo].[CustomerTagLinks] AS CTL " +

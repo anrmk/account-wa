@@ -32,7 +32,6 @@ namespace Core.Context {
         #region NSI
         public DbSet<ReportFieldEntity> ReportFields { get; set; }
         public DbSet<CustomerTypeEntity> CustomerTypes { get; set; }
-        public DbSet<RecheckEntity> Recheck { get; set; }
         //public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
         #endregion
 
@@ -47,6 +46,7 @@ namespace Core.Context {
         public DbSet<CustomerCreditUtilizedEntity> CustomersCreditUtilized { get; set; }
         public DbSet<CustomerTagEntity> CustomerTags { get; set; }
         public DbSet<CustomerTagLinkEntity> CustomerTagLinks { get; set; }
+        public DbSet<CustomerRecheckEntity> Recheck { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }

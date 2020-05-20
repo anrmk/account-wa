@@ -98,6 +98,10 @@ namespace Core {
             CreateMap<CustomerCreditLimitDto, CustomerCreditLimitEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
             CreateMap<CustomerTagDto, CustomerTagEntity>().ReverseMap();
+            CreateMap<CustomerRecheckDto, CustomerRecheckEntity>()
+                .ForMember(d => d.Customer, o => o.Ignore())
+                .ReverseMap()
+                .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""));
 
             //CreateMap<CustomerDto, CustomerBulkEntity>()
             //    .ForMember(d => d.TagLinks, o => o.Ignore())

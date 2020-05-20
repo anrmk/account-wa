@@ -94,6 +94,7 @@ namespace Web {
             //.ForMember(d => d.Periods, o => o.MapFrom(s => string.Join(",", s.Periods)));
             ;
             CreateMap<CustomerImportCreditsViewModel, CustomerImportCreditsDto>().ReverseMap();
+            CreateMap<CustomerRecheckViewModel, CustomerRecheckDto>().ReverseMap();
 
             #endregion
 

@@ -1,0 +1,43 @@
+﻿@model Web.ViewModels.CustomerRecheckViewModel
+
+@{
+    ViewData["Title"] = "Create customer recheck";
+
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+        <li class="breadcrumb-item"><a asp-action="Edit" asp-route-id="@Model.CustomerId">@ViewBag.CustomerName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New customer recheck</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header">@ViewBag.CustomerName</div>
+    <div class="card-body">
+        <form id="createForm" method="POST" asp-action="CreateRecheck">
+            <fieldset>
+                <input asp-for="CustomerId" type="hidden" />
+                <div class="form-row mb-3">
+                    <div class="col-6">
+                        <label asp-for="ReceivedDate"></label>
+                        <input asp-for="ReceivedDate" type="date" class="form-control" required>
+                        <span asp-validation-for="ReceivedDate" class="text-danger"></span>
+                    </div>
+                    <div class="col-6">
+                        <label asp-for="ReportDate"></label>
+                        <input asp-for="ReportDate" type="date" class="form-control" required>
+                        <span asp-validation-for="ReportDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="" role="toolbar">
+            <button type="submit" class="btn btn-outline-primary" form="createForm">Save</button>
+            <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-link">Cancel</a>
+        </div>
+    </div>
+</div>

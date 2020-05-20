@@ -53,7 +53,7 @@ namespace Core.Services {
             //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
             services.AddTransient<IReportFieldManager, ReportFieldManager>();
             services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
-            services.AddTransient<IRecheckManager, RecheckManager>();
+            services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
 
             ///Business
             services.AddTransient<INsiBusinessManager, NsiBusinessManager>();

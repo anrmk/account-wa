@@ -41,6 +41,9 @@
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" id="activities-tab" href="#activities">Activities</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="activities-tab" href="#recheck">Recheck</a>
+            </li>
         </ul>
     </div>
     <div class="card-body">
@@ -201,7 +204,7 @@
                 </table>
             </div>
 
-            <div id="activities" class="tab-pane fade">
+            <div class="tab-pane fade" id="activities">
                 <div class="form-group">
                     <a asp-controller="Customer" asp-action="CreateActivity" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Change</a>
                 </div>
@@ -215,6 +218,34 @@
                         }
                     </div>
                 </div>
+            </div>
+
+            <div class="tab-pane fade" id="recheck" role="tabpanel" aria-labelledby="recheck-tab">
+                <div class="form-group">
+                    <a asp-controller="Customer" asp-action="CreateRecheck" asp-route-customerId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Change</a>
+                </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Received Date</th>
+                            <th>Report Date</th>
+                            <th>Created Date</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in ViewBag.Rechecks) {
+                            <tr>
+                                <td>@item.ReceivedDate.ToString("MMM/dd/yyyy")</td>
+                                <td>@item.ReportDate.ToString("MMM/dd/yyyy")</td>
+                                <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
+                                <td class="text-right table-active">
+                                    <a asp-controller="Customer" asp-action="EditRecheck" asp-route-id="@item.Id" class="btn btn-outline-secondary">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

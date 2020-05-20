@@ -88,6 +88,9 @@ namespace Web.Controllers.Mvc {
             var activities = await _businessManager.GetCustomerAllActivity(id);
             ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);
 
+            var rechecks = await _businessManager.GetCustomerRechecks(id);
+            ViewBag.Rechecks = _mapper.Map<List<CustomerRecheckViewModel>>(rechecks);
+
             var customerTypes = await _nsiManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
@@ -498,6 +501,98 @@ namespace Web.Controllers.Mvc {
                 }
 
                 var result = await _businessManager.DeleteCustomerCreditUtilized(id);
+                if(result == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Edit), new { Id = item.CustomerId });
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
+        #endregion
+
+        #region RECHECK
+        [Route("{customerId}/recheck")]
+        public async Task<ActionResult> CreateRecheck(long customerId) {
+            var item = await _businessManager.GetCustomer(customerId);
+
+            if(item == null) {
+                return NotFound();
+            }
+            ViewBag.CustomerName = item.Name;
+
+            var model = new CustomerRecheckViewModel() {
+                CustomerId = customerId,
+                ReportDate = DateTime.Now,
+                ReceivedDate = DateTime.Now,
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [Route("{customerId}/recheck")]
+        public async Task<ActionResult> CreateRecheck(CustomerRecheckViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.CreateCustomerRecheck(_mapper.Map<CustomerRecheckDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+
+                    return RedirectToAction(nameof(Edit), new { Id = model.CustomerId });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            return View(model);
+        }
+
+        public async Task<ActionResult> EditRecheck(long id) {
+            var item = await _businessManager.GetCustomerRecheck(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            var customer = await _businessManager.GetCustomer(item.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(_mapper.Map<CustomerRecheckViewModel>(item));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditRecheck(long id, CustomerRecheckViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateCustomerRecheck(id, _mapper.Map<CustomerRecheckDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(EditRecheck), new { id = item.Id });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            var customer = await _businessManager.GetCustomer(model.CustomerId ?? 0);
+            ViewBag.CustomerName = customer.Name;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteRecheck(long id) {
+            try {
+                var item = await _businessManager.GetCustomerRecheck(id);
+                if(item == null) {
+                    return NotFound();
+                }
+
+                var result = await _businessManager.DeleteCustomerRecheck(id);
                 if(result == false) {
                     return NotFound();
                 }
