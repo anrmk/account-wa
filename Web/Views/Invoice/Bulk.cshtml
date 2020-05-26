@@ -190,24 +190,31 @@
             return unpaid == 0 || unpaid == null ? value : `${value} <span class='font-weight-bold'>(${unpaid})<span>`;
         }
 
-        $(document).ready(e => {
+        function checkBy() {
             var $table = $('#datatable');
             var $checkInput = $('#checkInput');
 
+            var data = $table.bootstrapTable('getData');
+            var check = $checkInput.val();
+
+            var ids = $.map(data, function (n) {
+                return n['id'];
+            })
+
+            if (ids.length > 0 && check > 0) {
+                $table.bootstrapTable('uncheckAll');
+                $table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
+            }
+        }
+
+        $(document).ready(e => {
+            var $table = $('#datatable').on('load-success.bs.table', function (data) {
+                checkBy();
+            });
+            
             $('#checkByBtn').on('click', e => {
                 e.preventDefault();
-
-                var data = $table.bootstrapTable('getData');
-                var check = $checkInput.val();
-
-                var ids = $.map(data, function (n) {
-                    return n['id'];
-                })
-
-                if (ids.length > 0 && check > 0) {
-                    $table.bootstrapTable('uncheckAll');
-                    $table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
-                }
+                checkBy();
             })
 
             $('#filterApplyBtn').on('click', e => {
