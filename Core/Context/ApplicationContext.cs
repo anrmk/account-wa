@@ -30,7 +30,7 @@ namespace Core.Context {
 
         #region DbSet
         #region NSI
-        public DbSet<ReportFieldEntity> ReportFields { get; set; }
+        //public DbSet<ReportFieldEntity> ReportFields { get; set; }
         public DbSet<CustomerTypeEntity> CustomerTypes { get; set; }
         //public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
         #endregion
@@ -54,6 +54,8 @@ namespace Core.Context {
         public DbSet<SavedReportEntity> SavedReports { get; set; }
         public DbSet<SavedReportFieldEntity> SavedReportFields { get; set; }
         public DbSet<SavedReportFileEntity> SavedReportFiles { get; set; }
+
+        public DbSet<ReportSearchCriteriaEntity> ReportSearchCriterias { get; set; }
 
         #endregion
 

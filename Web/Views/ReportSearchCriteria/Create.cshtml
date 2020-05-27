@@ -1,0 +1,86 @@
+﻿@model Web.ViewModels.ReportSearchCriteriaViewModel
+@{
+    Layout = null;
+    var formId = Guid.NewGuid();
+}
+<form id="@formId" asp-action="CreateSearchCriteria" asp-controller="ReportSearchCriteria" method="POST">
+    <fieldset>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <label asp-for="TagsIds"></label>
+                <select asp-for="TagsIds" asp-items="@ViewBag.CustomerTags" name="TagsIds[]" class="form-control" multiple>
+                    <option value="0">&#8249; No tags &#8250;</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label asp-for="TypeIds"></label>
+                <select asp-for="TypeIds" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control" multiple>
+                </select>
+            </div>
+            <div class="col-4">
+                <label asp-for="Recheck"></label>
+                <select asp-for="Recheck" asp-items="@ViewBag.CustomerRechecks" name="Recheck[]" class="form-control" multiple>
+                </select>
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-6">
+                <label asp-for="DateFrom"></label>
+                <input asp-for="DateFrom" type="date" class="form-control">
+                <span asp-validation-for="DateFrom" class="text-danger"></span>
+            </div>
+            <div class="col-6">
+                <label asp-for="DateTo"></label>
+                <input asp-for="DateTo" type="date" class="form-control">
+                <span asp-validation-for="DateTo" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-6">
+                <label asp-for="CreatedDateFrom"></label>
+                <input asp-for="CreatedDateFrom" type="date" class="form-control">
+                <span asp-validation-for="CreatedDateFrom" class="text-danger"></span>
+            </div>
+            <div class="col-6">
+                <label asp-for="CreatedDateTo"></label>
+                <input asp-for="CreatedDateTo" type="date" class="form-control">
+                <span asp-validation-for="CreatedDateTo" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <label asp-for="CurrentInvoices"></label>
+                <input asp-for="CurrentInvoices" type="number" min="0" class="form-control">
+                <span asp-validation-for="CurrentInvoices" class="text-danger"></span>
+            </div>
+            <div class="col-4">
+                <label asp-for="LateInvoices"></label>
+                <input asp-for="LateInvoices" type="number" min="0" class="form-control">
+                <span asp-validation-for="LateInvoices" class="text-danger"></span>
+            </div>
+            <div class="col-4">
+                <label asp-for="SelectTop"></label>
+                <input asp-for="SelectTop" type="number" min="0" class="form-control">
+                <span asp-validation-for="SelectTop" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row mb-3">
+            <div class="col-4">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
+                    <label asp-for="RandomSort" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" @(Model.ExcludeNewCustomer ? "checked" : "") name="ExcludeNewCustomer:boolean" id="ExcludeNewCustomer" data-val="true" data-value-type="boolean" />
+                    <label asp-for="ExcludeNewCustomer" class="form-check-label"></label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" @(Model.OnlyNewCustomer ? "checked" : "") name="OnlyNewCustomer:boolean" id="OnlyNewCustomer" data-val="true" data-value-type="boolean" />
+                    <label asp-for="OnlyNewCustomer" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</form>

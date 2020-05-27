@@ -118,9 +118,10 @@ namespace Core.Services.Managers {
                                 "ON I.[Id] = P.[Invoice_Id] AND I.[Subtotal] = P.[PaymentAmount] " +
                                 "WHERE I.[Date] < @DATEFROM AND P.[PaymentCount] IS NULL GROUP BY I.[Customer_Id]) AS INV2 " +
                             "ON CUS.[Id] = INV2.[Customer_Id] " +
-
+                        //GET CUSTOMER TYPES
                         "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[nsi.CustomerType]) AS CUST " +
                             "ON CUS.[CustomerType_Id] = CUST.[Id] " +
+                        //GET RECHECK
                         "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[CustomerRechecks] GROUP BY [Customer_Id]) AS RCH " +
                             "ON CUS.[Id] = RCH.[Customer_Id] " +
                         "OUTER APPLY (SELECT STRING_AGG(CTL.[Id], ',') AS TagLinkIds, STRING_AGG(CT.[Id], ',') AS TagIds, STRING_AGG(CT.[Name], ',') AS TagNames FROM [accountWa].[dbo].[CustomerTags] AS CT " +

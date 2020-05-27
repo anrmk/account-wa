@@ -31,21 +31,21 @@ namespace Web.Controllers.Mvc {
 
         private readonly INsiBusinessManager _nsiBusinessManager;
         private readonly IMemoryCache _memoryCache;
-        private readonly ICrudBusinessManager _crudBusinessManager;
+        private readonly ICrudBusinessManager _businessManager;
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly IReportManager _reportManager;
 
         public ReportController(IMemoryCache memoryCache, ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
             INsiBusinessManager nsiBusinessManager, ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager) : base(logger, mapper, context) {
             _memoryCache = memoryCache;
-            _crudBusinessManager = crudBusinessManager;
+            _businessManager = crudBusinessManager;
             _nsiBusinessManager = nsiBusinessManager;
             _reportBusinessManager = businessManager;
             _reportManager = reportManager;
         }
 
         public async Task<IActionResult> Index() {
-            var companies = await _crudBusinessManager.GetCompanies();
+            var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new ReportFilterViewModel() {
@@ -54,7 +54,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<IActionResult> Saved() {
-            var result = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var savedReportList = result.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
                 Key = companyId ?? 0,
                 Count = names.Count(),
@@ -65,7 +65,7 @@ namespace Web.Controllers.Mvc {
                 Count = x.Count
             }).ToList();
 
-            var comanies = await _crudBusinessManager.GetCompanies();
+            var comanies = await _businessManager.GetCompanies();
             comanies = comanies.Where(x => !savedReportList.Any(y => y.CompanyId == x.Id)).ToList();
 
             if(comanies.Count > 0)
@@ -78,15 +78,15 @@ namespace Web.Controllers.Mvc {
             return View(savedReportList);
         }
 
-        public async Task<IActionResult> View(long companyId) {
-            var company = await _crudBusinessManager.GetCompany(companyId);
+        public async Task<IActionResult> SavedDatails(long companyId) {
+            var company = await _businessManager.GetCompany(companyId);
             if(company == null) {
                 return BadRequest();
             }
             ViewData["Title"] = company.Name;
 
-            var result = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
-            var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+            var result = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
+            var customerTypes = await _businessManager.GetCustomerTypes();
             var customerTypesList = customerTypes.Select(x => x.Name).ToList();
 
             Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
@@ -142,18 +142,45 @@ namespace Web.Controllers.Mvc {
             return View(rows);
         }
 
+        /// <summary>
+        /// Delete Saved Report
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SavedDelete(long id) {
+            try {
+                var item = await _businessManager.GetSavedReport(id);
+                if(item == null)
+                    return NotFound();
+
+                var companyId = item.CompanyId;
+
+                var result = await _businessManager.DeleteSavedReport(id);
+                if(result == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(SavedDatails), new { companyId = companyId });
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
+
         [HttpPost]
         [Route("exportSettings")]
-        public async Task<IActionResult> ExportSettings([FromBody]ReportFilterViewModel model) {
+        public async Task<IActionResult> ExportSettings([FromBody] ReportFilterViewModel model) {
             var companyId = model.CompanyId;
 
-            var company = await _crudBusinessManager.GetCompany(companyId);
+            var company = await _businessManager.GetCompany(companyId);
             if(company == null) {
                 return NotFound();
             }
 
             //var periods = await _nsiBusinessManager.GetReportPeriods();
-            var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
+            var settings = await _businessManager.GetCompanyAllExportSettings(company.Id);
             ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
 
             return View("_ExportSettingsPartial", model);
@@ -161,15 +188,15 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("savedReport")]
-        public async Task<IActionResult> SavedReport([FromBody]ReportFilterViewModel model) {
+        public async Task<IActionResult> SavedReport([FromBody] ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+                    var company = await _businessManager.GetCompany(model.CompanyId);
                     if(company == null) {
                         return NotFound();
                     }
 
-                    var savedItem = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                    var savedItem = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
                     if(savedItem != null && savedItem.IsPublished) {
                         return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
                     }
@@ -181,7 +208,7 @@ namespace Web.Controllers.Mvc {
                         NumberOfPeriods = model.NumberOfPeriods
                     };
 
-                    var settings = await _crudBusinessManager.GetCompanyAllExportSettings(company.Id);
+                    var settings = await _businessManager.GetCompanyAllExportSettings(company.Id);
                     ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
 
                     return View("_SavedReportPartial", result);
@@ -194,15 +221,15 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("createCustomerCredits")]
-        public async Task<IActionResult> CreateCredits([FromBody]ReportFilterViewModel model) {
+        public async Task<IActionResult> CreateCredits([FromBody] ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+                    var company = await _businessManager.GetCompany(model.CompanyId);
                     if(company != null && company.Settings != null && company.Settings.SaveCreditValues) { //возможно ли сохранение лимитов
                         var date = model.Date.LastDayOfMonth();
                         var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                        var savedReport = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
+                        var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
 
                         if(savedReport != null && savedReport.IsPublished) {
                             var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
@@ -222,7 +249,7 @@ namespace Web.Controllers.Mvc {
                                     CustomerId = customer.Id
                                 };
 
-                                var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
+                                var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
 
                                 if(creditUtilizeds != null && creditUtilizeds.Count > 0) {
                                     var creditUtilized = creditUtilizeds.OrderByDescending(x => x.CreatedDate)
@@ -230,14 +257,14 @@ namespace Web.Controllers.Mvc {
 
                                     if(creditUtilized != null) {
                                         if(creditUtilized.Value < value)
-                                            await _crudBusinessManager.CreateCustomerCreditUtilized(dto);
+                                            await _businessManager.CreateCustomerCreditUtilized(dto);
                                         else if(creditUtilized.Value > value && creditUtilized.CreatedDate == date) {
                                             creditUtilized.Value = value;
-                                            await _crudBusinessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                            await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
                                         }
                                     }
                                 } else {
-                                    await _crudBusinessManager.CreateCustomerCreditUtilized(dto);
+                                    await _businessManager.CreateCustomerCreditUtilized(dto);
                                 }
                             }
                         } else {
@@ -253,13 +280,13 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("checkTheAbilityToSaveCredits")]
-        public async Task<IActionResult> CheckAbilityToSaveCresits([FromBody]ReportFilterViewModel model) {
-            var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+        public async Task<IActionResult> CheckAbilityToSaveCresits([FromBody] ReportFilterViewModel model) {
+            var company = await _businessManager.GetCompany(model.CompanyId);
             if(company != null && company.Settings != null) {
                 var settings = company.Settings;
                 var date = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                var savedReport = await _crudBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
+                var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
 
                 if(settings != null && settings.SaveCreditValues && savedReport != null && savedReport.IsPublished)
                     return Ok(true);
@@ -275,7 +302,7 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var settings = await _crudBusinessManager.GetCompanyExportSettings(id);
+                    var settings = await _businessManager.GetCompanyExportSettings(id);
                     if(settings == null) {
                         return NotFound();
                     }
@@ -352,12 +379,12 @@ namespace Web.Controllers.Mvc {
 
         [Route("download/{id}")]
         public async Task<IActionResult> Download(long id) {
-            var item = await _crudBusinessManager.GetSavedFile(id);
+            var item = await _businessManager.GetSavedFile(id);
             if(item == null) {
                 return NotFound();
             }
 
-            var report = await _crudBusinessManager.GetSavedReport(item.ReportId ?? 0);
+            var report = await _businessManager.GetSavedReport(item.ReportId ?? 0);
 
             MemoryStream ms = new MemoryStream();
             ms.Write(item.File, 0, item.File.Length);
@@ -370,32 +397,45 @@ namespace Web.Controllers.Mvc {
 
         }
 
-        /// <summary>
-        /// Delete Saved Report
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(long id) {
-            try {
-                var item = await _crudBusinessManager.GetSavedReport(id);
-                if(item == null)
-                    return NotFound();
+        //public async Task<IActionResult> GetSearchCriteria([FromQuery] ReportSearchCriteriaViewModel model) {
+        //   // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
+        //    var customerTags = await _businessManager.GetCustomerTags();
+        //    ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-                var companyId = item.CompanyId;
+        //    var customerTypes = await _businessManager.GetCustomerTypes();
+        //    ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-                var result = await _crudBusinessManager.DeleteSavedReport(id);
-                if(result == false) {
-                    return NotFound();
-                }
-                return RedirectToAction(nameof(View), new { companyId = companyId });
+        //    ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
 
-            } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-                return BadRequest(er);
-            }
-        }
+        //    return View("SearchCriteria", model);
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> CreateSearchCriteria([FromBody] ReportSearchCriteriaViewModel model) {
+        //    try {
+        //        if(ModelState.IsValid) {
+        //            var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<ReportSearchCriteriaDto>(model));
+        //            if(item == null) {
+        //                return NotFound();
+        //            }
+        //            //model = _mapper.Map<CustomerViewModel>(item);
+        //            return RedirectToAction(nameof(Edit), new { id = item.Id });
+        //        }
+        //    } catch(Exception er) {
+        //        _logger.LogError(er, er.Message);
+        //    }
+
+        //    // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
+        //    var customerTags = await _businessManager.GetCustomerTags();
+        //    ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+        //    var customerTypes = await _businessManager.GetCustomerTypes();
+        //    ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+        //    ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
+
+        //    return View("SearchCriteria", model);
+        //}
     }
 }
 
@@ -451,7 +491,7 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+                    var customerTypes = await _crudBusinessManager.GetCustomerTypes();
 
                     #region Fields
                     var fields = new List<SavedReportFieldDto>();

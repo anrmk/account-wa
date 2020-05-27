@@ -8,6 +8,8 @@
   <ItemGroup>
     <Compile Remove="Migrations\20200520172801_customer-recheck.cs" />
     <Compile Remove="Migrations\20200520172801_customer-recheck.Designer.cs" />
+    <Compile Remove="Migrations\20200526194903_update-customer-type-table.cs" />
+    <Compile Remove="Migrations\20200526194903_update-customer-type-table.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

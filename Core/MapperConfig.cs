@@ -58,7 +58,7 @@ namespace Core {
                     AddressId = s.Customer.AddressId,
                     CompanyId = s.Customer.CompanyId,
                     TypeId = s.Customer.TypeId,
-                    Type = s.Customer.Type != null ? new NsiDto {
+                    Type = s.Customer.Type != null ? new CustomerTypeDto {
                         Id = s.Customer.Type.Id,
                         Code = s.Customer.Type.Code,
                         Name = s.Customer.Type.Name
@@ -98,6 +98,7 @@ namespace Core {
             CreateMap<CustomerCreditLimitDto, CustomerCreditLimitEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
             CreateMap<CustomerTagDto, CustomerTagEntity>().ReverseMap();
+            CreateMap<CustomerTypeDto, CustomerTypeEntity>().ReverseMap();
             CreateMap<CustomerRecheckDto, CustomerRecheckEntity>()
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ReverseMap()
@@ -121,7 +122,7 @@ namespace Core {
                 ;
             #endregion
 
-            #region SAVED REPORT
+            #region REPORT
             CreateMap<SavedReportDto, SavedReportEntity>()
                 .ForMember(d => d.Fields, o => o.Ignore())
                 .ForMember(d => d.Files, o => o.Ignore())
@@ -129,12 +130,31 @@ namespace Core {
                 ;
             CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
             CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
+
+            CreateMap<ReportSearchCriteriaDto, ReportSearchCriteriaEntity>()
+                .ForMember(d => d.CustomerTypes, o => o.MapFrom(s => string.Join(',', s.TypeIds)))
+                .ForMember(d => d.CustomerTags, o => o.MapFrom(s => string.Join(',', s.TagsIds)))
+                .ForMember(d => d.CustomerRechecks, o => o.MapFrom(s => string.Join(',', s.Recheck)))
+                .ReverseMap()
+                .ForMember(d => d.TypeIds, o => o.MapFrom(s =>  !string.IsNullOrEmpty(s.CustomerTypes) 
+                        ? s.CustomerTypes.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList() 
+                        : Enumerable.Empty<long>()
+                        ))
+                .ForMember(d => d.TagsIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTags)
+                        ? s.CustomerTags.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
+                        : Enumerable.Empty<long>()
+                        ))
+                .ForMember(d => d.Recheck, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerRechecks)
+                        ? s.CustomerRechecks.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList()
+                        : Enumerable.Empty<int>()
+                        ))
+                ;
             #endregion
 
             #region NSI
             //CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
             CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();
-            CreateMap<NsiDto, CustomerTypeEntity>().ReverseMap();
+            
             #endregion
         }
     }

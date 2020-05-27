@@ -2,7 +2,7 @@
 using Core.Data.Entities.Nsi;
 using Core.Services.Base;
 
-namespace Core.Services.Managers.Nsi {
+namespace Core.Services.Managers {
     public interface ICustomerTypeManager: IEntityManager<CustomerTypeEntity> {
 
     }

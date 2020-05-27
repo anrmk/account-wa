@@ -90,6 +90,7 @@ namespace Core.Services.Business {
         Task<bool> DeleteCustomerTag(long id);
 
         Task<List<CustomerTagDto>> GetCustomerTags(long customerId);
+        Task<List<CustomerTypeDto>> GetCustomerTypes();
 
         //Recheck
         Task<List<CustomerRecheckDto>> GetCustomerRechecks();
@@ -136,6 +137,13 @@ namespace Core.Services.Business {
         Task<bool> DeleteSavedReport(long id);
         Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
+
+        #region SEARCH CRITERIA
+        Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id);
+        Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias();
+        Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto);
+        Task<bool> DeleteReportSearchCriteria(long id);
+        #endregion
     }
 
     public class CrudBusinessManager: BaseBusinessManager, ICrudBusinessManager {
@@ -154,6 +162,7 @@ namespace Core.Services.Business {
         private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
         private readonly ICustomerTagManager _customerTagManager;
         private readonly ICustomerTagLinkManager _customerTagLinkManager;
+        private readonly ICustomerTypeManager _customerTypeManager;
         private readonly ICustomerRecheckManager _customerRecheckManager;
 
         private readonly IInvoiceManager _invoiceManager;
@@ -162,6 +171,7 @@ namespace Core.Services.Business {
         private readonly ISavedReportManager _savedReportManager;
         private readonly ISavedReportFieldManager _savedReportFieldManager;
         private readonly ISavedReportFileManager _savedReportFileManager;
+        private readonly IReportSearchCriteriaManager _reportSearchCriteriaManager;
 
         private readonly INsiBusinessManager _nsiBusinessManager;
 
@@ -171,9 +181,9 @@ namespace Core.Services.Business {
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerRecheckManager customerRecheckManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
             IInvoiceManager invoiceManager, IPaymentManager paymentManager,
-            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager,
+            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IReportSearchCriteriaManager reportSearchCriteriaManager,
             INsiBusinessManager nsiBusinessManager) {
             _mapper = mapper;
             _companyManager = companyManager;
@@ -189,6 +199,7 @@ namespace Core.Services.Business {
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
             _customerTagManager = customerTagManager;
             _customerTagLinkManager = customerTagLinkManager;
+            _customerTypeManager = customerTypeManager;
             _customerRecheckManager = customerRecheckManager;
 
             _invoiceManager = invoiceManager;
@@ -199,6 +210,7 @@ namespace Core.Services.Business {
             _savedReportManager = savedReportManager;
             _savedReportFieldManager = savedReportFieldManager;
             _savedReportFileManager = savedReportFileManager;
+            _reportSearchCriteriaManager = reportSearchCriteriaManager;
         }
 
         #region COMPANY
@@ -1070,8 +1082,15 @@ namespace Core.Services.Business {
 
             return _mapper.Map<List<CustomerTagDto>>(tagList);
         }
-
         #endregion
+
+        #region TYPES
+        public async Task<List<CustomerTypeDto>> GetCustomerTypes() {
+            var result = await _customerTypeManager.All();
+            return _mapper.Map<List<CustomerTypeDto>>(result);
+        }
+        #endregion
+
 
         #region RECHECK
         public async Task<List<CustomerRecheckDto>> GetCustomerRechecks() {
@@ -1462,6 +1481,33 @@ namespace Core.Services.Business {
         public async Task<SavedReportFileDto> GetSavedFile(long id) {
             var entity = await _savedReportFileManager.Find(id);
             return _mapper.Map<SavedReportFileDto>(entity);
+        }
+        #endregion
+
+        #region SEARCH CRITERIA
+        public async Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id) {
+            var entity = await _reportSearchCriteriaManager.Find(id);
+            return _mapper.Map<ReportSearchCriteriaDto>(entity);
+        }
+
+        public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias() {
+            var entity = await _reportSearchCriteriaManager.All();
+            return _mapper.Map<List<ReportSearchCriteriaDto>>(entity);
+        }
+
+        public async Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto) {
+            var entity = _mapper.Map<ReportSearchCriteriaEntity>(dto);
+            entity = await _reportSearchCriteriaManager.Create(entity);
+            return _mapper.Map<ReportSearchCriteriaDto>(entity);
+        }
+
+        public async Task<bool> DeleteReportSearchCriteria(long id) {
+            var entity = await _reportSearchCriteriaManager.Find(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _reportSearchCriteriaManager.Delete(entity);
+            return result != 0;
         }
         #endregion
     }

@@ -47,7 +47,7 @@ namespace Core.Data.Dto {
         public CompanyDto Company { get; set; }
 
         public long? TypeId { get; set; }
-        public NsiDto Type { get; set; }
+        public CustomerTypeDto Type { get; set; }
 
         public virtual ICollection<InvoiceDto> Invoices { get; set; }
 

@@ -52,7 +52,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var customerTypes = await _nsiManager.GetCustomerTypes();
+            var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(item);
@@ -91,7 +91,7 @@ namespace Web.Controllers.Mvc {
             var rechecks = await _businessManager.GetCustomerRechecks(id);
             ViewBag.Rechecks = _mapper.Map<List<CustomerRecheckViewModel>>(rechecks);
 
-            var customerTypes = await _nsiManager.GetCustomerTypes();
+            var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
@@ -128,7 +128,7 @@ namespace Web.Controllers.Mvc {
             var activities = await _businessManager.GetCustomerAllActivity(id);
             ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);
 
-            var customerTypes = await _nsiManager.GetCustomerTypes();
+            var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
@@ -660,7 +660,7 @@ namespace Web.Controllers.Api {
                     var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
                     model.Rows = cacheModel?.Rows;
 
-                    var customerTypes = await _nsiManager.GetCustomerTypes();
+                    var customerTypes = await _businessManager.GetCustomerTypes();
                     var customerTags = await _businessManager.GetCustomerTags();
 
                     for(var i = 0; i < model.Rows?.Count(); i++) {

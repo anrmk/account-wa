@@ -141,6 +141,8 @@ namespace Web {
             CreateMap<SavedReportViewModel, SavedReportDto>().ReverseMap();
             #endregion
 
+            CreateMap<ReportSearchCriteriaViewModel, ReportSearchCriteriaDto>().ReverseMap();
+
             CreateMap<NsiViewModel, NsiDto>().ReverseMap();
 
             CreateMap<PagerFilterViewModel, PagerFilter>().ReverseMap();

@@ -12,22 +12,24 @@
 </nav>
 
 <form method="POST" asp-action="Create">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="card">
-        <div class="card-body">
-            <div class="form-row mb-3">
-                <div class="col-4">
-                    <label asp-for="Name"></label>
-                    <input asp-for="Name" type="text" class="form-control" required>
-                    <span asp-validation-for="Name" class="text-danger"></span>
+    <fieldset>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="card">
+            <div class="card-body">
+                <div class="form-row mb-3">
+                    <div class="col-4">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" type="text" class="form-control" required>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="" role="toolbar" aria-label="Toolbar with button groups">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <a asp-action="index" class="btn btn-link">Cancel</a>
                 </div>
             </div>
         </div>
-        <div class="card-footer">
-            <div class="" role="toolbar" aria-label="Toolbar with button groups">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a asp-action="index" class="btn btn-link">Cancel</a>
-            </div>
-        </div>
-    </div>
+    </fieldset>
 </form>

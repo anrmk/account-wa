@@ -4,6 +4,18 @@
     ViewData["SubTitle"] = "Bulk Invoicing is ideal for when you have a lot of clients to bill for a lot of work. Use the Bulk Invoice wizard to quickly create and send invoices to all of your clients quickly!";
 }
 
+
+@section Toolbar {
+    <div class="btn-toolbar">
+        <div class="btn-group">
+            <button id="saveSearchCriteriaBtn" class="btn btn-outline-secondary">
+                <i class="far fa-save mr-2"></i> Save
+            </button>
+        </div>
+    </div>
+}
+
+
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-action="Index">Invoices</a></li>
@@ -24,13 +36,12 @@
                         <label asp-for="SummaryRangeId"></label>
                         <select id="summaryRange" asp-for="SummaryRangeId" asp-items="@ViewBag.SummaryRange" class="form-control" required></select>
                     </div>
-                    <div class="col-md-3">
-                        <label asp-for="DateFrom"></label>
-                        <input asp-for="DateFrom" type="date" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="DateTo"></label>
-                        <input asp-for="DateTo" type="date" class="form-control" required>
+                    <div class="col-md-6">
+                        <label asp-for="DateFrom">Date From/To</label>
+                        <div class="input-group">
+                            <input asp-for="DateFrom" type="date" class="form-control" required>
+                            <input asp-for="DateTo" type="date" class="form-control" required>
+                        </div>
                     </div>
                 </div>
                 <div class="form-row mb-3">
@@ -44,7 +55,7 @@
                     </div>
                     <div class="col-md-2">
                         <label asp-for="TypeIds"></label>
-                        <select id="bootstrap-table-filter-control-type" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
+                        <select id="bootstrap-table-filter-control-type" asp-for="TypeIds" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control selectpicker" data-field="type"
                                 multiple
                                 data-live-search="true">
                         </select>
@@ -56,13 +67,12 @@
                                 data-live-search="true">
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label asp-for="CreatedDateFrom"></label>
-                        <input asp-for="CreatedDateFrom" type="date" class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label asp-for="CreatedDateTo"></label>
-                        <input asp-for="CreatedDateTo" type="date" class="form-control">
+                    <div class="col-md-6">
+                        <label asp-for="CreatedDateFrom">Record Date From/To</label>
+                        <div class="input-group">
+                            <input asp-for="CreatedDateFrom" type="date" class="form-control">
+                            <input asp-for="CreatedDateTo" type="date" class="form-control">
+                        </div>
                     </div>
                 </div>
                 <div class="form-row mb-3">
@@ -75,22 +85,28 @@
                         <label asp-for="LateInvoices"></label>
                         <input asp-for="LateInvoices" class="form-control" />
                     </div>
+
+                    <div class="col-md-2">
+                        <label asp-for="SelectTop"></label>
+
+                        <div class="input-group">
+                            <input asp-for="SelectTop" id="selectTopInput" class="form-control" min="0" />
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div class="form-check mb-3 col">
                     <input type="checkbox" class="form-check-input" @(Model.RandomSort ? "checked" : "") name="RandomSort:boolean" id="RandomSort" data-val="true" data-value-type="boolean" />
                     <label asp-for="RandomSort" class="form-check-label"></label>
                 </div>
-                <button type="button" class="btn btn-outline-primary" id="filterApplyBtn">Filter</button>
             </fieldset>
 
             <div id="toolbar" role="toolbar">
-                <div class="input-group">
-                    <input type="number" id="checkInput" class="form-control" min="0" aria-describedby="checkByBtn">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" id="checkByBtn">Check by</button>
-                    </div>
-                </div>
+                <button type="button" class="btn btn-outline-secondary" id="filterApplyBtn">Filter</button>
             </div>
 
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
@@ -190,12 +206,12 @@
             return unpaid == 0 || unpaid == null ? value : `${value} <span class='font-weight-bold'>(${unpaid})<span>`;
         }
 
-        function checkBy() {
+        function selectTopRecords() {
             var $table = $('#datatable');
-            var $checkInput = $('#checkInput');
+            var $selectTopInput = $('#selectTopInput');
 
             var data = $table.bootstrapTable('getData');
-            var check = $checkInput.val();
+            var check = $selectTopInput.val();
 
             var ids = $.map(data, function (n) {
                 return n['id'];
@@ -209,12 +225,12 @@
 
         $(document).ready(e => {
             var $table = $('#datatable').on('load-success.bs.table', function (data) {
-                checkBy();
+                selectTopRecords();
             });
-            
-            $('#checkByBtn').on('click', e => {
+
+            $('#selectTopBtn').on('click', e => {
                 e.preventDefault();
-                checkBy();
+                selectTopRecords();
             })
 
             $('#filterApplyBtn').on('click', e => {
@@ -276,6 +292,35 @@
                         $table.bootstrapTable('refresh');
                     });
                 }
+            });
+
+            //on save search criteria btn click
+            $('#saveSearchCriteriaBtn').click(e => {
+                e.preventDefault();
+                var formData = $('#submitForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+
+                var options = {
+                    'type': 'get',
+                    'url': '/reportSearchCriteria/create',
+                    'data': formData,
+                    'traditional': true
+                };
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    $(data).dialog('Save search criteria', (eventName, _, target) => {
+                        if (eventName === 'shown.bs.modal') {
+                            target.on('submit', e => {
+                                e.preventDefault();
+
+                                $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
+                                    if (status === 'success') {
+                                        window.modal.modal('hide');
+                                    }
+                                });
+                            })
+                        }
+                    });
+                });
             });
         });
 

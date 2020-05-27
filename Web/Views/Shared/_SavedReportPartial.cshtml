@@ -56,20 +56,6 @@
                 data: { 'companyId': formData.CompanyId, 'date': formData.Date }
             };
 
-            //$.ajax({
-                
-                
-            //}).done((data, status, jqXHR) => {
-            //    if (data != null && !confirm("This report exists in the database. Are you sure to overwrite it?")) {
-            //        //do nothing
-            //    } else {
-            //        $(e.target).ajaxSubmit({}, (target, data, status) => {
-            //            status === 'success' ? window.modal.modal('hide') : alert("status")
-            //        });
-            //    }
-            //})
-
-
             $.when($.ajax(opt)).then((report) => {
                 if (report != null) {
                     if (!confirm("This report exists in the database. Are you sure to overwrite it?")) {

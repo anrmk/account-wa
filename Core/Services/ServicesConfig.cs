@@ -40,20 +40,23 @@ namespace Core.Services {
             services.AddTransient<ICustomerCreditUtilizedManager, CustomerCreditUtilizedManager>();
             services.AddTransient<ICustomerTagManager, CustomerTagManager>();
             services.AddTransient<ICustomerTagLinkManager, CustomerTagLinkManager>();
+            services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
+            services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
 
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IPaymentManager, PaymentManager>();
 
             services.AddTransient<IReportManager, ReportManager>();
+            services.AddTransient<IReportSearchCriteriaManager, ReportSearchCriteriaManager>();
+            //services.AddTransient<IReportFieldManager, ReportFieldManager>();
+
             services.AddTransient<ISavedReportManager, SavedReportManager>();
             services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
             services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
 
             ///NSI
             //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
-            services.AddTransient<IReportFieldManager, ReportFieldManager>();
-            services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
-            services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
+
 
             ///Business
             services.AddTransient<INsiBusinessManager, NsiBusinessManager>();

@@ -15,7 +15,7 @@ namespace Web.ViewModels {
         [Display(Name = "Received Date")]
         [DataType(DataType.Date)]
         public DateTime ReceivedDate { get; set; }
-        
+
         [Required]
         [Display(Name = "Report Date")]
         [DataType(DataType.Date)]

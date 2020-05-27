@@ -54,7 +54,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+            var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View("_FilterInvoicePartial", model);
@@ -143,7 +143,7 @@ namespace Web.Controllers.Mvc {
             var customerTags = await _businessManager.GetCustomerTags();
             ViewBag.Tags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
 
-            var customerTypes = await _nsiBusinessManager.GetCustomerTypes();
+            var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
 
 

@@ -8,6 +8,7 @@ using AutoMapper;
 using Core.Data.Dto.Nsi;
 using Core.Data.Entities.Nsi;
 using Core.Extension;
+using Core.Services.Managers;
 using Core.Services.Managers.Nsi;
 
 namespace Core.Services.Business {
@@ -16,24 +17,16 @@ namespace Core.Services.Business {
         //Task<List<ReportPeriodDto>> GetReportPeriods();
         //Task<List<NsiDto>> GetReportFields();
         Task<Pager<NsiDto>> GetReportFields(string search, string sort, string order, int offset = 0, int limit = 10);
-        Task<List<NsiDto>> GetCustomerTypes();
     }
     public class NsiBusinessManager: BaseBusinessManager, INsiBusinessManager {
         private readonly IMapper _mapper;
         //private readonly IReportPeriodManager _reportPeriodManager;
-        private readonly IReportFieldManager _reportFieldManager;
-        private readonly ICustomerTypeManager _customerTypeManager;
+        //private readonly IReportFieldManager _reportFieldManager;
 
-        public NsiBusinessManager(IMapper mapper, IReportFieldManager reportFieldManager, ICustomerTypeManager customerTypeManager) {
+        public NsiBusinessManager(IMapper mapper) {
             _mapper = mapper;
             //_reportPeriodManager = reportPeriodManager;
-            _reportFieldManager = reportFieldManager;
-            _customerTypeManager = customerTypeManager;
-        }
-
-        public async Task<List<NsiDto>> GetCustomerTypes() {
-            var result = await _customerTypeManager.All();
-            return _mapper.Map<List<NsiDto>>(result);
+         //   _reportFieldManager = reportFieldManager;
         }
 
         //public async Task<ReportPeriodDto> GetReportPeriodById(long id) {
@@ -56,17 +49,17 @@ namespace Core.Services.Business {
             var sortby = sort ?? "Name";
             #endregion
 
-            Tuple<List<ReportFieldEntity>, int> tuple = await _reportFieldManager.Pager<ReportFieldEntity>(wherePredicate, sortby, offset, limit);
+           /* Tuple<List<ReportFieldEntity>, int> tuple = await _reportFieldManager.Pager<ReportFieldEntity>(wherePredicate, sortby, offset, limit);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
-            if(count == 0)
+            if(count == 0)*/
                 return new Pager<NsiDto>(new List<NsiDto>(), 0, offset, limit);
-
+/*
             var page = (offset + limit) / limit;
 
             var result = _mapper.Map<List<NsiDto>>(list);
-            return new Pager<NsiDto>(result, count, page, limit);
+            return new Pager<NsiDto>(result, count, page, limit);*/
         }
     }
 }
