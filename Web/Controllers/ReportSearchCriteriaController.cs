@@ -2,13 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using AutoMapper;
+
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
@@ -71,5 +76,28 @@ namespace Web.Controllers.Mvc {
             }
             return View(_mapper.Map<ReportSearchCriteriaViewModel>(item));
         }
+    }
+}
+
+namespace Web.Controllers.Api {
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ReportSearchCriteriaController: ControllerBase {
+        private readonly IMapper _mapper;
+        private readonly ICrudBusinessManager _businessManager;
+
+        public ReportSearchCriteriaController(IMapper mapper, ICrudBusinessManager businessManager) {
+            _mapper = mapper;
+            _businessManager = businessManager;
+        }
+
+        [HttpGet]
+        public async Task<Pager<ReportSearchCriteriaViewModel>> GetReportSearchCriteria([FromQuery] PagerFilterViewModel model) {
+            var result = await _businessManager.GetReportSearchCriterias(_mapper.Map<PagerFilter>(model));
+            var pager = new Pager<ReportSearchCriteriaViewModel>(_mapper.Map<List<ReportSearchCriteriaViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            pager.Filter = result.Filter;
+            return pager;
+        }
+
     }
 }

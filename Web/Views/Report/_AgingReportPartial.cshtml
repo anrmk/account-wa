@@ -5,132 +5,130 @@
     Layout = null;
 }
 
-<div class="card">
-    <div class="card-body">
-        <h1 class="display-4 text-center">
-            @Model.CompanyName
-        </h1>
-        <p class="lead text-center mb-1">A/R AGING SUMMARY</p>
-        <p class="lead text-center">As of @Model.Date.ToString("MMMM dd, yyyy")</p>
-        <hr />
-        <div class="row mb-3">
-            <div class="col">
-                <h6>Customers</h6>
-                <table class="table table-sm">
-                    <tbody>
-                        <tr>
-                            <td scope="col">Total Customers</td>
-                            <td>@Model.TotalCustomers</td>
-                        </tr>
-                        <tr>
-                            <td scope="col">Balance</td>
-                            <td>@Model.BalanceCustomers</td>
-                        </tr>
-                        <tr>
-                            <td scope="col">No Balance</td>
-                            <td>@(Model.TotalCustomers - Model.BalanceCustomers)</td>
-                        </tr>
-                    </tbody>
-                </table>
 
-                @if(Model?.CustomerTypes.Count() > 0) {
-                    <h6>Customer Types</h6>
-                    <table class="table table-sm">
-                        <tbody>
-                            @foreach(var column in Model?.CustomerTypes) {
-                                <tr>
-                                    <td>@column.Key</td>
-                                    <td>@column.Value</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
+<h1 class="display-4 text-center">
+    @Model.CompanyName
+</h1>
+<p class="lead text-center mb-1">A/R AGING SUMMARY</p>
+<p class="lead text-center">As of @Model.Date.ToString("MMMM dd, yyyy")</p>
+<hr />
 
-                @if(Model?.DoubleDebt.Count() > 0) {
-                    <h6>Debt</h6>
-                    <table class="table table-sm">
-                        <tbody>
-                            @foreach(var column in Model?.DoubleDebt) {
-                                <tr>
-                                    <td>@column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)</td>
-                                    <td>
-                                        <a href="@Url.Action("IndexFilter", "Invoice", new { companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods = @column.Key, moreThanOne = true })">@column.Value</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-            <div class="col">
-                <h6>Balance</h6>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Aging Type</th>
-                            <th>Count</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach(var column in Model.Columns) {
-                            <tr>
-                                <td scope="col">
-                                    @if(column.Name == "-31-0") {
-                                        <span>Current</span>
-                                    } else {
-                                        @column.Name
-                                    }
-                                </td>
-                                <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
-                                </td>
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(Model.Balance[column.Name].Sum)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<div class="row mb-3">
+    <div class="col">
+        <h6>Customers</h6>
+        <table class="table table-sm">
+            <tbody>
+                <tr>
+                    <td scope="col">Total Customers</td>
+                    <td>@Model.TotalCustomers</td>
+                </tr>
+                <tr>
+                    <td scope="col">Balance</td>
+                    <td>@Model.BalanceCustomers</td>
+                </tr>
+                <tr>
+                    <td scope="col">No Balance</td>
+                    <td>@(Model.TotalCustomers - Model.BalanceCustomers)</td>
+                </tr>
+            </tbody>
+        </table>
 
-        <div class="table-responsive">
-            <table class="table table-sm table-bordered">
-                <caption>@DateTime.Now.ToString("MMM dd, yyyy - HH:mm")</caption>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th scope="col">Account Number</th>
-                        <th scope="col">Business Name</th>
-                        @foreach(var column in Model.Columns) {
-                            if(!column.Name.Equals("Latest")) {
-                                <th scope="col">
-                                    @if(column.Name == "-31-0") {
-                                        <span>Current</span>
-                                    } else {
-                                        @column.Name
-                                    }
-                                </th>
-                            }
-                        }
-                    </tr>
-                </thead>
+        @if(Model?.CustomerTypes.Count() > 0) {
+            <h6>Customer Types</h6>
+            <table class="table table-sm">
                 <tbody>
-                    @for(var i = 0; i < Model.Data.Count(); i++) {
-                        var summary = Model.Data[i];
+                    @foreach(var column in Model?.CustomerTypes) {
                         <tr>
-                            <td>@(i+1)</td>
-                            <td scope="row">@summary.Customer.No</td>
-                            <td scope="row">@summary.Customer.Name</td>
-                            @foreach(var column in Model.Columns) {
-                                @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Latest")) {
-                                    <td>@(summary.Data[column.Name] == 0 ? "" : Core.Extension.NumberExtensionMethods.ToCurrency(summary.Data[column.Name]))</td>
-                                }
-                            }
+                            <td>@column.Key</td>
+                            <td>@column.Value</td>
                         </tr>
                     }
                 </tbody>
             </table>
-        </div>
+        }
+
+        @if(Model?.DoubleDebt.Count() > 0) {
+            <h6>Debt</h6>
+            <table class="table table-sm">
+                <tbody>
+                    @foreach(var column in Model?.DoubleDebt) {
+                        <tr>
+                            <td>@column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)</td>
+                            <td>
+                                <a href="@Url.Action("IndexFilter", "Invoice", new { companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods = @column.Key, moreThanOne = true })">@column.Value</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
+    <div class="col">
+        <h6>Balance</h6>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Aging Type</th>
+                    <th>Count</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var column in Model.Columns) {
+                    <tr>
+                        <td scope="col">
+                            @if(column.Name == "-31-0") {
+                                <span>Current</span>
+                            } else {
+                                @column.Name
+                            }
+                        </td>
+                        <td>
+                            <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
+                        </td>
+                        <td>@Core.Extension.NumberExtensionMethods.ToCurrency(Model.Balance[column.Name].Sum)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-sm table-bordered">
+        <caption>@DateTime.Now.ToString("MMM dd, yyyy - HH:mm")</caption>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th scope="col">Account Number</th>
+                <th scope="col">Business Name</th>
+                @foreach(var column in Model.Columns) {
+                    if(!column.Name.Equals("Latest")) {
+                        <th scope="col">
+                            @if(column.Name == "-31-0") {
+                                <span>Current</span>
+                            } else {
+                                @column.Name
+                            }
+                        </th>
+                    }
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for(var i = 0; i < Model.Data.Count(); i++) {
+                var summary = Model.Data[i];
+                <tr>
+                    <td>@(i+1)</td>
+                    <td scope="row">@summary.Customer.No</td>
+                    <td scope="row">@summary.Customer.Name</td>
+                    @foreach(var column in Model.Columns) {
+                        @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Latest")) {
+                            <td>@(summary.Data[column.Name] == 0 ? "" : Core.Extension.NumberExtensionMethods.ToCurrency(summary.Data[column.Name]))</td>
+                        }
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
 </div>

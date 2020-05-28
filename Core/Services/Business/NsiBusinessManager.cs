@@ -8,8 +8,6 @@ using AutoMapper;
 using Core.Data.Dto.Nsi;
 using Core.Data.Entities.Nsi;
 using Core.Extension;
-using Core.Services.Managers;
-using Core.Services.Managers.Nsi;
 
 namespace Core.Services.Business {
     public interface INsiBusinessManager {
@@ -26,7 +24,7 @@ namespace Core.Services.Business {
         public NsiBusinessManager(IMapper mapper) {
             _mapper = mapper;
             //_reportPeriodManager = reportPeriodManager;
-         //   _reportFieldManager = reportFieldManager;
+            //   _reportFieldManager = reportFieldManager;
         }
 
         //public async Task<ReportPeriodDto> GetReportPeriodById(long id) {
@@ -49,17 +47,17 @@ namespace Core.Services.Business {
             var sortby = sort ?? "Name";
             #endregion
 
-           /* Tuple<List<ReportFieldEntity>, int> tuple = await _reportFieldManager.Pager<ReportFieldEntity>(wherePredicate, sortby, offset, limit);
-            var list = tuple.Item1;
-            var count = tuple.Item2;
+            /* Tuple<List<ReportFieldEntity>, int> tuple = await _reportFieldManager.Pager<ReportFieldEntity>(wherePredicate, sortby, offset, limit);
+             var list = tuple.Item1;
+             var count = tuple.Item2;
 
-            if(count == 0)*/
-                return new Pager<NsiDto>(new List<NsiDto>(), 0, offset, limit);
-/*
-            var page = (offset + limit) / limit;
+             if(count == 0)*/
+            return new Pager<NsiDto>(new List<NsiDto>(), 0, offset, limit);
+            /*
+                        var page = (offset + limit) / limit;
 
-            var result = _mapper.Map<List<NsiDto>>(list);
-            return new Pager<NsiDto>(result, count, page, limit);*/
+                        var result = _mapper.Map<List<NsiDto>>(list);
+                        return new Pager<NsiDto>(result, count, page, limit);*/
         }
     }
 }

@@ -4,8 +4,6 @@ using System.Linq;
 
 using AutoMapper.Configuration.Annotations;
 
-using Core.Data.Dto.Nsi;
-
 using Newtonsoft.Json;
 
 namespace Core.Data.Dto {

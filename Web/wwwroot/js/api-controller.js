@@ -42,7 +42,7 @@ $.fn.uploadFile = function (callback) {
         'processData': false
     };
 
-     $.ajax(options).done((data, status, jqXHR) => {
+    $.ajax(options).done((data, status, jqXHR) => {
         callback(this, data, status, jqXHR);
     }).fail((jqXHR, status) => {
         callback(this, null, status, jqXHR);
@@ -51,19 +51,30 @@ $.fn.uploadFile = function (callback) {
 
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
-    var options = $.extend({
-        'url': this.attr('action'),
-        'type': this.attr('method'),
-        'data': JSON.stringify(this.find(':input[value!=""]').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false})),
-        'processData': false,
-        'contentType': 'application/json; charset=utf-8'
-    }, opt);
+    var $form = this;
 
-    $.ajax(options).done((data, status, jqXHR) => {
-        callback(this, data, status, jqXHR);
-    }).fail((jqXHR, status) => {
-        callback(this, null, status, jqXHR);
-    });
+    if ($form.valid()) {
+        var data = $form.serializeJSON();
+
+        var options = $.extend({
+            'url': $form.attr('action'),
+            'type': $form.attr('method'),
+            'data': data,
+            //'processData': false,
+            'traditional': true,
+            'contentType': 'application/json; charset=utf-8'
+        }, opt);
+
+        if (options.type?.toLowerCase() === 'post') {
+            options.data = JSON.stringify(data)
+        }
+
+        $.ajax(options).done((data, status, jqXHR) => {
+            callback($form, data, status, jqXHR);
+        }).fail((jqXHR, status) => {
+            callback($form, null, status, jqXHR);
+        });
+    }
 }
 
 $.fn.close = function () {

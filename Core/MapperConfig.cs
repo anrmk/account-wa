@@ -136,8 +136,8 @@ namespace Core {
                 .ForMember(d => d.CustomerTags, o => o.MapFrom(s => string.Join(',', s.TagsIds)))
                 .ForMember(d => d.CustomerRechecks, o => o.MapFrom(s => string.Join(',', s.Recheck)))
                 .ReverseMap()
-                .ForMember(d => d.TypeIds, o => o.MapFrom(s =>  !string.IsNullOrEmpty(s.CustomerTypes) 
-                        ? s.CustomerTypes.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList() 
+                .ForMember(d => d.TypeIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTypes)
+                        ? s.CustomerTypes.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
                         : Enumerable.Empty<long>()
                         ))
                 .ForMember(d => d.TagsIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTags)
@@ -154,7 +154,7 @@ namespace Core {
             #region NSI
             //CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
             CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();
-            
+
             #endregion
         }
     }

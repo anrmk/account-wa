@@ -3,72 +3,72 @@
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
     ViewData["Subtitle"] = "Unpaid balances for each customer, grouped by days past due.";
+    var formId = Guid.NewGuid();
 }
 
 @section Toolbar {
-<div class="btn-toolbar">
-    <div class="btn-group mr-2">
-        <button id="customerCreditsBtn" class="btn btn-outline-secondary" style="display: none">
-            <i class="far fa-plus-square mr-2"></i> Create Credits
-        </button>
+    <div class="btn-toolbar">
+        <div class="btn-group mr-2">
+            <button id="customerCreditsBtn" class="btn btn-outline-secondary" style="display: none">
+                <i class="far fa-plus-square mr-2"></i> Create Credits
+            </button>
+        </div>
+        <div class="btn-group">
+            <button id="saveBtn" class="btn btn-outline-secondary">
+                <i class="far fa-save mr-2"></i> Save
+            </button>
+            <button id="exportBtn" class="btn btn-outline-secondary">
+                <i class="fas fa-download mr-2"></i> Export
+            </button>
+        </div>
     </div>
-    <div class="btn-group">
-        <button id="saveBtn" class="btn btn-outline-secondary">
-            <i class="far fa-save mr-2"></i> Save
-        </button>
-        <button id="exportBtn" class="btn btn-outline-secondary">
-            <i class="fas fa-download mr-2"></i> Export
-        </button>
-    </div>
-</div>
 }
 
 <div class="row">
     <div class="col-lg-3 col-md-12 mb-3">
-        <form id="filterReportForm" asp-route="RunAgingReport">
-            <fieldset>
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                <div class="card">
-                    <div class="card-body">
+        <div class="card">
+            <div class="card-body">
+                <form id="@formId" asp-route="RunAgingReport">
+                    <fieldset>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
                             <label asp-for="CompanyId"></label>
                             <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required></select>
                             <span asp-validation-for="CompanyId" class="text-danger"></span>
                         </div>
-                        <div class="form-row">
-                            <div class="col-md-12 col-6 mb-3">
-                                <label asp-for="Date"></label>
-                                <input type="date" asp-for="Date" class="form-control" required />
-                            </div>
-                            <div class="col-md-12 col-6">
-                                <label asp-for="NumberOfPeriods"></label>
-                                <input asp-for="NumberOfPeriods" type="number" step="1" class="form-control" min="1" max="10" required />
-                            </div>
+
+                        <div class="form-group">
+                            <label asp-for="Date"></label>
+                            <input type="date" asp-for="Date" class="form-control" required />
+                            <span asp-validation-for="Date" class="text-danger"></span>
                         </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="" role="toolbar" aria-label="Toolbar with button groups">
-                            <button class="btn btn-outline-primary">Run report</button>
+
+                        <div class="form-group">
+                            <label asp-for="NumberOfPeriods"></label>
+                            <input asp-for="NumberOfPeriods" type="number" class="form-control" step="1" min="1" max="10" required />
+                            <span asp-validation-for="NumberOfPeriods" class="text-danger"></span>
                         </div>
-                    </div>
-                </div>
-            </fieldset>
-        </form>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary" form="@formId">Generate</button>
+            </div>
+        </div>
     </div>
     <div class="col-lg-9 col-md-12">
-        <div class="card">
-            <div id="content" class="card-body"></div>
-        </div>
+        <div id="content"></div>
     </div>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
+            var $form = $('#@formId');
             //on export button click
             $exportBtn = $('#exportBtn').click(e => {
                 e.preventDefault();
-                var formData = $('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+                var formData = $form.serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
 
                 var options = {
                     'url': '/exportSettings',
@@ -81,13 +81,12 @@
                 $.ajax(options).done((data, status, jqXHR) => {
                     $(data).dialog('Export data');
                 });
-                
             });
 
             //on save btn click
             $saveBtn = $('#saveBtn').click(e => {
                 e.preventDefault();
-                var formData = $('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+                var formData = $form.serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
 
                 var options = {
                     'url': '/savedReport',
@@ -121,8 +120,8 @@
             });
 
             //on generate report
-            $filterReportForm = $('#filterReportForm').on('submit', e => {
-                $filterReportForm.ajaxSubmit({}, (target, data, status) => {
+            $form.on('submit', e => {
+                $form.ajaxSubmit({}, (target, data, status) => {
                     status === 'success' ? $('#content').html(data) : $('#content').empty();
                 });
                 e.preventDefault();

@@ -297,16 +297,7 @@
             //on save search criteria btn click
             $('#saveSearchCriteriaBtn').click(e => {
                 e.preventDefault();
-                var formData = $('#submitForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
-
-                var options = {
-                    'type': 'get',
-                    'url': '/reportSearchCriteria/create',
-                    'data': formData,
-                    'traditional': true
-                };
-
-                $.ajax(options).done((data, status, jqXHR) => {
+                var formData = $('#submitForm').ajaxSubmit({ 'url': '/reportSearchCriteria/create', 'type': 'get'}, function ($form, data, status, jqXHR) {
                     $(data).dialog('Save search criteria', (eventName, _, target) => {
                         if (eventName === 'shown.bs.modal') {
                             target.on('submit', e => {

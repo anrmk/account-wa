@@ -41,6 +41,13 @@ namespace Web.Controllers.Mvc {
             });
         }
 
+        public async Task<ActionResult> Constructor() {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View();
+        }
+
         // GET: Invoice using Aging filter
         public async Task<ActionResult> IndexFilter([FromQuery] InvoiceFilterViewModel model) {
             var companies = await _businessManager.GetCompanies();

@@ -141,6 +141,8 @@ namespace Core.Services.Business {
         #region SEARCH CRITERIA
         Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id);
         Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias();
+        Task<Pager<ReportSearchCriteriaDto>> GetReportSearchCriterias(PagerFilter filter);
+
         Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto);
         Task<bool> DeleteReportSearchCriteria(long id);
         #endregion
@@ -1489,10 +1491,35 @@ namespace Core.Services.Business {
             var entity = await _reportSearchCriteriaManager.Find(id);
             return _mapper.Map<ReportSearchCriteriaDto>(entity);
         }
-
+        
         public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias() {
-            var entity = await _reportSearchCriteriaManager.All();
-            return _mapper.Map<List<ReportSearchCriteriaDto>>(entity);
+            var result = await _reportSearchCriteriaManager.All();
+            return _mapper.Map<List<ReportSearchCriteriaDto>>(result);
+        }
+
+        public async Task<Pager<ReportSearchCriteriaDto>> GetReportSearchCriterias(PagerFilter filter) {
+            Expression<Func<ReportSearchCriteriaEntity, bool>> wherePredicate = x =>
+              (true)
+                && (string.IsNullOrEmpty(filter.Search)
+                || x.CustomerTags.ToLower().Contains(filter.Search.ToLower()));
+
+            #region Sort
+            var sortBy = "Id";
+            #endregion
+
+            string[] include = new string[] { };
+
+            Tuple<List<ReportSearchCriteriaEntity>, int> tuple = await _reportSearchCriteriaManager.Pager<ReportSearchCriteriaEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<ReportSearchCriteriaDto>(new List<ReportSearchCriteriaDto>(), 0, filter.Offset, filter.Limit);
+
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+
+            var result = _mapper.Map<List<ReportSearchCriteriaDto>>(list);
+            return new Pager<ReportSearchCriteriaDto>(result, count, page, filter.Limit);
         }
 
         public async Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto) {
