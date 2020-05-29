@@ -8,13 +8,15 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
-using Core.Extensions;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 
+using Web.Extension;
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
@@ -43,9 +45,16 @@ namespace Web.Controllers.Mvc {
 
         public async Task<ActionResult> Constructor() {
             var companies = await _businessManager.GetCompanies();
-            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
 
-            return View();
+            var filters = await _businessManager.GetReportSearchCriterias();
+            ViewBag.SearchCriterias = filters.Select(x => new SelectListItem() { Text = x.Name ?? $"Search criteria {x.Id}", Value = x.Id.ToString() });
+
+            var model = new InvoiceConstructorFilterViewModel() {
+                Date = DateTime.Now
+            };
+
+            return View(model);
         }
 
         // GET: Invoice using Aging filter
@@ -232,17 +241,13 @@ namespace Web.Controllers.Mvc {
 
 namespace Web.Controllers.Api {
     [Route("api/[controller]")]
-    [ApiController]
-    public class InvoiceController: ControllerBase {
-        private readonly IMapper _mapper;
+    public class InvoiceController: BaseApiController<InvoiceController> {
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
 
-        public InvoiceController(IMapper mapper, IViewRenderService viewRenderService,
-            ICrudBusinessManager businessManager) {
-            _mapper = mapper;
-            _viewRenderService = viewRenderService;
+        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper) {
             _businessManager = businessManager;
+            _viewRenderService = viewRenderService;
         }
 
         [HttpGet]
@@ -345,6 +350,55 @@ namespace Web.Controllers.Api {
             }
 
             return Ok("");
+        }
+
+        [HttpPost("GenerateConstructor", Name = "GenerateConstructor")]
+        public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var summaryRanges = await _businessManager.GetCompanyAllSummaryRange(model.CompanyId);
+                    var searchCriterias = await _businessManager.GetReportSearchCriterias(model.SearchCriterias.ToArray());
+
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                        { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summaryRanges) },
+                        { "SearchCriterias", _mapper.Map<List<ReportSearchCriteriaViewModel>>(searchCriterias)},
+                        { "CompanyName", company.Name }
+                    };
+
+                    string html = _viewRenderService.RenderToStringAsync("_ConstructorPartial", model, viewDataDictionary).Result;
+
+                    return Ok(html);
+                }
+            } catch(Exception er) {
+                Console.Write(er.Message);
+            }
+            return null;
+        }
+
+        [HttpPost("GenerateConstructorInvoices", Name = "GenerateConstructorInvoices")]
+        public async Task<IActionResult> CreateConstructorInvoices(InvoiceConstructorCreateViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var dateFrom = model.Date.FirstDayOfMonth();
+                    var dateTo   = model.Date.LastDayOfMonth();
+                    var createdDateFrom = model.Date.FirstDayOfMonth();
+                    var createdDateTo = model.Date.LastDayOfMonth();
+
+                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var searchCriteria = await _businessManager.GetReportSearchCriteria(model.SearchCriteriaId);
+                    var summaryRange = await _businessManager.GetCompanySummeryRange(model.SummaryRangeId);
+
+                    Random rnd = new Random();
+
+                    var total = rnd.NextDecimal(100000, 200000);
+
+                    return Ok(new { Total = total, TotalString = total.ToCurrency() } );
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+            return null;
         }
     }
 }

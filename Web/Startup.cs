@@ -83,7 +83,7 @@ namespace Web {
             ServicesConfig.Configuration(services);
 
             services.AddTransient<IViewRenderService, ViewRenderService>();
-            services.AddDbContext<Core.Context.ApplicationContext>();
+            services.AddDbContext<ApplicationContext>();
 
             MapperConfig.Register(services);
 

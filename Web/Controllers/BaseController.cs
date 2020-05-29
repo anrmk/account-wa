@@ -20,8 +20,7 @@ namespace Web.Controllers {
 
         public string CurrentUser => User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-        public BaseController(/*IStringLocalizer<IController> localizer,*/ ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
-            //      _localizer = localizer;
+        public BaseController(ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
             _logger = logger;
             _mapper = mapper;
             _context = context;
@@ -42,4 +41,16 @@ namespace Web.Controllers {
             return base.View();
         }
     }
+
+    [ApiController]
+    public class BaseApiController<IController>: ControllerBase {
+        protected readonly ILogger<IController> _logger;
+        protected readonly IMapper _mapper;
+
+        public BaseApiController(ILogger<IController> logger, IMapper mapper) {
+            _logger = logger;
+            _mapper = mapper;
+        }
+    }
+
 }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Web.ViewModels {
     public class ReportSearchCriteriaViewModel {
@@ -8,7 +7,7 @@ namespace Web.ViewModels {
 
         [MaxLength(256)]
         public string Name { get; set; }
-        
+
         public int Sort { get; set; } = 0;
 
         [Display(Name = "Tags")]

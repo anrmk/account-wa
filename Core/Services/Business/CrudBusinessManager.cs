@@ -140,6 +140,7 @@ namespace Core.Services.Business {
 
         #region SEARCH CRITERIA
         Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id);
+        Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias(long[] ids);
         Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias();
         Task<Pager<ReportSearchCriteriaDto>> GetReportSearchCriterias(PagerFilter filter);
 
@@ -1491,7 +1492,12 @@ namespace Core.Services.Business {
             var entity = await _reportSearchCriteriaManager.Find(id);
             return _mapper.Map<ReportSearchCriteriaDto>(entity);
         }
-        
+
+        public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias(long[] ids) {
+            var result = await _reportSearchCriteriaManager.Filter(x => ids.Contains(x.Id));
+            return _mapper.Map<List<ReportSearchCriteriaDto>>(result);
+        }
+
         public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias() {
             var result = await _reportSearchCriteriaManager.All();
             return _mapper.Map<List<ReportSearchCriteriaDto>>(result);
@@ -1523,6 +1529,8 @@ namespace Core.Services.Business {
         }
 
         public async Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto) {
+            dto.Name = string.IsNullOrEmpty(dto.Name) ? $"Search criteria {DateTime.Now}" : dto.Name;
+
             var entity = _mapper.Map<ReportSearchCriteriaEntity>(dto);
             entity = await _reportSearchCriteriaManager.Create(entity);
             return _mapper.Map<ReportSearchCriteriaDto>(entity);

@@ -10,7 +10,6 @@ using AutoMapper;
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
-using Core.Extensions;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Http;
@@ -21,6 +20,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 
+using Web.Extension;
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
@@ -632,22 +632,6 @@ namespace Web.Controllers.Api {
             pager.Filter = result.Filter;
             return pager;
         }
-
-        //[Obsolete]
-        //[HttpGet]
-        //[Route("company/{id}")]
-        //public async Task<List<CustomerListViewModel>> GetCustomersByCompanyId(long id) {
-        //    var result = await _businessManager.GetCustomers(id);
-        //    return _mapper.Map<List<CustomerListViewModel>>(result);
-        //}
-
-        //[Obsolete]
-        //[HttpGet]
-        //[Route("bulk")]
-        //public async Task<List<CustomerListViewModel>> GetBulkCustomers(long Id, DateTime from, DateTime to) {
-        //    var result = await _businessManager.GetBulkCustomers(Id, from, to);
-        //    return _mapper.Map<List<CustomerListViewModel>>(result);
-        //}
 
         [HttpPost]
         [Route("create")]

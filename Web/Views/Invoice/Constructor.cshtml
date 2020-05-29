@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Web.ViewModels.InvoiceConstructorFilterViewModel
+@{
     ViewData["Title"] = "Invoice Constructor";
     var formId = Guid.NewGuid();
 }
@@ -14,26 +15,31 @@
     <div class="col-lg-3 col-md-12">
         <div class="card">
             <div class="card-body">
-                <form id="@formId">
+                <form id="@formId" asp-route="GenerateConstructor">
                     <fieldset>
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
-                            <label>Company</label>
-                            <select id="companyId" asp-items="@ViewBag.Companies" class="form-control" required>
+                            <label asp-for="CompanyId"></label>
+                            <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
                                 <option disabled selected> -- select an option -- </option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Date</label>
-                            <input type="month" class="form-control" required />
+                            <label asp-for="Date"></label>
+                            <input asp-for="Date" type="date" class="form-control" required />
                         </div>
 
                         <div class="form-group">
-                            <label>Search Criteria</label>
-                            <select -items="@ViewBag.SearchCriteria" class="form-control selectpicker" multiple required>
-                                <option disabled selected> -- select an option -- </option>
-                            </select>
+                            <label asp-for="SearchCriterias"></label>
+                            <select asp-for="SearchCriterias" asp-items="@ViewBag.SearchCriterias" name="SearchCriterias[]" class="form-control selectpicker" multiple data-live-search="true"></select>
                         </div>
+
+                        @*<div class="form-group">
+                                <label>Search Criteria</label>
+                                <select -items="@ViewBag.SearchCriteria" class="form-control selectpicker" multiple required>
+                                    <option disabled selected> -- select an option -- </option>
+                                </select>
+                            </div>*@
                     </fieldset>
                 </form>
             </div>
@@ -41,25 +47,61 @@
                 <button class="btn btn-primary" form="@formId">Generate</button>
             </div>
         </div>
-
     </div>
     <div class="col-lg-9 col-md-12">
-
+        <div id="constructorContent"></div>
     </div>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
-        $(document).ready(e => {
-            //on criteria change
-            $('#companyId').on('change', e => {
-                e.preventDefault();
-
-                $.when($.fn.getCompanySummaryRange(e.currentTarget.value)).then(function (data, textStatus, jqXHR) {
-                    var opt = $.map(data, (val, i) => { return `<option value='${val.id}'>${val.from} - ${val.to}</option>` });
-                    $('#summaryRange').html(opt).removeAttr('disabled');
-                });
+        generateInvoices = function (e) {
+            e.preventDefault();
+            $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
+                if (status === 'success') {
+                    form.find('input[name=Total]').val(data.total);
+                    form.find('input:text[readonly]').val(data.totalString).trigger('change');
+                }
             });
+        }
+
+        countTotal = function (e, content) {
+            //Sem by column
+            content.find('tbody tr:eq(0) td').each((index) => {
+                var colSum = 0;
+                content.find('tbody tr').find('td:eq(' + index + ') input[name=Total]').each((_i, tde) => {
+                    var value = $(tde).val();
+                    colSum += parseFloat(value || 0);
+                });
+                var totalTd = content.find('tfoot tr td:eq(' + index + ')');
+                totalTd.find('label').html($.fn.bootstrapTable.formatCurrency(colSum));
+                totalTd.find('input[name=Total]').val(colSum);
+            });
+
+            //Sum by row
+            content.find('tbody tr, tfoot tr').each((index, tre) => {
+                var rowSum = 0;
+                $(tre).find('td input[name=Total]').each((_i, tde) => {
+                    var value = $(tde).val();
+                    rowSum += parseFloat(value || 0);
+                });
+                $(tre).find('td:last').html($.fn.bootstrapTable.formatCurrency(rowSum));
+            });
+        }
+
+        $(document).ready(e => {
+            var $form = $(`#@(formId)`);
+            var $content = $('#constructorContent');
+           // $content.on('change', e => async function() { await countTotal(e, $content) });
+
+            $form.on('submit', e => {
+                e.preventDefault();
+                $form.ajaxSubmit({}, (form, data, status, jqXHR) => {
+                    $content.html(data).find('form').on('submit', e => generateInvoices(e));
+                    $content.find('input:text[readonly]').on('change', e => countTotal(e, $content));
+                })
+            });
+
         });
     </script>
 }

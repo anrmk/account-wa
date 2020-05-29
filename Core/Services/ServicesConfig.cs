@@ -1,7 +1,6 @@
 ﻿using System.Security.Principal;
 
 using Core.Context;
-using Core.Extensions;
 using Core.Services.Business;
 using Core.Services.Managers;
 
@@ -23,7 +22,7 @@ namespace Core.Services {
             //services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             ///Extension Service
-            services.AddTransient<IViewRenderService, ViewRenderService>();
+            //services.AddTransient<IViewRenderService, ViewRenderService>();
 
             ///Managers
             services.AddTransient<ICompanyManager, CompanyManager>();

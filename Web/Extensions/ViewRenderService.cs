@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 namespace Web.Extension {
     public interface IViewRenderService {
         Task<string> RenderToStringAsync(string viewName, object model);
+        Task<string> RenderToStringAsync(string viewName, object model, ViewDataDictionary viewDictionary);
+
     }
 
     public class ViewRenderService: IViewRenderService {
@@ -29,6 +31,11 @@ namespace Web.Extension {
         }
 
         public async Task<string> RenderToStringAsync(string viewName, object model) {
+            var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) { };
+            return await RenderToStringAsync(viewName, model, viewDictionary);
+        }
+
+        public async Task<string> RenderToStringAsync(string viewName, object model, ViewDataDictionary viewDictionary) {
             var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
             var actionContext = _actionContext.ActionContext;
 
@@ -39,9 +46,7 @@ namespace Web.Extension {
                     throw new ArgumentNullException($"{viewName} does not match any available view");
                 }
 
-                var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                    Model = model
-                };
+                viewDictionary.Model = model;
 
                 var viewContext = new ViewContext(actionContext, viewResult.View, viewDictionary,
                     new TempDataDictionary(actionContext.HttpContext, _tempDataProvider),
