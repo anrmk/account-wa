@@ -2,8 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Core.Data.Entities.Nsi;
-
 namespace Core.Data.Entities {
     [Table(name: "Customers")]
     public class CustomerEntity: AuditableEntity<long> {

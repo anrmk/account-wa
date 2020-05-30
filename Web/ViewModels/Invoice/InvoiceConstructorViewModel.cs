@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class InvoiceConstructorCreateViewModel {
+    public class InvoiceConstructorViewModel {
         public long Id { get; set; }
 
         [Required]
@@ -20,5 +20,12 @@ namespace Web.ViewModels {
         [Required]
         [Display(Name = "Summary range")]
         public long SummaryRangeId { get; set; }
+
+        [Required]
+        [Display(Name = "Select TOP record")]
+        public int Count { get; set; }
+
+        [Display(Name = "Total amount")]
+        public decimal TotalAmount { get; set; }
     }
 }

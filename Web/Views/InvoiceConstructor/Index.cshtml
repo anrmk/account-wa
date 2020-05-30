@@ -33,13 +33,6 @@
                             <label asp-for="SearchCriterias"></label>
                             <select asp-for="SearchCriterias" asp-items="@ViewBag.SearchCriterias" name="SearchCriterias[]" class="form-control selectpicker" multiple data-live-search="true"></select>
                         </div>
-
-                        @*<div class="form-group">
-                                <label>Search Criteria</label>
-                                <select -items="@ViewBag.SearchCriteria" class="form-control selectpicker" multiple required>
-                                    <option disabled selected> -- select an option -- </option>
-                                </select>
-                            </div>*@
                     </fieldset>
                 </form>
             </div>
@@ -59,8 +52,9 @@
             e.preventDefault();
             $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
                 if (status === 'success') {
-                    form.find('input[name=Total]').val(data.total);
-                    form.find('input:text[readonly]').val(data.totalString).trigger('change');
+                    form.find('input[name=Id]').val(data.id);
+                    form.find('input[name=Total]').val(data.totalAmount);
+                    form.find('input:text[readonly]').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
                 }
             });
         }

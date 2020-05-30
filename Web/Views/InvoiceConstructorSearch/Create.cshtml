@@ -1,4 +1,4 @@
-﻿@model Web.ViewModels.ReportSearchCriteriaViewModel
+﻿@model Web.ViewModels.InvoiceConstructorSearchViewModel
 @{
     Layout = null;
     var formId = Guid.NewGuid();
@@ -47,13 +47,18 @@
             </div>
             <div class="col-4">
                 <div class="form-check">
-                    <input type="checkbox" class="form-check-input" @(Model.ExcludeNewCustomer ? "checked" : "") name="ExcludeNewCustomer:boolean" id="ExcludeNewCustomer" data-val="true" data-value-type="boolean" />
-                    <label asp-for="ExcludeNewCustomer" class="form-check-label"></label>
+                    <input type="radio" class="form-check-input" @(Model.OnlyNewCustomers ? "checked" : "") name="OnlyNewCustomer:boolean" id="onlyNewCustomers" value="true" data-value-type="boolean" />
+                    <label for="onlyNewCustomers" class="form-check-label">Only new customers</label>
                 </div>
                 <div class="form-check">
+                    <input type="radio" class="form-check-input" @(!Model.OnlyNewCustomers ? "checked" : "") name="OnlyNewCustomer:boolean" id="currentCustomers" value="false" data-value-type="boolean" />
+                    <label for="currentCustomers" class="form-check-label">Exclude new customers </label>
+                </div>
+                
+                @*<div class="form-check">
                     <input type="checkbox" class="form-check-input" @(Model.OnlyNewCustomer ? "checked" : "") name="OnlyNewCustomer:boolean" id="OnlyNewCustomer" data-val="true" data-value-type="boolean" />
                     <label asp-for="OnlyNewCustomer" class="form-check-label"></label>
-                </div>
+                </div>*@
             </div>
         </div>
     </fieldset>

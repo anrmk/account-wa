@@ -119,7 +119,7 @@ namespace Core.Services.Managers {
                                 "WHERE I.[Date] < @DATEFROM AND P.[PaymentCount] IS NULL GROUP BY I.[Customer_Id]) AS INV2 " +
                             "ON CUS.[Id] = INV2.[Customer_Id] " +
                         //GET CUSTOMER TYPES
-                        "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[nsi.CustomerType]) AS CUST " +
+                        "LEFT JOIN (SELECT * FROM [accountWa].[dbo].[CustomerTypes]) AS CUST " +
                             "ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         //GET RECHECK
                         "LEFT JOIN (SELECT COUNT(*) AS [Recheck], [Customer_Id] FROM [accountWa].[dbo].[CustomerRechecks] GROUP BY [Customer_Id]) AS RCH " +
@@ -165,7 +165,7 @@ namespace Core.Services.Managers {
                                     }).ToList();
                                 }
 
-                                var customerType = reader["CustomerType_Id"] != DBNull.Value ? new Data.Entities.Nsi.CustomerTypeEntity() {
+                                var customerType = reader["CustomerType_Id"] != DBNull.Value ? new CustomerTypeEntity() {
                                     Id = (long)reader["CustomerType_Id"],
                                     Code = reader["CustomerTypeCode"] as string,
                                     Name = reader["CustomerTypeName"] as string

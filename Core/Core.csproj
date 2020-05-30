@@ -10,6 +10,12 @@
     <Compile Remove="Migrations\20200520172801_customer-recheck.Designer.cs" />
     <Compile Remove="Migrations\20200526194903_update-customer-type-table.cs" />
     <Compile Remove="Migrations\20200526194903_update-customer-type-table.Designer.cs" />
+    <Compile Remove="Migrations\20200529232550_create-invoice-draft-2.cs" />
+    <Compile Remove="Migrations\20200529232550_create-invoice-draft-2.Designer.cs" />
+    <Compile Remove="Migrations\20200529233233_init.cs" />
+    <Compile Remove="Migrations\20200529233233_init.Designer.cs" />
+    <Compile Remove="Migrations\20200529235658_init.cs" />
+    <Compile Remove="Migrations\20200529235658_init.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

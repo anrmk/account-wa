@@ -42,10 +42,13 @@ namespace Core.Services {
             services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
 
             services.AddTransient<IInvoiceManager, InvoiceManager>();
+            services.AddTransient<IInvoiceConstructorManager, InvoiceConstructorManager>();
+            services.AddTransient<IInvoiceDraftManager, InvoiceDraftManager>();
+
             services.AddTransient<IPaymentManager, PaymentManager>();
 
             services.AddTransient<IReportManager, ReportManager>();
-            services.AddTransient<IReportSearchCriteriaManager, ReportSearchCriteriaManager>();
+            services.AddTransient<IInvoiceConstructorSearchManager, InvoiceConstructorSearchManager>();
             //services.AddTransient<IReportFieldManager, ReportFieldManager>();
 
             services.AddTransient<ISavedReportManager, SavedReportManager>();
@@ -57,7 +60,6 @@ namespace Core.Services {
 
 
             ///Business
-            services.AddTransient<INsiBusinessManager, NsiBusinessManager>();
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();

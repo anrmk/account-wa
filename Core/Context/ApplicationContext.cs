@@ -5,7 +5,6 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 
 using Core.Data.Entities;
-using Core.Data.Entities.Nsi;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -49,13 +48,15 @@ namespace Core.Context {
         public DbSet<CustomerRecheckEntity> Recheck { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
+        public DbSet<InvoiceConstructorEntity> InvoiceConstructors { get; set; }
+        public DbSet<InvoiceDraftEntity> InvoiceDraft { get; set; }
         public DbSet<PaymentEntity> Payments { get; set; }
 
         public DbSet<SavedReportEntity> SavedReports { get; set; }
         public DbSet<SavedReportFieldEntity> SavedReportFields { get; set; }
         public DbSet<SavedReportFileEntity> SavedReportFiles { get; set; }
 
-        public DbSet<ReportSearchCriteriaEntity> ReportSearchCriterias { get; set; }
+        public DbSet<InvoiceConstructorSearchEntity> ReportSearchCriterias { get; set; }
 
         #endregion
 

@@ -17,10 +17,10 @@ using Microsoft.Extensions.Logging;
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
-    public class ReportSearchCriteriaController: BaseController<ReportSearchCriteriaController> {
+    public class InvoiceConstructorSearchController: BaseController<InvoiceConstructorSearchController> {
         private readonly ICrudBusinessManager _businessManager;
 
-        public ReportSearchCriteriaController(ILogger<ReportSearchCriteriaController> logger, IMapper mapper, ApplicationContext context,
+        public InvoiceConstructorSearchController(ILogger<InvoiceConstructorSearchController> logger, IMapper mapper, ApplicationContext context,
             ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
         }
@@ -29,7 +29,7 @@ namespace Web.Controllers.Mvc {
             return View();
         }
 
-        public async Task<IActionResult> Create([FromQuery] ReportSearchCriteriaViewModel model) {
+        public async Task<IActionResult> Create([FromQuery] InvoiceConstructorSearchViewModel model) {
             // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
             var customerTags = await _businessManager.GetCustomerTags();
             ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
@@ -43,10 +43,10 @@ namespace Web.Controllers.Mvc {
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSearchCriteria([FromBody] ReportSearchCriteriaViewModel model) {
+        public async Task<IActionResult> CreateSearchCriteria([FromBody] InvoiceConstructorSearchViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<ReportSearchCriteriaDto>(model));
+                    var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<InvoiceConstructorSearchDto>(model));
                     if(item == null) {
                         return NotFound();
                     }
@@ -74,7 +74,7 @@ namespace Web.Controllers.Mvc {
             if(item == null) {
                 return NotFound();
             }
-            return View(_mapper.Map<ReportSearchCriteriaViewModel>(item));
+            return View(_mapper.Map<InvoiceConstructorSearchViewModel>(item));
         }
     }
 }
@@ -92,9 +92,9 @@ namespace Web.Controllers.Api {
         }
 
         [HttpGet]
-        public async Task<Pager<ReportSearchCriteriaViewModel>> GetReportSearchCriteria([FromQuery] PagerFilterViewModel model) {
+        public async Task<Pager<InvoiceConstructorSearchViewModel>> GetReportSearchCriteria([FromQuery] PagerFilterViewModel model) {
             var result = await _businessManager.GetReportSearchCriterias(_mapper.Map<PagerFilter>(model));
-            var pager = new Pager<ReportSearchCriteriaViewModel>(_mapper.Map<List<ReportSearchCriteriaViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            var pager = new Pager<InvoiceConstructorSearchViewModel>(_mapper.Map<List<InvoiceConstructorSearchViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             pager.Filter = result.Filter;
             return pager;
         }

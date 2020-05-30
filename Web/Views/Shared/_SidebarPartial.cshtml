@@ -39,7 +39,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(url.Contains("/invoice/constructor") ? "active" : "")" asp-controller="Invoice" asp-action="Constructor">
+                    <a class="nav-link @(url.Equals("/invoiceconstructor") ? "active" : "")" asp-controller="InvoiceConstructor" asp-action="Index">
                         <i class="fas fa-hammer mr-3"></i> Constructor
                     </a>
                 </li>

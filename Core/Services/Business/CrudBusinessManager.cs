@@ -115,6 +115,10 @@ namespace Core.Services.Business {
         Task<bool> DeleteInvoice(long[] ids);
         #endregion
 
+        #region INVOICE GENERATE CONSTRUCTOR
+        Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto constructor);
+        #endregion
+
         #region PAYMENT
         Task<PaymentDto> GetPayment(long id);
         Task<Pager<PaymentDto>> GetPaymentPages(PaymentFilterDto filter);
@@ -139,12 +143,12 @@ namespace Core.Services.Business {
         #endregion
 
         #region SEARCH CRITERIA
-        Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id);
-        Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias(long[] ids);
-        Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias();
-        Task<Pager<ReportSearchCriteriaDto>> GetReportSearchCriterias(PagerFilter filter);
+        Task<InvoiceConstructorSearchDto> GetReportSearchCriteria(long id);
+        Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias(long[] ids);
+        Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias();
+        Task<Pager<InvoiceConstructorSearchDto>> GetReportSearchCriterias(PagerFilter filter);
 
-        Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto);
+        Task<InvoiceConstructorSearchDto> CreateReportSearchCriteria(InvoiceConstructorSearchDto dto);
         Task<bool> DeleteReportSearchCriteria(long id);
         #endregion
     }
@@ -169,14 +173,15 @@ namespace Core.Services.Business {
         private readonly ICustomerRecheckManager _customerRecheckManager;
 
         private readonly IInvoiceManager _invoiceManager;
+        private readonly IInvoiceConstructorManager _invoiceConstructorManager;
+        private readonly IInvoiceDraftManager _invoiceDraftManager;
         private readonly IPaymentManager _paymentManager;
         private readonly IReportManager _reportManager;
         private readonly ISavedReportManager _savedReportManager;
         private readonly ISavedReportFieldManager _savedReportFieldManager;
         private readonly ISavedReportFileManager _savedReportFileManager;
-        private readonly IReportSearchCriteriaManager _reportSearchCriteriaManager;
+        private readonly IInvoiceConstructorSearchManager _reportSearchCriteriaManager;
 
-        private readonly INsiBusinessManager _nsiBusinessManager;
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICompanyAddressMananger companyAddressManager,
@@ -185,9 +190,8 @@ namespace Core.Services.Business {
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
-            IInvoiceManager invoiceManager, IPaymentManager paymentManager,
-            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IReportSearchCriteriaManager reportSearchCriteriaManager,
-            INsiBusinessManager nsiBusinessManager) {
+            IInvoiceManager invoiceManager, IInvoiceConstructorManager invoiceConstructorManager, IInvoiceDraftManager invoiceDraftManager, IPaymentManager paymentManager,
+            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IInvoiceConstructorSearchManager reportSearchCriteriaManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
@@ -206,8 +210,9 @@ namespace Core.Services.Business {
             _customerRecheckManager = customerRecheckManager;
 
             _invoiceManager = invoiceManager;
+            _invoiceConstructorManager = invoiceConstructorManager;
+            _invoiceDraftManager = invoiceDraftManager;
             _paymentManager = paymentManager;
-            _nsiBusinessManager = nsiBusinessManager;
 
             _reportManager = reportManager;
             _savedReportManager = savedReportManager;
@@ -759,7 +764,6 @@ namespace Core.Services.Business {
             return list;
         }
 
-
         public async Task<List<CustomerImportCreditsDto>> CreateOrUpdateCustomerCredits(List<CustomerImportCreditsDto> list, List<string> columns) {
             var updateCreditLimitEntityList = new List<CustomerCreditLimitEntity>();
             var createCreditLimitEntityList = new List<CustomerCreditLimitEntity>();
@@ -849,7 +853,6 @@ namespace Core.Services.Business {
 
             return list;
         }
-
 
         public async Task<CustomerDto> UpdateCustomer(long id, CustomerDto dto) {
             if(id != dto.Id) {
@@ -1325,6 +1328,85 @@ namespace Core.Services.Business {
             entity = await _invoiceManager.Update(entity1);
             return _mapper.Map<InvoiceDto>(entity);
         }
+
+        public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
+            var company = await _companyManager.FindInclude(dto.CompanyId);
+            var searchCriteria = await _reportSearchCriteriaManager.Find(dto.SearchCriteriaId);
+            var summaryRange = await _companySummaryManager.Find(dto.SummaryRangeId);
+
+            var entity = await _invoiceConstructorManager.Find(dto.Id);
+            var constructor = entity == null ? await _invoiceConstructorManager.Create(_mapper.Map<InvoiceConstructorEntity>(dto)) : await _invoiceConstructorManager.Update(_mapper.Map(dto, entity));
+
+            var invoices = await _invoiceDraftManager.FindByConstructorId(constructor.Id);
+
+            var dateFrom = dto.Date.FirstDayOfMonth();
+            var dateTo = dto.Date.LastDayOfMonth();
+            var random = new Random();
+
+            if(invoices != null && invoices.Count != 0) {
+                //Update invoices
+                foreach(var invoice in invoices) {
+                    var date = random.NextDate(dateFrom, dateTo);
+                    invoice.Date = date;
+                    invoice.Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To);
+                }
+                invoices = (await _invoiceDraftManager.Update(invoices)).ToList();
+
+            } else {
+                //Create invoices
+                #region GET CUSTOMERS
+                var searchCriteriaDto = _mapper.Map<InvoiceConstructorSearchDto>(searchCriteria);
+
+                var createdDateFrom = searchCriteria.OnlyNewCustomer ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
+                var createdDateTo = searchCriteria.OnlyNewCustomer ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
+
+                var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
+                var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
+
+                customers = customers.Where(x => (true)
+                    && ((searchCriteriaDto.TagsIds == null || searchCriteriaDto.TagsIds.Count == 0)
+                        || x.TagLinks.Where(y => searchCriteriaDto.TagsIds.Contains(y.TagId ?? 0)).Count() > 0 || (searchCriteriaDto.TagsIds.Contains(0) && x.TagLinks.Count == 0))
+                    && ((searchCriteriaDto.TypeIds == null || searchCriteriaDto.TypeIds.Count == 0) || searchCriteriaDto.TypeIds.Contains(x.TypeId ?? 0))
+                    && ((searchCriteriaDto.Recheck == null || searchCriteriaDto.Recheck.Count == 0) || searchCriteriaDto.Recheck.Contains(x.Recheck))
+
+                    && ((createdDateFrom == null) || createdDateFrom <= x.CreatedDate)
+                    && ((createdDateTo == null) || createdDateTo >= x.CreatedDate)
+
+                    && ((!searchCriteriaDto.CurrentInvoices.HasValue) || x.TotalInvoices == searchCriteriaDto.CurrentInvoices)
+                    && ((!searchCriteriaDto.LateInvoices.HasValue) || x.UnpaidInvoices == searchCriteriaDto.LateInvoices)
+                   ).ToList();
+
+                if(searchCriteriaDto.RandomSort)
+                    customers = customers.OrderBy(x => Guid.NewGuid().ToString()).ToList();
+
+                customers = customers.Take(dto.Count).ToList();
+                #endregion
+
+                foreach(var customer in customers) {
+                    var date = random.NextDate(dateFrom, dateTo);
+
+                    byte[] bytes = new byte[4];
+                    random.NextBytes(bytes);
+
+                    var invoice = new InvoiceDraftEntity() {
+                        ConstructorId = constructor.Id,
+                        CompanyId = company.Id,
+                        CustomerId = customer.Id,
+                        Date = date,
+                        DueDate = date.AddDays(30),
+                        No = BitConverter.ToString(bytes).Replace("-", ""),
+                        Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To)
+                    };
+                    invoices.Add(invoice);
+                }
+
+                invoices = (await _invoiceDraftManager.Create(invoices)).ToList();
+            }
+
+            dto.Invoices = _mapper.Map<List<InvoiceDraftDto>>(invoices);
+
+            return dto;
+        }
         #endregion
 
         #region PAYMENT
@@ -1488,23 +1570,23 @@ namespace Core.Services.Business {
         #endregion
 
         #region SEARCH CRITERIA
-        public async Task<ReportSearchCriteriaDto> GetReportSearchCriteria(long id) {
+        public async Task<InvoiceConstructorSearchDto> GetReportSearchCriteria(long id) {
             var entity = await _reportSearchCriteriaManager.Find(id);
-            return _mapper.Map<ReportSearchCriteriaDto>(entity);
+            return _mapper.Map<InvoiceConstructorSearchDto>(entity);
         }
 
-        public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias(long[] ids) {
+        public async Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias(long[] ids) {
             var result = await _reportSearchCriteriaManager.Filter(x => ids.Contains(x.Id));
-            return _mapper.Map<List<ReportSearchCriteriaDto>>(result);
+            return _mapper.Map<List<InvoiceConstructorSearchDto>>(result);
         }
 
-        public async Task<List<ReportSearchCriteriaDto>> GetReportSearchCriterias() {
+        public async Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias() {
             var result = await _reportSearchCriteriaManager.All();
-            return _mapper.Map<List<ReportSearchCriteriaDto>>(result);
+            return _mapper.Map<List<InvoiceConstructorSearchDto>>(result);
         }
 
-        public async Task<Pager<ReportSearchCriteriaDto>> GetReportSearchCriterias(PagerFilter filter) {
-            Expression<Func<ReportSearchCriteriaEntity, bool>> wherePredicate = x =>
+        public async Task<Pager<InvoiceConstructorSearchDto>> GetReportSearchCriterias(PagerFilter filter) {
+            Expression<Func<InvoiceConstructorSearchEntity, bool>> wherePredicate = x =>
               (true)
                 && (string.IsNullOrEmpty(filter.Search)
                 || x.CustomerTags.ToLower().Contains(filter.Search.ToLower()));
@@ -1515,25 +1597,25 @@ namespace Core.Services.Business {
 
             string[] include = new string[] { };
 
-            Tuple<List<ReportSearchCriteriaEntity>, int> tuple = await _reportSearchCriteriaManager.Pager<ReportSearchCriteriaEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
+            Tuple<List<InvoiceConstructorSearchEntity>, int> tuple = await _reportSearchCriteriaManager.Pager<InvoiceConstructorSearchEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
             if(count == 0)
-                return new Pager<ReportSearchCriteriaDto>(new List<ReportSearchCriteriaDto>(), 0, filter.Offset, filter.Limit);
+                return new Pager<InvoiceConstructorSearchDto>(new List<InvoiceConstructorSearchDto>(), 0, filter.Offset, filter.Limit);
 
             var page = (filter.Offset + filter.Limit) / filter.Limit;
 
-            var result = _mapper.Map<List<ReportSearchCriteriaDto>>(list);
-            return new Pager<ReportSearchCriteriaDto>(result, count, page, filter.Limit);
+            var result = _mapper.Map<List<InvoiceConstructorSearchDto>>(list);
+            return new Pager<InvoiceConstructorSearchDto>(result, count, page, filter.Limit);
         }
 
-        public async Task<ReportSearchCriteriaDto> CreateReportSearchCriteria(ReportSearchCriteriaDto dto) {
+        public async Task<InvoiceConstructorSearchDto> CreateReportSearchCriteria(InvoiceConstructorSearchDto dto) {
             dto.Name = string.IsNullOrEmpty(dto.Name) ? $"Search criteria {DateTime.Now}" : dto.Name;
 
-            var entity = _mapper.Map<ReportSearchCriteriaEntity>(dto);
+            var entity = _mapper.Map<InvoiceConstructorSearchEntity>(dto);
             entity = await _reportSearchCriteriaManager.Create(entity);
-            return _mapper.Map<ReportSearchCriteriaDto>(entity);
+            return _mapper.Map<InvoiceConstructorSearchDto>(entity);
         }
 
         public async Task<bool> DeleteReportSearchCriteria(long id) {

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class ReportSearchCriteriaViewModel {
+    public class InvoiceConstructorSearchViewModel {
         public long Id { get; set; }
 
         [MaxLength(256)]
@@ -28,8 +28,8 @@ namespace Web.ViewModels {
         [Display(Name = "Random sort")]
         public bool RandomSort { get; set; }
 
-        [Display(Name = "Only new customer")]
-        public bool OnlyNewCustomer { get; set; }
+        [Display(Name = "Only new customers")]
+        public bool OnlyNewCustomers { get; set; }
 
         [Display(Name = "Exclude new customer")]
         public bool ExcludeNewCustomer { get; set; }

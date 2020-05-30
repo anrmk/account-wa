@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 
 using Core.Context;
 using Core.Data.Entities;
-using Core.Data.Entities.Nsi;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +40,7 @@ namespace Core.Services.Managers {
                         "FROM [accountWa].[dbo].[Invoices] AS INV  " +
                         "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
-                        "LEFT JOIN [accountWa].[dbo].[nsi.CustomerType] as CUST ON CUS.[CustomerType_Id] = CUST.[Id] " +
+                        "LEFT JOIN [accountWa].[dbo].[CustomerTypes] as CUST ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities] " + //проверяем на активность пользователя
                                                                                                      //"WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
                             "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +

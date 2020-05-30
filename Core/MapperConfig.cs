@@ -3,9 +3,7 @@
 using AutoMapper;
 
 using Core.Data.Dto;
-using Core.Data.Dto.Nsi;
 using Core.Data.Entities;
-using Core.Data.Entities.Nsi;
 using Core.Extension;
 
 namespace Core {
@@ -73,9 +71,32 @@ namespace Core {
                     CreatedDate = s.Customer.CreatedDate,
                     UpdatedBy = s.Customer.UpdatedBy,
                     UpdatedDate = s.Customer.UpdatedDate
-                }))
-                ;
+                }));
 
+            CreateMap<InvoiceDraftDto, InvoiceDraftEntity>().ReverseMap();
+
+            CreateMap<InvoiceConstructorDto, InvoiceConstructorEntity>()
+                .ForMember(d => d.Invoices, o => o.Ignore())
+                .ReverseMap();
+
+            CreateMap<InvoiceConstructorSearchDto, InvoiceConstructorSearchEntity>()
+               .ForMember(d => d.CustomerTypes, o => o.MapFrom(s => string.Join(',', s.TypeIds)))
+               .ForMember(d => d.CustomerTags, o => o.MapFrom(s => string.Join(',', s.TagsIds)))
+               .ForMember(d => d.CustomerRechecks, o => o.MapFrom(s => string.Join(',', s.Recheck)))
+               .ReverseMap()
+               .ForMember(d => d.TypeIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTypes)
+                       ? s.CustomerTypes.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
+                       : Enumerable.Empty<long>()
+                       ))
+               .ForMember(d => d.TagsIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTags)
+                       ? s.CustomerTags.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
+                       : Enumerable.Empty<long>()
+                       ))
+               .ForMember(d => d.Recheck, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerRechecks)
+                       ? s.CustomerRechecks.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList()
+                       : Enumerable.Empty<int>()
+                       ))
+               ;
             #endregion
 
             #region CUSTOMER
@@ -131,29 +152,6 @@ namespace Core {
             CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
             CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
 
-            CreateMap<ReportSearchCriteriaDto, ReportSearchCriteriaEntity>()
-                .ForMember(d => d.CustomerTypes, o => o.MapFrom(s => string.Join(',', s.TypeIds)))
-                .ForMember(d => d.CustomerTags, o => o.MapFrom(s => string.Join(',', s.TagsIds)))
-                .ForMember(d => d.CustomerRechecks, o => o.MapFrom(s => string.Join(',', s.Recheck)))
-                .ReverseMap()
-                .ForMember(d => d.TypeIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTypes)
-                        ? s.CustomerTypes.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
-                        : Enumerable.Empty<long>()
-                        ))
-                .ForMember(d => d.TagsIds, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerTags)
-                        ? s.CustomerTags.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToList()
-                        : Enumerable.Empty<long>()
-                        ))
-                .ForMember(d => d.Recheck, o => o.MapFrom(s => !string.IsNullOrEmpty(s.CustomerRechecks)
-                        ? s.CustomerRechecks.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList()
-                        : Enumerable.Empty<int>()
-                        ))
-                ;
-            #endregion
-
-            #region NSI
-            //CreateMap<ReportPeriodDto, ReportPeriodEntity>().ReverseMap();
-            CreateMap<NsiDto, ReportFieldEntity>().ReverseMap();
 
             #endregion
         }

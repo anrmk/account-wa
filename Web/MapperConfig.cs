@@ -4,7 +4,6 @@ using System.Linq;
 using AutoMapper;
 
 using Core.Data.Dto;
-using Core.Data.Dto.Nsi;
 using Core.Extension;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -121,6 +120,12 @@ namespace Web {
                 .ForMember(d => d.Periods, o => o.MapFrom(s => string.IsNullOrEmpty(s.Periods) ? new List<string>() : s.Periods.Split(',', System.StringSplitOptions.RemoveEmptyEntries).ToList()))
                 .ReverseMap()
                 .ForMember(d => d.Periods, o => o.MapFrom(s => string.Join(",", s.Periods)));
+
+            CreateMap<InvoiceConstructorViewModel, InvoiceConstructorDto>()
+                .ForMember(d => d.Invoices, o => o.Ignore())
+                .ReverseMap()
+                .ForMember(d => d.TotalAmount, o => o.MapFrom(s => s.Invoices != null ? s.Invoices.Sum(x => x.Subtotal) : 0))
+                ;
             ;
             #endregion
 
@@ -141,9 +146,7 @@ namespace Web {
             CreateMap<SavedReportViewModel, SavedReportDto>().ReverseMap();
             #endregion
 
-            CreateMap<ReportSearchCriteriaViewModel, ReportSearchCriteriaDto>().ReverseMap();
-
-            CreateMap<NsiViewModel, NsiDto>().ReverseMap();
+            CreateMap<InvoiceConstructorSearchViewModel, InvoiceConstructorSearchDto>().ReverseMap();
 
             CreateMap<PagerFilterViewModel, PagerFilter>().ReverseMap();
         }

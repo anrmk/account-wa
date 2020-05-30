@@ -26,14 +26,12 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
-        private readonly INsiBusinessManager _nsiManager;
         private readonly IViewRenderService _viewRenderService;
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, INsiBusinessManager nsiManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
-            _nsiManager = nsiManager;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
         }
@@ -614,15 +612,13 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
-        private readonly INsiBusinessManager _nsiManager;
         private readonly IMemoryCache _memoryCache;
 
-        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager, INsiBusinessManager nsiManager) {
+        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
             _businessManager = businessManager;
-            _nsiManager = nsiManager;
         }
 
         [HttpGet]

@@ -46,7 +46,5 @@ namespace Web.ViewModels {
         [Display(Name = "Created Date To")]
         [DataType(DataType.Date)]
         public DateTime? CreatedDateTo { get; set; }
-
-
     }
 }

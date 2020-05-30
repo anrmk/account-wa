@@ -29,17 +29,15 @@ namespace Web.Controllers.Mvc {
     public class ReportController: BaseController<ReportController> {
         private readonly int _daysPerPeriod = 30;
 
-        private readonly INsiBusinessManager _nsiBusinessManager;
         private readonly IMemoryCache _memoryCache;
         private readonly ICrudBusinessManager _businessManager;
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly IReportManager _reportManager;
 
         public ReportController(IMemoryCache memoryCache, ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
-            INsiBusinessManager nsiBusinessManager, ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager) : base(logger, mapper, context) {
+             ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager) : base(logger, mapper, context) {
             _memoryCache = memoryCache;
             _businessManager = crudBusinessManager;
-            _nsiBusinessManager = nsiBusinessManager;
             _reportBusinessManager = businessManager;
             _reportManager = reportManager;
         }
@@ -399,46 +397,6 @@ namespace Web.Controllers.Mvc {
             return fileStreamResult;
 
         }
-
-        //public async Task<IActionResult> GetSearchCriteria([FromQuery] ReportSearchCriteriaViewModel model) {
-        //   // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
-        //    var customerTags = await _businessManager.GetCustomerTags();
-        //    ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-        //    var customerTypes = await _businessManager.GetCustomerTypes();
-        //    ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-        //    ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
-
-        //    return View("SearchCriteria", model);
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> CreateSearchCriteria([FromBody] ReportSearchCriteriaViewModel model) {
-        //    try {
-        //        if(ModelState.IsValid) {
-        //            var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<ReportSearchCriteriaDto>(model));
-        //            if(item == null) {
-        //                return NotFound();
-        //            }
-        //            //model = _mapper.Map<CustomerViewModel>(item);
-        //            return RedirectToAction(nameof(Edit), new { id = item.Id });
-        //        }
-        //    } catch(Exception er) {
-        //        _logger.LogError(er, er.Message);
-        //    }
-
-        //    // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
-        //    var customerTags = await _businessManager.GetCustomerTags();
-        //    ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-        //    var customerTypes = await _businessManager.GetCustomerTypes();
-        //    ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-        //    ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
-
-        //    return View("SearchCriteria", model);
-        //}
     }
 }
 
@@ -446,21 +404,18 @@ namespace Web.Controllers.Api {
     [Route("api/[controller]")]
     [ApiController]
     public class ReportController: ControllerBase {
-        private readonly INsiBusinessManager _nsiBusinessManager;
         private readonly IMemoryCache _memoryCache;
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly IReportBusinessManager _reportBusinessManager;
-        public ICrudBusinessManager _crudBusinessManager;
+        private readonly ICrudBusinessManager _crudBusinessManager;
 
         public ReportController(IMemoryCache memoryCache,
             IMapper mapper, IViewRenderService viewRenderService,
-            INsiBusinessManager nsiBusinessManager,
             ICrudBusinessManager crudBusinessManager,
             IReportBusinessManager businessManager) {
             _memoryCache = memoryCache;
             _mapper = mapper;
-            _nsiBusinessManager = nsiBusinessManager;
             _viewRenderService = viewRenderService;
             _reportBusinessManager = businessManager;
             _crudBusinessManager = crudBusinessManager;
