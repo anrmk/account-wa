@@ -3,12 +3,12 @@
 using AutoMapper;
 
 using Core.Context;
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Web.Controllers {
-    // [Authorize]
+    [Authorize]
     public class BaseController<IController>: Controller {
         protected IController _controller;
         // private readonly IStringLocalizer<IController> _localizer;

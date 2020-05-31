@@ -43,7 +43,7 @@ namespace Web.Controllers.Mvc {
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSearchCriteria([FromBody] InvoiceConstructorSearchViewModel model) {
+        public async Task<IActionResult> CreateConstructorSearch([FromBody] InvoiceConstructorSearchViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<InvoiceConstructorSearchDto>(model));
