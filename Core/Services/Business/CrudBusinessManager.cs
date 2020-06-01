@@ -116,6 +116,10 @@ namespace Core.Services.Business {
         #endregion
 
         #region INVOICE GENERATE CONSTRUCTOR
+        Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter);
+        Task<bool> DeleteInvoiceDraft(long[] ids);
+
+        Task<InvoiceConstructorDto> GetConstructorInvoice(long id);
         Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto constructor);
         #endregion
 
@@ -1097,7 +1101,6 @@ namespace Core.Services.Business {
         }
         #endregion
 
-
         #region RECHECK
         public async Task<List<CustomerRecheckDto>> GetCustomerRechecks() {
             var result = await _customerRecheckManager.All();
@@ -1329,6 +1332,58 @@ namespace Core.Services.Business {
             return _mapper.Map<InvoiceDto>(entity);
         }
 
+
+        #endregion
+
+        #region CONSTRUCTOR INVOICE
+        public async Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter) {
+            Expression<Func<InvoiceDraftEntity, bool>> wherePredicate = x =>
+                     (true)
+                  && (string.IsNullOrEmpty(filter.Search)
+                       || x.No.ToLower().Contains(filter.Search.ToLower())
+                       || x.Subtotal.ToString().Equals(filter.Search.ToLower())
+                       )
+                  && ((filter.ConstructorId == null) || filter.ConstructorId == x.ConstructorId)
+                  //&& ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
+                 // && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
+                  //&& ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
+                  //&& ((filter.DateTo == null) || filter.DateTo >= x.Date)
+                  //&& ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
+                  //&& ((filter.CreatedDateTo == null) || filter.CreatedDateTo >= x.CreatedDate)
+                  ;
+
+            #region Sort
+            var sortBy = "Id";
+            #endregion
+
+            string[] include = new string[] { };
+
+            Tuple<List<InvoiceDraftEntity>, int> tuple = await _invoiceDraftManager.Pager<InvoiceDraftEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
+            var list = tuple.Item1;
+            var count = tuple.Item2;
+
+            if(count == 0)
+                return new Pager<InvoiceDraftDto>(new List<InvoiceDraftDto>(), 0, filter.Offset, filter.Limit);
+
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+
+            var result = _mapper.Map<List<InvoiceDraftDto>>(list);
+            return new Pager<InvoiceDraftDto>(result, count, page, filter.Limit);
+        }
+
+        public async Task<bool> DeleteInvoiceDraft(long[] ids) {
+            var invoices = await _invoiceDraftManager.Filter(x => ids.Contains(x.Id));
+            int result = await _invoiceDraftManager.Delete(invoices);
+            return result != 0;
+        }
+        
+
+        public async Task<InvoiceConstructorDto> GetConstructorInvoice(long id) {
+            var entity = await _invoiceConstructorManager.Find(id);
+            var dto = _mapper.Map<InvoiceConstructorDto>(entity);
+            return dto;
+        }
+
         public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
             var company = await _companyManager.FindInclude(dto.CompanyId);
             var searchCriteria = await _reportSearchCriteriaManager.Find(dto.SearchCriteriaId);
@@ -1343,7 +1398,11 @@ namespace Core.Services.Business {
             var dateTo = dto.Date.LastDayOfMonth();
             var random = new Random();
 
-            if(invoices != null && invoices.Count != 0) {
+            if(invoices != null && invoices.Count != 0 && invoices.Count != dto.Count) {
+                await _invoiceDraftManager.Delete(invoices);
+            }
+
+            if(invoices != null && invoices.Count != 0 && invoices.Count == dto.Count) {
                 //Update invoices
                 foreach(var invoice in invoices) {
                     var date = random.NextDate(dateFrom, dateTo);
@@ -1351,7 +1410,6 @@ namespace Core.Services.Business {
                     invoice.Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To);
                 }
                 invoices = (await _invoiceDraftManager.Update(invoices)).ToList();
-
             } else {
                 //Create invoices
                 #region GET CUSTOMERS
@@ -1403,9 +1461,10 @@ namespace Core.Services.Business {
                 invoices = (await _invoiceDraftManager.Create(invoices)).ToList();
             }
 
-            dto.Invoices = _mapper.Map<List<InvoiceDraftDto>>(invoices);
+            constructor.Invoices = invoices;
+            constructor.Count = invoices.Count;
 
-            return dto;
+            return _mapper.Map<InvoiceConstructorDto>(constructor);
         }
         #endregion
 

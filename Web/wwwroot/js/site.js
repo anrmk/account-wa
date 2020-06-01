@@ -10,6 +10,8 @@ $(document).ready(() => {
     window.modal = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
 
+    $.fn.initModalLink('body');
+
     var settings = {
         validClass: "is-valid",
         errorClass: "is-invalid"
@@ -25,6 +27,20 @@ $(document).ready(() => {
     window.console.log("Error", jqxhr.responseText);
     alert(jqxhr.responseText);
 });
+
+$.fn.initModalLink = function (target) {
+    $(target).find('a[data-target=modal]').on('click', e => {
+        e.preventDefault();
+        var opt = {
+            'url': $(e.currentTarget).attr('href')
+        }
+
+        $.ajax(opt).done((data, status, jqXHR) => {
+            $(data).dialog('Your action is required', (action, e, content) => { });
+        })
+    });
+}
+
 
 $.fn.dialog = function (header, callback) {
     callback = callback || function () { };

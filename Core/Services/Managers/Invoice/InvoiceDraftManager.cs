@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Core.Context;
@@ -16,9 +17,8 @@ namespace Core.Services.Managers {
         public InvoiceDraftManager(IApplicationContext context) : base(context) { }
 
         public async Task<List<InvoiceDraftEntity>> FindByConstructorId(long constructorId) {
-            return await DbSet.ToListAsync();
-            //.Where(x => x.ConstructorId == constructorId)
-            //.ToListAsync();
+            return await DbSet.Where(x => x.ConstructorId == constructorId)
+            .ToListAsync();
         }
     }
 }

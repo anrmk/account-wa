@@ -1,0 +1,67 @@
+﻿@model Web.ViewModels.InvoiceConstructorViewModel
+@{ 
+    var tableId = Guid.NewGuid();
+    var tableUrl = Url.RouteUrl("GetDraftInvoices");
+    var tableDeleteUrl = Url.RouteUrl("DeleteDraftInvoices");
+}
+
+<div>
+    <div id="toolbar">
+        <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    </div>
+    <table id="@tableId" data-toggle="table" data-url="@tableUrl"
+           data-query-params="queryParams"
+           data-total-field="totalItems"
+           data-data-field="items"
+           data-select-item-name="Invoices[]">
+        <thead>
+            <tr>
+                <th data-checkbox="true"></th>
+                <th data-field="no" data-sortable="true">Invoice</th>
+                <th data-field="customerCreatedDate" data-formatter="$.fn.bootstrapTable.formatDate">Customer<br />Created Date</th>
+                <th data-field="customerType">Type</th>
+                <th data-field="customerTags" data-formatter="tagsFormatter">Tags</th>
+                <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sorter="$.fn.bootstrapTable.sortDate" data-sortable="true">Date</th>
+                <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
+                <th data-field="subtotal" data-sortable="true" data-sort-name="subtotal" data-formatter="$.fn.bootstrapTable.formatCurrency">Amount</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+<script type="text/javascript">
+    function queryParams(params) {
+        params.constructorId = @(Model.Id);
+        return params;
+    }
+
+    $(document).ready(e => {
+        $table = $('#@tableId').bootstrapTable().on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+            var selections = $table.bootstrapTable('getSelections');
+            $bulkDeleteBtn.prop('disabled', !selections.length);
+        });;
+
+        $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+            if (!confirm('Are you sure want to delete this?')) { return false; }
+
+            var selections = $table.bootstrapTable('getSelections');
+            var ids = selections.map(x => x.id);
+
+            if (ids.length > 0) {
+                var options = {
+                    'type': 'post',
+                    'url': '@tableDeleteUrl',
+                    'data': { ids: ids }
+                };
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    if (data == true) {
+                        $table.bootstrapTable('refresh');
+                    } else {
+                        alert("First delete payments for these invoices!");
+                    }
+                });
+            }
+        });
+    });
+</script>

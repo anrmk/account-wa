@@ -7,6 +7,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +40,25 @@ namespace Web.Controllers.Mvc {
             };
             return View(model);
         }
+
+        public async Task<IActionResult> View(long id) {
+            var item = await _businessManager.GetConstructorInvoice(id);
+            var model = _mapper.Map<InvoiceConstructorViewModel>(item);
+            if(IsAjaxRequest)
+                return PartialView(model);
+            else
+                return View(model);
+        }
+
+        [HttpPost("DeleteDraftInvoices", Name = "DeleteDraftInvoices")]
+        public async Task<ActionResult> DeleteDraftInvoices(long[] ids) {
+            if(ids.Length > 0) {
+                var result = await _businessManager.DeleteInvoiceDraft(ids);
+                return Ok(result);
+            }
+
+            return Ok(false);
+        }
     }
 }
 
@@ -52,6 +72,16 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
             _viewRenderService = viewRenderService;
         }
+
+        [HttpGet("GetDraftInvoices", Name = "GetDraftInvoices")]
+        public async Task<Pager<InvoiceDraftViewModel>> GetDraftInvoices([FromQuery] InvoiceDraftFilterViewModel model) {
+            var result = await _businessManager.GetInvoiceDraftPage(_mapper.Map<InvoiceDraftFilterDto>(model));
+            var list = _mapper.Map<List<InvoiceDraftViewModel>>(result.Items);
+
+            return new Pager<InvoiceDraftViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
+        }
+
+       
 
         [HttpPost("GenerateConstructor", Name = "GenerateConstructor")]
         public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {

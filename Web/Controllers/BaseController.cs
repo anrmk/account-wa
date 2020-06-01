@@ -20,6 +20,8 @@ namespace Web.Controllers {
 
         public string CurrentUser => User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
+        public bool IsAjaxRequest => HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         public BaseController(ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
             _logger = logger;
             _mapper = mapper;

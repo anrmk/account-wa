@@ -127,6 +127,8 @@ namespace Web {
                 .ForMember(d => d.TotalAmount, o => o.MapFrom(s => s.Invoices != null ? s.Invoices.Sum(x => x.Subtotal) : 0))
                 ;
             ;
+            CreateMap<InvoiceDraftViewModel, InvoiceDraftDto>().ReverseMap();
+            CreateMap<InvoiceDraftFilterViewModel, InvoiceDraftFilterDto>().ReverseMap();
             #endregion
 
             #region PAYMENT

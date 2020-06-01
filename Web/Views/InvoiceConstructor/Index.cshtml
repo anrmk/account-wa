@@ -53,8 +53,12 @@
             $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
                 if (status === 'success') {
                     form.find('input[name=Id]').val(data.id);
+                    form.find('input[name=Count]').val(data.count);
                     form.find('input[name=Total]').val(data.totalAmount);
                     form.find('input:text[readonly]').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
+                    form.find('div.view').html(`<a href='/invoiceconstructor/view/${data.id}' data-target='modal'>View</a>`);
+
+                    $.fn.initModalLink(form);
                 }
             });
         }
