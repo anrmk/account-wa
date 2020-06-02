@@ -90,12 +90,6 @@ namespace Web.Controllers.Api {
             return new Pager<InvoiceDraftViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
         }
 
-
-        public async Task<IActionResult> CreateInvoices(long[] ids) {
-
-            return Ok();
-        }
-
         [HttpPost("GenerateConstructor", Name = "GenerateConstructor")]
         public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {
             try {
@@ -103,11 +97,13 @@ namespace Web.Controllers.Api {
                     var company = await _businessManager.GetCompany(model.CompanyId);
                     var summaryRanges = await _businessManager.GetCompanyAllSummaryRange(model.CompanyId);
                     var searchCriterias = await _businessManager.GetReportSearchCriterias(model.SearchCriterias.ToArray());
+                    var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
 
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summaryRanges) },
                         { "SearchCriterias", _mapper.Map<List<InvoiceConstructorSearchViewModel>>(searchCriterias)},
-                        { "CompanyName", company.Name }
+                        { "CompanyName", company.Name },
+                        { "Constructors", _mapper.Map<List<InvoiceConstructorViewModel>>(constructors) }
                     };
 
                     string html = _viewRenderService.RenderToStringAsync("_ConstructorPartial", model, viewDataDictionary).Result;

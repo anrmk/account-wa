@@ -120,6 +120,10 @@ $.extend($.serializeJSON.defaultOptions, {
     'useIntKeysAsArrayIndex': false,
     'customTypes': {
         'string:nullable': function (str) { return str || null; },
-        'number:nullable': function (str) { return Number(str)|| null; }
+        'number:nullable': function (str) { return Number(str) || null; },
+        //'date:month': function (str) {
+        //    const [year, month, day] = str.split("-");
+        //    return new Date(year, month - 1, day ?? 1).toDateString();
+        //}
     }
 });

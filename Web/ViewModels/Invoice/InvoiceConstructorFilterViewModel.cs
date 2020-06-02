@@ -12,7 +12,8 @@ namespace Web.ViewModels {
 
         [Required]
         [Display(Name = "Date")]
-        public DateTime Date { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? Date { get; set; }
 
         [Required]
         [Display(Name = "Search criterias")]

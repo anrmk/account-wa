@@ -121,6 +121,7 @@ namespace Core.Services.Business {
         Task<bool> DeleteInvoiceDraft(long[] ids);
 
         Task<InvoiceConstructorDto> GetConstructorInvoice(long id);
+        Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date);
         Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto constructor);
         #endregion
 
@@ -1393,6 +1394,11 @@ namespace Core.Services.Business {
             var entity = await _invoiceConstructorManager.Find(id);
             var dto = _mapper.Map<InvoiceConstructorDto>(entity);
             return dto;
+        }
+
+        public async Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date) {
+            var entities = await _invoiceConstructorManager.Filter(x => x.CompanyId == companyId && x.Date == date);
+            return _mapper.Map<List<InvoiceConstructorDto>>(entities);
         }
 
         public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
