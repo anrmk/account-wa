@@ -73,6 +73,9 @@ namespace Core {
                     UpdatedDate = s.Customer.UpdatedDate
                 }));
 
+            CreateMap<InvoiceDraftEntity, InvoiceEntity>()
+                .ForMember(d => d.Id, o => o.Ignore());
+
             CreateMap<InvoiceDraftDto, InvoiceDraftEntity>().ReverseMap();
 
             CreateMap<InvoiceConstructorDto, InvoiceConstructorEntity>()

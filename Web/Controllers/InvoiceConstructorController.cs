@@ -50,6 +50,15 @@ namespace Web.Controllers.Mvc {
                 return View(model);
         }
 
+        [HttpPost("CreateDraftInvoices", Name = "CreateDraftInvoices")]
+        public async Task<IActionResult> CreateDraftInvoices(long[] ids) {
+            if(ids.Length > 0) {
+                var item = await _businessManager.CreateInvoiceDraft(ids);
+                return Ok($"You have saved {item.Count} invoices in the Data Base.");
+            }
+            return Ok("No items to save");
+        }
+
         [HttpPost("DeleteDraftInvoices", Name = "DeleteDraftInvoices")]
         public async Task<ActionResult> DeleteDraftInvoices(long[] ids) {
             if(ids.Length > 0) {
@@ -81,7 +90,11 @@ namespace Web.Controllers.Api {
             return new Pager<InvoiceDraftViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
         }
 
-       
+
+        public async Task<IActionResult> CreateInvoices(long[] ids) {
+
+            return Ok();
+        }
 
         [HttpPost("GenerateConstructor", Name = "GenerateConstructor")]
         public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {

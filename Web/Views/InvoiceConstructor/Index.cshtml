@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Invoice Constructor";
     var formId = Guid.NewGuid();
+    var createInvoiceUrl = Url.RouteUrl("CreateDraftInvoices");
 }
 
 <nav aria-label="breadcrumb">
@@ -42,7 +43,14 @@
         </div>
     </div>
     <div class="col-lg-9 col-md-12">
-        <div id="constructorContent"></div>
+        <div class="card">
+            <div class="card-body" id="constructorContent">
+                Apply filter to view generated invoices in database
+            </div>
+            <div class="card-footer">
+                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -90,7 +98,26 @@
         $(document).ready(e => {
             var $form = $(`#@(formId)`);
             var $content = $('#constructorContent');
-           // $content.on('change', e => async function() { await countTotal(e, $content) });
+
+            var $saveInvoiceDraftBtn = $('#saveInvoiceDraftBtn').on('click', e => {
+                e.preventDefault();
+
+                var ids = $('#constructorContent form').find('input[name=Id]:not([value=0])').map(function (index, element) {
+                    return $(element).val()
+                });
+                if (ids.length > 0) {
+                    var options = {
+                        'type': 'post',
+                        'url': '@createInvoiceUrl',
+                        'data': { ids: ids.toArray() }
+                    };
+
+                    $.when($.ajax(options)).then((data) => {
+                        alert(data);
+                        $form.submit();
+                    });
+                }
+            });
 
             $form.on('submit', e => {
                 e.preventDefault();

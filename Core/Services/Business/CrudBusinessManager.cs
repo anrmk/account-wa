@@ -117,6 +117,7 @@ namespace Core.Services.Business {
 
         #region INVOICE GENERATE CONSTRUCTOR
         Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter);
+        Task<List<InvoiceDto>> CreateInvoiceDraft(long[] constructorIds);
         Task<bool> DeleteInvoiceDraft(long[] ids);
 
         Task<InvoiceConstructorDto> GetConstructorInvoice(long id);
@@ -1336,6 +1337,17 @@ namespace Core.Services.Business {
         #endregion
 
         #region CONSTRUCTOR INVOICE
+        public async Task<List<InvoiceDto>> CreateInvoiceDraft(long[] constructorIds) {
+            var draftInvoices = await _invoiceDraftManager.FindByConstructorId(constructorIds);
+            if(draftInvoices == null || draftInvoices.Count == 0) {
+                return null;
+            }
+            var invoices = await _invoiceManager.Create(_mapper.Map<List<InvoiceEntity>>(draftInvoices));
+            await _invoiceDraftManager.Delete(draftInvoices);
+
+            return _mapper.Map<List<InvoiceDto>>(invoices);
+        }
+
         public async Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter) {
             Expression<Func<InvoiceDraftEntity, bool>> wherePredicate = x =>
                      (true)
@@ -1345,7 +1357,7 @@ namespace Core.Services.Business {
                        )
                   && ((filter.ConstructorId == null) || filter.ConstructorId == x.ConstructorId)
                   //&& ((filter.CustomerId == null) || filter.CustomerId == x.CustomerId)
-                 // && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
+                  // && ((filter.TypeId == null) || filter.TypeId == x.Customer.TypeId)
                   //&& ((filter.DateFrom == null) || filter.DateFrom <= x.Date)
                   //&& ((filter.DateTo == null) || filter.DateTo >= x.Date)
                   //&& ((filter.CreatedDateFrom == null) || filter.CreatedDateFrom <= x.CreatedDate)
@@ -1376,7 +1388,6 @@ namespace Core.Services.Business {
             int result = await _invoiceDraftManager.Delete(invoices);
             return result != 0;
         }
-        
 
         public async Task<InvoiceConstructorDto> GetConstructorInvoice(long id) {
             var entity = await _invoiceConstructorManager.Find(id);
