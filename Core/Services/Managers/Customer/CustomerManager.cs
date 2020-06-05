@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Core.Context;
 using Core.Data.Entities;
 using Core.Services.Base;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Core.Services.Managers {
     public interface ICustomerManager: IEntityManager<CustomerEntity> {
@@ -25,7 +25,10 @@ namespace Core.Services.Managers {
     }
 
     public class CustomerManager: AsyncEntityManager<CustomerEntity>, ICustomerManager {
-        public CustomerManager(IApplicationContext context) : base(context) { }
+        private readonly IConfiguration _configuration;
+        public CustomerManager(IApplicationContext context, IConfiguration configuration) : base(context) {
+            _configuration = configuration;
+        }
 
         public async Task<CustomerEntity> FindInclude(long id) {
             return await DbSet
@@ -94,7 +97,7 @@ namespace Core.Services.Managers {
         }
 
         public async Task<List<CustomerEntity>> FindBulks(long companyId, DateTime from, DateTime to) {
-            var context = (ApplicationContext)_context;
+
             var result = new List<CustomerEntity>();
             var query = "SELECT CUS.[Id], CUS.[AccountNumber] AS No, CUS.[Name], CUS.[Description], CUS.[Terms], CUS.[Company_Id], CUS.[CustomerType_Id], CUS.[CreatedDate], CUS.[CreatedBy], " +
                             "CUST.[Name] AS CustomerTypeName, CUST.[Code] AS CustomerTypeCode, " +
@@ -129,7 +132,9 @@ namespace Core.Services.Managers {
                             "ON CT.[Id] = CTL.[CustomerTag_Id] WHERE CTL.[Customer_Id] = CUS.[Id]) AS TAGS " +
                         "WHERE CUS.[Company_Id] = @COMPANYID ";
             try {
-                using(var connection = context.Database.GetDbConnection()) {
+                string connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+                using(var connection = new SqlConnection(connectionString)) {
                     using(var command = connection.CreateCommand()) {
                         command.CommandText = query;
                         command.Parameters.Add(new SqlParameter("@COMPANYID", System.Data.SqlDbType.BigInt));
@@ -140,6 +145,7 @@ namespace Core.Services.Managers {
                         command.Parameters["@DATETO"].Value = to;
 
                         if(connection.State == System.Data.ConnectionState.Closed) {
+                           
                             await connection.OpenAsync();
                         }
 

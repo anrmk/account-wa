@@ -16,12 +16,10 @@ namespace Core.Services.Managers {
     }
 
     public class ReportManager: IReportManager {
-        private readonly ApplicationContext _context;
         private readonly IConfiguration _configuration;
         private readonly IInvoiceManager _invoiceManager;
 
-        public ReportManager(ApplicationContext context, IConfiguration configuration, IInvoiceManager invoiceManager) {
-            _context = context;
+        public ReportManager(IConfiguration configuration, IInvoiceManager invoiceManager) {
             _configuration = configuration;
 
             _invoiceManager = invoiceManager;

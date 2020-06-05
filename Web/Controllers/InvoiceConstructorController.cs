@@ -99,11 +99,25 @@ namespace Web.Controllers.Api {
                     var searchCriterias = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
                     var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
 
+                    var customerCounts = new Dictionary<long, int>();
+                    foreach(var searchCriteria in searchCriterias) {
+                        var constructor = new InvoiceConstructorDto() {
+                            CompanyId = model.CompanyId,
+                            Date = model.Date ?? DateTime.Now,
+                            SearchCriteriaId = searchCriteria.Id,
+                        };
+
+                        var customers = await  _businessManager.GetCustomers(constructor);
+                        if(!customerCounts.ContainsKey(searchCriteria.Id))
+                            customerCounts.Add(searchCriteria.Id, customers.Count);
+                    }
+
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summaryRanges) },
                         { "SearchCriterias", _mapper.Map<List<InvoiceConstructorSearchViewModel>>(searchCriterias)},
                         { "CompanyName", company.Name },
-                        { "Constructors", _mapper.Map<List<InvoiceConstructorViewModel>>(constructors) }
+                        { "Constructors", _mapper.Map<List<InvoiceConstructorViewModel>>(constructors) },
+                        { "CustomerCounts", customerCounts }
                     };
 
                     string html = _viewRenderService.RenderToStringAsync("_ConstructorPartial", model, viewDataDictionary).Result;

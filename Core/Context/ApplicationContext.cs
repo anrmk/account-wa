@@ -68,10 +68,10 @@ namespace Core.Context {
         }
 
         //protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")).EnableSensitiveDataLogging();
-        protected override void OnConfiguring(DbContextOptionsBuilder options) {
-            string connectionString = _configuration.GetConnectionString("DefaultConnection");
-            options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
-        }
+        //protected override void OnConfiguring(DbContextOptionsBuilder options) {
+        //    string connectionString = _configuration.GetConnectionString("DefaultConnection");
+        //    options.UseSqlServer(connectionString).EnableSensitiveDataLogging();
+        //}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);

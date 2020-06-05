@@ -6,6 +6,7 @@
     var summaryRanges = (List<Web.ViewModels.CompanySummaryRangeViewModel>)ViewData["SummaryRanges"];
     var searchCriterias = (List<Web.ViewModels.InvoiceConstructorSearchViewModel>)ViewData["SearchCriterias"];
     var constructors = (List<Web.ViewModels.InvoiceConstructorViewModel>) ViewData["Constructors"];
+    var customerCounts = (Dictionary<long, int>)ViewData["CustomerCounts"]; 
 }
 
 <div class="table-responsive">
@@ -25,33 +26,35 @@
         <tbody>
             @foreach(var criteria in searchCriterias) {
                 <tr>
-                    <th scope="row">@criteria.Name</th>
-                    @foreach(var column in summaryRanges) {
+                    <th scope="row">
+                        <label class="text-nowrap d-block">@criteria.Name</label>
+                        <label class="text-nowrap d-block">Customers: @customerCounts.GetValueOrDefault(criteria.Id, 0)</label>
+                    </th>
+                    @foreach(var summaryRange in summaryRanges) {
                         <td>
                             @{ 
-                                var constructor = constructors.Where(x => x.SearchCriteriaId == criteria.Id && x.SummaryRangeId == column.Id).FirstOrDefault();
-                                
+                                var constructor = constructors.Where(x => x.SearchCriteriaId == criteria.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
                             }
                             <form id="@(Guid.NewGuid())" asp-route="GenerateConstructorInvoices">
                                 <fieldset>
                                     <input type="hidden" name="Id" value="@(constructor?.Id ?? 0)" />
                                     <input type="hidden" name="CompanyId" value="@(Model.CompanyId)" />
                                     <input type="hidden" name="SearchCriteriaId" value="@criteria.Id" />
-                                    <input type="hidden" name="SummaryRangeId" value="@column.Id" />
+                                    <input type="hidden" name="SummaryRangeId" value="@summaryRange.Id" />
                                     <input type="hidden" name="Date" value="@(Model.Date?.ToString("yyyy-MM-dd"))" />
                                     <input type="hidden" name="Total" />
                                     <div class="form-group">
                                         <label>Count</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="number" name="Count" class="form-control" required aria-describedby="button-addon-@(criteria.Id)-@(column.Id)" value="@constructor?.Count" />
+                                            <input type="number" name="Count" class="form-control" required aria-describedby="button-addon-@(criteria.Id)-@(summaryRange.Id)" value="@constructor?.Count" />
                                             <div class="input-group-append">
-                                                <button class="btn btn-secondary" type="submit" id="button-addon-@(criteria.Id)-@(column.Id)"><i class="fa fa-sync-alt"></i></button>
+                                                <button class="btn btn-secondary" type="submit" id="button-addon-@(criteria.Id)-@(summaryRange.Id)"><i class="fa fa-sync-alt"></i></button>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label>Total</label>
-                                        <input class="form-control total-string" readonly />
+                                        <input class="form-control total-string" name="Total_@(criteria.Id)_@(summaryRange.Id)" readonly />
                                     </div>
                                     <div class="form-group view">
                                         @if(constructor != null) {

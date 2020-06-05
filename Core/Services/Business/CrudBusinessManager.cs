@@ -56,6 +56,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetUntiedCustomers(long? companyId);
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
+        Task<List<CustomerDto>> GetCustomers(InvoiceConstructorDto dto);
         //Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
         Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns);
@@ -1153,6 +1154,41 @@ namespace Core.Services.Business {
         }
         #endregion
 
+        public async Task<List<CustomerDto>> GetCustomers(InvoiceConstructorDto dto) {
+            var searchCriteria = await _invoiceConstructorSearchManager.Find(dto.SearchCriteriaId);
+            var searchCriteriaDto = _mapper.Map<InvoiceConstructorSearchDto>(searchCriteria);
+
+            var dateFrom = dto.Date.FirstDayOfMonth();
+            var dateTo = dto.Date.LastDayOfMonth();
+            var random = new Random();
+
+            var createdDateFrom = searchCriteria.OnlyNewCustomers ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
+            var createdDateTo = searchCriteria.OnlyNewCustomers ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
+
+            var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
+            var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
+
+            customers = customers.Where(x => (true)
+                && ((searchCriteriaDto.TagsIds == null || searchCriteriaDto.TagsIds.Count == 0)
+                    || x.TagLinks.Where(y => searchCriteriaDto.TagsIds.Contains(y.TagId ?? 0)).Count() > 0 || (searchCriteriaDto.TagsIds.Contains(0) && x.TagLinks.Count == 0))
+                && ((searchCriteriaDto.TypeIds == null || searchCriteriaDto.TypeIds.Count == 0) || searchCriteriaDto.TypeIds.Contains(x.TypeId ?? 0))
+                && ((searchCriteriaDto.Recheck == null || searchCriteriaDto.Recheck.Count == 0) || searchCriteriaDto.Recheck.Contains(x.Recheck))
+
+                && ((createdDateFrom == null) || createdDateFrom <= x.CreatedDate)
+                && ((createdDateTo == null) || createdDateTo >= x.CreatedDate)
+
+                && ((!searchCriteriaDto.CurrentInvoices.HasValue) || x.TotalInvoices == searchCriteriaDto.CurrentInvoices)
+                && ((!searchCriteriaDto.LateInvoices.HasValue) || x.UnpaidInvoices == searchCriteriaDto.LateInvoices)
+               ).ToList();
+
+            if(searchCriteriaDto.RandomSort)
+                customers = customers.OrderBy(x => Guid.NewGuid().ToString()).ToList();
+
+            //customers = customers.Take(dto.Count).ToList();
+
+            return _mapper.Map<List<CustomerDto>>(customers);
+        }
+
         #endregion
 
         #region INVOICE
@@ -1404,7 +1440,7 @@ namespace Core.Services.Business {
 
         public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
             var company = await _companyManager.FindInclude(dto.CompanyId);
-            var searchCriteria = await _invoiceConstructorSearchManager.Find(dto.SearchCriteriaId);
+            //var searchCriteria = await _invoiceConstructorSearchManager.Find(dto.SearchCriteriaId);
             var summaryRange = await _companySummaryManager.Find(dto.SummaryRangeId);
 
             var entity = await _invoiceConstructorManager.Find(dto.Id);
@@ -1429,34 +1465,8 @@ namespace Core.Services.Business {
                 }
                 invoices = (await _invoiceDraftManager.Update(invoices)).ToList();
             } else {
-                //Create invoices
-                #region GET CUSTOMERS
-                var searchCriteriaDto = _mapper.Map<InvoiceConstructorSearchDto>(searchCriteria);
-
-                var createdDateFrom = searchCriteria.OnlyNewCustomers ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
-                var createdDateTo = searchCriteria.OnlyNewCustomers ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
-
-                var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
-                var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
-
-                customers = customers.Where(x => (true)
-                    && ((searchCriteriaDto.TagsIds == null || searchCriteriaDto.TagsIds.Count == 0)
-                        || x.TagLinks.Where(y => searchCriteriaDto.TagsIds.Contains(y.TagId ?? 0)).Count() > 0 || (searchCriteriaDto.TagsIds.Contains(0) && x.TagLinks.Count == 0))
-                    && ((searchCriteriaDto.TypeIds == null || searchCriteriaDto.TypeIds.Count == 0) || searchCriteriaDto.TypeIds.Contains(x.TypeId ?? 0))
-                    && ((searchCriteriaDto.Recheck == null || searchCriteriaDto.Recheck.Count == 0) || searchCriteriaDto.Recheck.Contains(x.Recheck))
-
-                    && ((createdDateFrom == null) || createdDateFrom <= x.CreatedDate)
-                    && ((createdDateTo == null) || createdDateTo >= x.CreatedDate)
-
-                    && ((!searchCriteriaDto.CurrentInvoices.HasValue) || x.TotalInvoices == searchCriteriaDto.CurrentInvoices)
-                    && ((!searchCriteriaDto.LateInvoices.HasValue) || x.UnpaidInvoices == searchCriteriaDto.LateInvoices)
-                   ).ToList();
-
-                if(searchCriteriaDto.RandomSort)
-                    customers = customers.OrderBy(x => Guid.NewGuid().ToString()).ToList();
-
+                var customers = await GetCustomers(dto);
                 customers = customers.Take(dto.Count).ToList();
-                #endregion
 
                 foreach(var customer in customers) {
                     var date = random.NextDate(dateFrom, dateTo);
