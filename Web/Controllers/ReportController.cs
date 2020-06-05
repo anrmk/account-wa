@@ -46,7 +46,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var searchCriteria = await _businessManager.GetReportSearchCriterias();
+            var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriterias();
             ViewBag.SearchCriteria = searchCriteria.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new ReportFilterViewModel() {

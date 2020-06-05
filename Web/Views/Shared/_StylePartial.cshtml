@@ -1,9 +1,16 @@
-﻿<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-<link rel="stylesheet" href="~/lib/bootstrap-table/bootstrap-table.min.css" />
+﻿<environment include="Development">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-table/bootstrap-table.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-select/css/bootstrap-select.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap-fileinput/css/fileinput.min.css" />
+    <link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
 
-<link rel="stylesheet" href="~/lib/bootstrap-select/css/bootstrap-select.css" />
-<link rel="stylesheet" href="~/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css" />
-<link rel="stylesheet" href="~/lib/bootstrap-fileinput/css/fileinput.min.css" />
-<link rel="stylesheet" href="~/lib/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</environment>
 
-<link rel="stylesheet" href="~/css/site.css" />
+<environment exclude="Development">
+    <link rel="stylesheet" href="~/css/vendor.min.css" />
+    <link rel="stylesheet" href="~/css/site.min.css" />
+</environment>

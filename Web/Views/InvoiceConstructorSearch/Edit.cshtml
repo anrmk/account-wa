@@ -1,1 +1,88 @@
 ﻿@model Web.ViewModels.InvoiceConstructorSearchViewModel
+
+@{
+    ViewData["Title"] = "Edit Constructor Search";
+    var formId = Guid.NewGuid();
+}
+
+@section Toolbar  {
+<div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group mr-2">
+        <form method="POST" asp-action="Delete">
+            <input asp-for="Id" type="hidden" />
+            <button type="submit" class="btn btn-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+        </form>
+    </div>
+</div>
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Constructor Search</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-body">
+        <form id="@formId" method="POST" asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <fieldset>
+                <input asp-for="Id" type="hidden" />
+                <div class="form-group">
+                    <label asp-for="Name"></label>
+                    <input asp-for="Name" class="form-control" required>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-row mb-3">
+                    <div class="col-4">
+                        <label asp-for="TagsIds"></label>
+                        <select asp-for="TagsIds" asp-items="@ViewBag.CustomerTags" name="TagsIds[]" class="form-control" multiple>
+                            <option value="0">&#8249; No tags &#8250;</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label asp-for="TypeIds"></label>
+                        <select asp-for="TypeIds" asp-items="@ViewBag.CustomerTypes" name="TypeIds[]" class="form-control" multiple></select>
+                    </div>
+                    <div class="col-4">
+                        <label asp-for="Recheck"></label>
+                        <select asp-for="Recheck" asp-items="@ViewBag.CustomerRechecks" name="Recheck[]" class="form-control" multiple>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3">
+                    <div class="col-4">
+                        <label asp-for="CurrentInvoices"></label>
+                        <input asp-for="CurrentInvoices" type="number" min="0" class="form-control" data-value-type="number:nullable">
+                        <span asp-validation-for="CurrentInvoices" class="text-danger"></span>
+                    </div>
+                    <div class="col-4">
+                        <label asp-for="LateInvoices"></label>
+                        <input asp-for="LateInvoices" type="number" min="0" class="form-control" data-value-type="number:nullable">
+                        <span asp-validation-for="LateInvoices" class="text-danger"></span>
+                    </div>
+                    <div class="col-4">
+                        <label asp-for="OnlyNewCustomers">Customer Group</label>
+                        <select asp-for="OnlyNewCustomers" class="form-control">
+                            <option value="true">Only new customers</option>
+                            <option value="false">Exclude new customers</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row mb-3">
+                    <div class="col-4">
+                        <div class="form-check">
+                            <input asp-for="RandomSort" type="checkbox" class="form-check-input" />
+                            <label asp-for="RandomSort" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary" form="@formId">Save</button>
+        <a asp-action="index" class="btn btn-link">Cancel</a>
+    </div>
+</div>

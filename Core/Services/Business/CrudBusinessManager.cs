@@ -149,13 +149,14 @@ namespace Core.Services.Business {
         #endregion
 
         #region SEARCH CRITERIA
-        Task<InvoiceConstructorSearchDto> GetReportSearchCriteria(long id);
-        Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias(long[] ids);
-        Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias();
-        Task<Pager<InvoiceConstructorSearchDto>> GetReportSearchCriterias(PagerFilter filter);
+        Task<InvoiceConstructorSearchDto> GetInvoiceConstructorSearchCriteria(long id);
+        Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(long[] ids);
+        Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias();
+        Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilter filter);
 
-        Task<InvoiceConstructorSearchDto> CreateReportSearchCriteria(InvoiceConstructorSearchDto dto);
-        Task<bool> DeleteReportSearchCriteria(long id);
+        Task<InvoiceConstructorSearchDto> CreateInvoiceConstructorSearchCriterias(InvoiceConstructorSearchDto dto);
+        Task<InvoiceConstructorSearchDto> UpdateInvoiceConstructorSearchCriterias(long id, InvoiceConstructorSearchDto dto);
+        Task<bool> DeleteInvoiceConstructorSearchCriterias(long id);
         #endregion
     }
 
@@ -186,7 +187,7 @@ namespace Core.Services.Business {
         private readonly ISavedReportManager _savedReportManager;
         private readonly ISavedReportFieldManager _savedReportFieldManager;
         private readonly ISavedReportFileManager _savedReportFileManager;
-        private readonly IInvoiceConstructorSearchManager _reportSearchCriteriaManager;
+        private readonly IInvoiceConstructorSearchManager _invoiceConstructorSearchManager;
 
 
         public CrudBusinessManager(IMapper mapper, ICompanyManager companyManager,
@@ -197,7 +198,7 @@ namespace Core.Services.Business {
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
             IInvoiceManager invoiceManager, IInvoiceConstructorManager invoiceConstructorManager, IInvoiceDraftManager invoiceDraftManager, IPaymentManager paymentManager,
-            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IInvoiceConstructorSearchManager reportSearchCriteriaManager) {
+            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IInvoiceConstructorSearchManager invoiceConstructorSearchManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
@@ -224,7 +225,7 @@ namespace Core.Services.Business {
             _savedReportManager = savedReportManager;
             _savedReportFieldManager = savedReportFieldManager;
             _savedReportFileManager = savedReportFileManager;
-            _reportSearchCriteriaManager = reportSearchCriteriaManager;
+            _invoiceConstructorSearchManager = invoiceConstructorSearchManager;
         }
 
         #region COMPANY
@@ -1403,7 +1404,7 @@ namespace Core.Services.Business {
 
         public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
             var company = await _companyManager.FindInclude(dto.CompanyId);
-            var searchCriteria = await _reportSearchCriteriaManager.Find(dto.SearchCriteriaId);
+            var searchCriteria = await _invoiceConstructorSearchManager.Find(dto.SearchCriteriaId);
             var summaryRange = await _companySummaryManager.Find(dto.SummaryRangeId);
 
             var entity = await _invoiceConstructorManager.Find(dto.Id);
@@ -1432,8 +1433,8 @@ namespace Core.Services.Business {
                 #region GET CUSTOMERS
                 var searchCriteriaDto = _mapper.Map<InvoiceConstructorSearchDto>(searchCriteria);
 
-                var createdDateFrom = searchCriteria.OnlyNewCustomer ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
-                var createdDateTo = searchCriteria.OnlyNewCustomer ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
+                var createdDateFrom = searchCriteria.OnlyNewCustomers ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
+                var createdDateTo = searchCriteria.OnlyNewCustomers ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
 
                 var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
                 var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
@@ -1645,23 +1646,23 @@ namespace Core.Services.Business {
         }
         #endregion
 
-        #region SEARCH CRITERIA
-        public async Task<InvoiceConstructorSearchDto> GetReportSearchCriteria(long id) {
-            var entity = await _reportSearchCriteriaManager.Find(id);
+        #region CONSTRUCTOR SEARCH CRITERIA
+        public async Task<InvoiceConstructorSearchDto> GetInvoiceConstructorSearchCriteria(long id) {
+            var entity = await _invoiceConstructorSearchManager.Find(id);
             return _mapper.Map<InvoiceConstructorSearchDto>(entity);
         }
 
-        public async Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias(long[] ids) {
-            var result = await _reportSearchCriteriaManager.Filter(x => ids.Contains(x.Id));
+        public async Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(long[] ids) {
+            var result = await _invoiceConstructorSearchManager.Filter(x => ids.Contains(x.Id));
             return _mapper.Map<List<InvoiceConstructorSearchDto>>(result);
         }
 
-        public async Task<List<InvoiceConstructorSearchDto>> GetReportSearchCriterias() {
-            var result = await _reportSearchCriteriaManager.All();
+        public async Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias() {
+            var result = await _invoiceConstructorSearchManager.All();
             return _mapper.Map<List<InvoiceConstructorSearchDto>>(result);
         }
 
-        public async Task<Pager<InvoiceConstructorSearchDto>> GetReportSearchCriterias(PagerFilter filter) {
+        public async Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilter filter) {
             Expression<Func<InvoiceConstructorSearchEntity, bool>> wherePredicate = x =>
               (true)
                 && (string.IsNullOrEmpty(filter.Search)
@@ -1673,7 +1674,7 @@ namespace Core.Services.Business {
 
             string[] include = new string[] { };
 
-            Tuple<List<InvoiceConstructorSearchEntity>, int> tuple = await _reportSearchCriteriaManager.Pager<InvoiceConstructorSearchEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
+            Tuple<List<InvoiceConstructorSearchEntity>, int> tuple = await _invoiceConstructorSearchManager.Pager<InvoiceConstructorSearchEntity>(wherePredicate, sortBy, filter.Offset, filter.Limit, include);
             var list = tuple.Item1;
             var count = tuple.Item2;
 
@@ -1686,20 +1687,31 @@ namespace Core.Services.Business {
             return new Pager<InvoiceConstructorSearchDto>(result, count, page, filter.Limit);
         }
 
-        public async Task<InvoiceConstructorSearchDto> CreateReportSearchCriteria(InvoiceConstructorSearchDto dto) {
+        public async Task<InvoiceConstructorSearchDto> CreateInvoiceConstructorSearchCriterias(InvoiceConstructorSearchDto dto) {
             dto.Name = string.IsNullOrEmpty(dto.Name) ? $"Search criteria {DateTime.Now}" : dto.Name;
 
             var entity = _mapper.Map<InvoiceConstructorSearchEntity>(dto);
-            entity = await _reportSearchCriteriaManager.Create(entity);
+            entity = await _invoiceConstructorSearchManager.Create(entity);
             return _mapper.Map<InvoiceConstructorSearchDto>(entity);
         }
 
-        public async Task<bool> DeleteReportSearchCriteria(long id) {
-            var entity = await _reportSearchCriteriaManager.Find(id);
+        public async Task<InvoiceConstructorSearchDto> UpdateInvoiceConstructorSearchCriterias(long id, InvoiceConstructorSearchDto dto) {
+            var entity = await _invoiceConstructorSearchManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _invoiceConstructorSearchManager.Update(newEntity);
+            return _mapper.Map<InvoiceConstructorSearchDto>(entity);
+        }
+
+        public async Task<bool> DeleteInvoiceConstructorSearchCriterias(long id) {
+            var entity = await _invoiceConstructorSearchManager.Find(id);
             if(entity == null) {
                 return false;
             }
-            int result = await _reportSearchCriteriaManager.Delete(entity);
+            int result = await _invoiceConstructorSearchManager.Delete(entity);
             return result != 0;
         }
         #endregion

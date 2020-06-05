@@ -13,6 +13,7 @@ using Core.Services.Business;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 using Web.ViewModels;
 
@@ -29,8 +30,11 @@ namespace Web.Controllers.Mvc {
             return View();
         }
 
-        public async Task<IActionResult> Create([FromQuery] InvoiceConstructorSearchViewModel model) {
-            // ReportSearchCriteriaViewModel model = new ReportSearchCriteriaViewModel();
+        public async Task<IActionResult> Create() {
+            return await CreateFilter(new InvoiceConstructorSearchViewModel());
+        }
+
+        public async Task<IActionResult> CreateFilter(InvoiceConstructorSearchViewModel model) {
             var customerTags = await _businessManager.GetCustomerTags();
             ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
@@ -39,14 +43,18 @@ namespace Web.Controllers.Mvc {
 
             ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
 
+            if(IsAjaxRequest)
+                return PartialView("_CreatePartial", model);
+
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateConstructorSearch([FromBody] InvoiceConstructorSearchViewModel model) {
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(InvoiceConstructorSearchViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.CreateReportSearchCriteria(_mapper.Map<InvoiceConstructorSearchDto>(model));
+                    var item = await _businessManager.CreateInvoiceConstructorSearchCriterias(_mapper.Map<InvoiceConstructorSearchDto>(model));
                     if(item == null) {
                         return NotFound();
                     }
@@ -69,12 +77,60 @@ namespace Web.Controllers.Mvc {
             return View("Create", model);
         }
 
-        public async Task<IActionResult> Edit(long id) {
-            var item = await _businessManager.GetReportSearchCriteria(id);
+        public async Task<ActionResult> Edit(long id) {
+            var item = await _businessManager.GetInvoiceConstructorSearchCriteria(id);
             if(item == null) {
                 return NotFound();
             }
+
+            var customerTags = await _businessManager.GetCustomerTags();
+            ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var customerTypes = await _businessManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
             return View(_mapper.Map<InvoiceConstructorSearchViewModel>(item));
+        }
+
+        // POST: Invoice/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Edit(long id, InvoiceConstructorSearchViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _businessManager.UpdateInvoiceConstructorSearchCriterias(id, _mapper.Map<InvoiceConstructorSearchDto>(model));
+                    if(item == null) {
+                        return NotFound();
+                    }
+                    return RedirectToAction(nameof(Edit), new { id = item.Id });
+                }
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+
+            var customerTags = await _businessManager.GetCustomerTags();
+            ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var customerTypes = await _businessManager.GetCustomerTypes();
+            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Delete(long id) {
+            try {
+                var item = await _businessManager.DeleteInvoiceConstructorSearchCriterias(id);
+                if(item == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Index));
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
         }
     }
 }
@@ -82,21 +138,33 @@ namespace Web.Controllers.Mvc {
 namespace Web.Controllers.Api {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReportSearchCriteriaController: ControllerBase {
+    public class InvoiceConstructorSearchController: ControllerBase {
         private readonly IMapper _mapper;
         private readonly ICrudBusinessManager _businessManager;
 
-        public ReportSearchCriteriaController(IMapper mapper, ICrudBusinessManager businessManager) {
+        public InvoiceConstructorSearchController(IMapper mapper, ICrudBusinessManager businessManager) {
             _mapper = mapper;
             _businessManager = businessManager;
         }
 
-        [HttpGet]
+        [HttpGet("GetReportSearchCriteria", Name = "GetReportSearchCriteria")]
         public async Task<Pager<InvoiceConstructorSearchViewModel>> GetReportSearchCriteria([FromQuery] PagerFilterViewModel model) {
-            var result = await _businessManager.GetReportSearchCriterias(_mapper.Map<PagerFilter>(model));
+            var result = await _businessManager.GetInvoiceConstructorSearchCriterias(_mapper.Map<PagerFilter>(model));
             var pager = new Pager<InvoiceConstructorSearchViewModel>(_mapper.Map<List<InvoiceConstructorSearchViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             pager.Filter = result.Filter;
             return pager;
+        }
+
+        [HttpPost("CreateApi", Name = "CreateApi")]
+        public async Task<IActionResult> CreateApi(InvoiceConstructorSearchViewModel model) {
+            if(ModelState.IsValid) {
+                var item = await _businessManager.CreateInvoiceConstructorSearchCriterias(_mapper.Map<InvoiceConstructorSearchDto>(model));
+                if(item == null) {
+                    return NotFound();
+                }
+                return Ok(_mapper.Map<InvoiceConstructorSearchViewModel>(item));
+            }
+            return BadRequest(model);
         }
 
     }

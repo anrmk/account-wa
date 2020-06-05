@@ -1,11 +1,4 @@
-﻿/*!
-* v1.0.1
-* https://github.com/anrmk
-*
-* Copyright 2020 Aziz Nurmukhamedov
-*/
-
-$(document).ready(() => {
+﻿$(document).ready(() => {
     $.fn.datepicker.defaults.format = "mm/dd/yyyy";
     window.modal = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
@@ -13,8 +6,9 @@ $(document).ready(() => {
     $.fn.initModalLink('body');
 
     var settings = {
-        validClass: "is-valid",
-        errorClass: "is-invalid"
+        debug: true,
+        validClass: 'is-valid',
+        errorClass: 'is-invalid'
     };
     $.validator.setDefaults(settings);
     $.validator.unobtrusive.options = settings;
@@ -39,7 +33,7 @@ $.fn.initModalLink = function (target) {
             $(data).dialog('Your action is required', (action, e, content) => { });
         })
     });
-}
+};
 
 
 $.fn.dialog = function (header, callback) {
@@ -66,7 +60,7 @@ $.fn.dialog = function (header, callback) {
         callback("modal.on.load", e, this);
     });
     return window.modal;
-}
+};
 
 /**
  * Extension for bootstrapTable 

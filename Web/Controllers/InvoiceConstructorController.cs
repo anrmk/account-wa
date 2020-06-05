@@ -32,7 +32,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
 
-            var filters = await _businessManager.GetReportSearchCriterias();
+            var filters = await _businessManager.GetInvoiceConstructorSearchCriterias();
             ViewBag.SearchCriterias = filters.Select(x => new SelectListItem() { Text = x.Name ?? $"Search criteria {x.Id}", Value = x.Id.ToString() });
 
             var model = new InvoiceConstructorFilterViewModel() {
@@ -96,7 +96,7 @@ namespace Web.Controllers.Api {
                 if(ModelState.IsValid) {
                     var company = await _businessManager.GetCompany(model.CompanyId);
                     var summaryRanges = await _businessManager.GetCompanyAllSummaryRange(model.CompanyId);
-                    var searchCriterias = await _businessManager.GetReportSearchCriterias(model.SearchCriterias.ToArray());
+                    var searchCriterias = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
                     var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
 
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {

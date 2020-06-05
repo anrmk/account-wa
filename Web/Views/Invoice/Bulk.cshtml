@@ -7,8 +7,8 @@
 
 @section Toolbar {
     <div class="btn-toolbar">
-        <div class="btn-group">
-            <button id="saveSearchCriteriaBtn" class="btn btn-outline-secondary">
+        <div class="btn-group text-nowrap">
+            <button id="saveSearchCriteriaBtn" class="btn btn-secondary">
                 <i class="far fa-save mr-2"></i> Save
             </button>
         </div>
@@ -92,7 +92,7 @@
                         <div class="input-group">
                             <input asp-for="SelectTop" id="selectTopInput" class="form-control" min="0" />
                             <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
                             </div>
                         </div>
 
@@ -106,7 +106,7 @@
             </fieldset>
 
             <div id="toolbar" role="toolbar">
-                <button type="button" class="btn btn-outline-secondary" id="filterApplyBtn">Filter</button>
+                <button type="button" class="btn btn-secondary" id="filterApplyBtn">Filter</button>
             </div>
 
             <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
@@ -148,7 +148,7 @@
             <div class="card-header">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
                     <h5 class="m-0">Formed invoices</h5>
-                    <button id="applyBtn" type="button" class="btn btn-sm btn-outline-secondary">Apply <i class="fa fa-chevron-right ml-1"></i></button>
+                    <button id="applyBtn" type="button" class="btn btn-sm btn-secondary">Apply <i class="fa fa-chevron-right ml-1"></i></button>
                 </div>
             </div>
             <div class="card-body">
@@ -297,8 +297,8 @@
             //on save search criteria btn click
             $('#saveSearchCriteriaBtn').click(e => {
                 e.preventDefault();
-                var formData = $('#submitForm').ajaxSubmit({ 'url': '/invoiceConstructorSearch/create', 'type': 'get'}, function ($form, data, status, jqXHR) {
-                    $(data).dialog('Save search criteria', (eventName, _, target) => {
+                var formData = $('#submitForm').ajaxSubmit({ 'url': '/invoiceConstructorSearch/createfilter', 'type': 'get'}, function ($form, data, status, jqXHR) {
+                    $(data).dialog('Save constructor search', (eventName, _, target) => {
                         if (eventName === 'shown.bs.modal') {
                             target.on('submit', e => {
                                 e.preventDefault();

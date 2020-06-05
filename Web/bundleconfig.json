@@ -1,0 +1,58 @@
+[
+  //  CSS STYLE
+  {
+    "outputFileName": "wwwroot/css/vendor.min.css",
+    "inputFiles": [
+      "wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
+      "wwwroot/lib/bootstrap-table/bootstrap-table.min.css",
+      "wwwroot/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.css",
+      "wwwroot/lib/bootstrap-select/css/bootstrap-select.min.css",
+      "wwwroot/lib/bootstrap-datepicker/css/bootstrap-datepicker.min.css",
+      "wwwroot/lib/bootstrap-fileinput/css/fileinput.min.css",
+      "wwwroot/lib/font-awesome/css/all.min.css"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/css/site.min.css",
+    "inputFiles": [
+      "wwwroot/css/site.css"
+    ]
+  },
+  //  JAVA SCRIPT
+  {
+    "outputFileName": "wwwroot/js/vendor.min.js",
+    "inputFiles": [
+      "wwwroot/lib/jquery/jquery.min.js",
+      "wwwroot/lib/jquery-serializeJSON/jquery.serializejson.min.js",
+      "wwwroot/lib/jquery-load-json/dist/jquery.loadJSON.min.js",
+      "wwwroot/lib/jquery-validation/dist/jquery.validate.min.js",
+      "wwwroot/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js",
+      "wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js",
+      "wwwroot/lib/bootstrap-table/bootstrap-table.min.js",
+      "wwwroot/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.js",
+      "wwwroot/lib/bootstrap-select/js/bootstrap-select.min.js",
+      "wwwroot/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js",
+      "wwwroot/lib/bootstrap-fileinput/js/fileinput.min.js",
+      "wwwroot/lib/font-awesome/js/all.min.js",
+      "wwwroot/lib/sortable/Sortable.min.js"
+    ],
+    "minify": {
+      "enabled": false
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/site.min.js",
+    "inputFiles": [
+      "wwwroot/js/api-controller.js",
+      "wwwroot/js/site.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  }
+]

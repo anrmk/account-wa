@@ -5,19 +5,19 @@
 }
 
 @section Toolbar  {
-    <button id="bulkDeleteBtn" class="btn btn-outline-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    <button id="bulkDeleteBtn" class="btn btn-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
 }
 
 <div class="card">
     <div class="card-body">
         <div id="toolbar" role="toolbar">
             <div class="btn-group mr-1" role="group">
-                <a asp-controller="Payment" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
-                <a asp-controller="Payment" asp-action="Bulk" class="btn btn-outline-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
+                <a asp-controller="Payment" asp-action="Create" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                <a asp-controller="Payment" asp-action="Bulk" class="btn btn-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
-                <button id="filterBtn" class="btn btn-outline-secondary">Filter</button>
+                <button id="filterBtn" class="btn btn-secondary">Filter</button>
             </div>
 
             <form id="filterForm">
@@ -126,7 +126,7 @@
         }
 
         function actionFormatter(value, row) {
-            return `<a href='/payment/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
+            return `<a href='/payment/edit/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
         }
 
         //function nameFormatter(value, row) {

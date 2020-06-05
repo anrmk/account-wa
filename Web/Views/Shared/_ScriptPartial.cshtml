@@ -1,16 +1,25 @@
-﻿<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/jquery-serializeJSON/jquery.serializejson.min.js"></script>
-<script src="~/lib/jquery-load-json/dist/jquery.loadJSON.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/lib/bootstrap-table/bootstrap-table.min.js"></script>
-<script src="~/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+﻿<environment include="Development">
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/jquery-serializeJSON/jquery.serializejson.min.js"></script>
+    <script src="~/lib/jquery-load-json/dist/jquery.loadJSON.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
-<script src="~/lib/bootstrap-select/js/bootstrap-select.min.js"></script>
-<script src="~/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
-<script src="~/lib/bootstrap-fileinput/js/fileinput.min.js"></script>
-<script src="~/lib/font-awesome/js/all.min.js"></script>
-<script src="~/lib/moment/moment.min.js"></script>
-<script src="~/lib/sortable/Sortable.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="~/lib/bootstrap-table/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+    <script src="~/lib/bootstrap-select/js/bootstrap-select.min.js"></script>
+    <script src="~/lib/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/lib/bootstrap-fileinput/js/fileinput.min.js"></script>
 
-<script src="~/js/api-controller.js" asp-append-version="true"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/font-awesome/js/all.min.js"></script>
+    <script src="~/lib/sortable/Sortable.min.js"></script>
+
+    <script src="~/js/api-controller.js"></script>
+    <script src="~/js/site.js"></script>
+</environment>
+
+<environment exclude="Development">
+    <script src="~/js/vendor.min.js" asp-append-version="true"></script>
+    <script src="~/js/site.min.js" asp-append-version="true"></script>
+</environment>

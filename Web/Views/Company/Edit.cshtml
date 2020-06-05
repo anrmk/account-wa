@@ -10,7 +10,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-outline-danger" hidden onclick="if (!confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-danger" hidden onclick="if (!confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
     </div>
@@ -128,7 +128,7 @@
 
             <div class="tab-pane fade" id="summary" role="tabpanel" aria-labelledby="summary-tab">
                 <div class="form-group">
-                    <a asp-controller="Company" asp-action="CreateSummary" asp-route-companyId="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                    <a asp-controller="Company" asp-action="CreateSummary" asp-route-companyId="@Model.Id" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                 </div>
 
                 <div class="form-group">
@@ -136,7 +136,7 @@
                         @foreach(var item in ViewBag.Summary) {
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>@item.From - @item.To</span>
-                                <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                                <a asp-controller="Company" asp-action="EditSummary" asp-route-id="@item.Id" class='btn btn-secondary mr-1'>Edit</a>
                             </div>
                         }
                     </div>
@@ -186,14 +186,14 @@
 
             <div class="tab-pane fade" id="exportSettings" role="tabpanel" aria-labelledby="exportSettings-tab">
                 <div class="form-group">
-                    <a asp-controller="Company" asp-action="CreateExportSettings" asp-route-id="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                    <a asp-controller="Company" asp-action="CreateExportSettings" asp-route-id="@Model.Id" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                 </div>
                 <div class="form-group">
                     <div id="exportSettingsFieldsList" class="list-group">
                         @foreach(var setting in ViewBag.ExportSettings) {
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>@setting.Name</span>
-                                <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-outline-secondary mr-1'>Edit</a>
+                                <a asp-controller="Company" asp-action="EditExportSettings" asp-route-id="@setting.Id" class='btn btn-secondary mr-1'>Edit</a>
                             </div>
                         }
                     </div>
@@ -203,7 +203,7 @@
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button id="saveBtn" type="submit" class="btn btn-outline-primary" form="submitGeneralForm">Save</button>
+            <button id="saveBtn" type="submit" class="btn btn-primary" form="submitGeneralForm">Save</button>
             <a asp-action="index" class="btn btn-link">Cancel</a>
         </div>
     </div>
@@ -230,7 +230,7 @@
         }
 
         function actionFormatter(value, row) {
-            return `<a href='/customer/edit/${row.id}' class='btn btn-outline-secondary mr-1'>Edit</a>`;
+            return `<a href='/customer/edit/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
         }
 
         $(document).ready(function () {

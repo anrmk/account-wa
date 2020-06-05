@@ -9,7 +9,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="DeleteExportSettings" asp-route-id="@Model.Id">
                 <input asp-for="Id" type="hidden" id="deleteId" />
-                <button type="submit" class="btn btn-outline-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
+                <button type="submit" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> <span class="d-none d-lg-inline">Remove</span></button>
             </form>
         </div>
     </div>
@@ -78,7 +78,7 @@
             </div>
 
             <div class="form-group">
-                <a id="createBtn" asp-controller="Company" asp-action="CreateExportSettingsField" asp-route-id="@Model.Id" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                <a id="createBtn" asp-controller="Company" asp-action="CreateExportSettingsField" asp-route-id="@Model.Id" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
             </div>
 
             <div class="form-group">
@@ -125,7 +125,7 @@
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-outline-primary" form="createForm">Save</button>
+            <button type="submit" class="btn btn-primary" form="createForm">Save</button>
             <a asp-action="Edit" asp-route-id="@Model.CompanyId" class="btn btn-link">Cancel</a>
         </div>
     </div>

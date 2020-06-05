@@ -7,7 +7,7 @@
     <div class="card-body">
         <div class="table-responsive">
             <div id="toolbar" role="toolbar">
-                <a asp-controller="Company" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                <a asp-controller="Company" asp-action="Create" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
             </div>
             <table id="datatable" data-toggle="table" data-url="/api/company"
                    data-total-field="totalItems"
@@ -29,7 +29,7 @@
 @section Scripts {
     <script type="text/javascript">
         function actionFormatter(value, row) {
-            return `<a href='/company/edit/${row.id}' class='btn btn-outline-secondary mr-1' >Edit</a>`;
+            return `<a href='/company/edit/${row.id}' class='btn btn-secondary mr-1' >Edit</a>`;
         }
     </script>
 }

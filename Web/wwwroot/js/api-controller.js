@@ -65,8 +65,8 @@ $.fn.ajaxSubmit = function (opt, callback) {
             'contentType': 'application/json; charset=utf-8'
         }, opt);
 
-        if (options.type?.toLowerCase() === 'post') {
-            options.data = JSON.stringify(data)
+        if (options.type.toLowerCase() === 'post') {
+            options.data = JSON.stringify(data);
         }
 
         $.ajax(options).done((data, status, jqXHR) => {

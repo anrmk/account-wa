@@ -5,6 +5,7 @@ namespace Web.ViewModels {
     public class InvoiceConstructorSearchViewModel {
         public long Id { get; set; }
 
+        [Required]
         [MaxLength(256)]
         public string Name { get; set; }
 
@@ -30,8 +31,5 @@ namespace Web.ViewModels {
 
         [Display(Name = "Only new customers")]
         public bool OnlyNewCustomers { get; set; }
-
-        [Display(Name = "Exclude new customer")]
-        public bool ExcludeNewCustomer { get; set; }
     }
 }

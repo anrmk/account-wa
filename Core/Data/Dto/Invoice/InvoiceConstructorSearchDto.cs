@@ -15,8 +15,6 @@ namespace Core.Data.Dto {
 
         public bool RandomSort { get; set; }
 
-        public bool OnlyNewCustomer { get; set; }
-
-        public bool ExcludeNewCustomer { get; set; }
+        public bool OnlyNewCustomers { get; set; }
     }
 }

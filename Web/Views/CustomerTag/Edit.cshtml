@@ -10,7 +10,7 @@
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />
-                <button type="submit" class="btn btn-outline-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                <button type="submit" class="btn btn-danger" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
             </form>
         </div>
     </div>
@@ -41,7 +41,7 @@
     </div>
     <div class="card-footer">
         <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-outline-primary" form="submitForm">Save</button>
+            <button type="submit" class="btn btn-primary" form="submitForm">Save</button>
             <a asp-action="index" class="btn btn-link">Cancel</a>
         </div>
     </div>

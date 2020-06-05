@@ -1,24 +1,21 @@
 ﻿@{
-    ViewData["Title"] = "Report seach criteria";
+    ViewData["Title"] = "Constructor Search";
+    var listUrl = Url.RouteUrl("GetReportSearchCriteria");
+    var editUrl = Url.ActionLink(action: "Edit", controller : "InvoiceConstructorSearch");
 }
 
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
             <div id="toolbar" role="toolbar">
-                <a asp-controller="ReportSearchCriteria" asp-action="Create" class="btn btn-outline-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
+                <a asp-controller="InvoiceConstructorSearch" asp-action="Create" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
             </div>
-            <table id="datatable" data-toggle="table" data-url="/api/reportsearchcriteria"
+            <table id="datatable" data-toggle="table" data-url="@listUrl"
                    data-total-field="totalItems"
                    data-data-field="items">
                 <thead>
                     <tr>
-                        <th data-field="no" data-sortable="true">No</th>
-                        <th data-field="currentInvoices" data-sortable="true">Current Invoices</th>
-                        <th data-field="lateInvoices">Late Invoices</th>
-                        <th data-field="randomSort">Random sort</th>
-                        <th data-field="onlyNewCustomer">Only new customer</th>
-                        <th data-field="excludeNewCustomer">Exclude new customer</th>
+                        <th data-field="name" data-sortable="true">Name</th>
                         <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
                     </tr>
                 </thead>
@@ -29,8 +26,9 @@
 
 @section Scripts {
     <script type="text/javascript">
+        var editUrl = '@(editUrl)';
         function actionFormatter(value, row) {
-            return `<a href='/company/edit/${row.id}' class='btn btn-outline-secondary mr-1' >Edit</a>`;
+            return `<a href='${editUrl}/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
         }
     </script>
 }
