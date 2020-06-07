@@ -41,7 +41,10 @@ namespace Web.Controllers.Mvc {
             var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
+            var rechecks = model.Recheck ?? new List<int>();
+            if(rechecks == null || rechecks.Count() == 0)
+                rechecks.Add(0);
+            ViewBag.CustomerRechecks = rechecks.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
 
             if(IsAjaxRequest)
                 return PartialView("_CreatePartial", model);
@@ -72,7 +75,10 @@ namespace Web.Controllers.Mvc {
             var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            ViewBag.CustomerRechecks = model.Recheck?.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
+            var rechecks = model.Recheck;
+            if(rechecks == null || rechecks.Count() == 0)
+                rechecks.Add(0);
+            ViewBag.CustomerRechecks = rechecks.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
 
             return View("Create", model);
         }
@@ -88,6 +94,11 @@ namespace Web.Controllers.Mvc {
 
             var customerTypes = await _businessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            var rechecks = item.Recheck;
+            if(rechecks == null || rechecks.Count() == 0)
+                rechecks.Add(0);
+            ViewBag.CustomerRechecks = rechecks.Select(x => new SelectListItem() { Text = x.ToString(), Value = x.ToString() }).ToList();
 
             return View(_mapper.Map<InvoiceConstructorSearchViewModel>(item));
         }
