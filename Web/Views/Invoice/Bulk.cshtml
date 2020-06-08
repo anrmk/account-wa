@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Create Bulk Invoicing";
     ViewData["SubTitle"] = "Bulk Invoicing is ideal for when you have a lot of clients to bill for a lot of work. Use the Bulk Invoice wizard to quickly create and send invoices to all of your clients quickly!";
+
+    var customersUrl = Url.RouteUrl("GetCustomers");
 }
 
 
@@ -109,7 +111,7 @@
                 <button type="button" class="btn btn-secondary" id="filterApplyBtn">Filter</button>
             </div>
 
-            <table id="datatable" class="table" data-toggle="table" data-url="/api/customer"
+            <table id="datatable" class="table" data-toggle="table" data-url="@customersUrl"
                    data-query-params="queryParams"
                    data-total-field="totalItems"
                    data-data-field="items"
@@ -118,7 +120,7 @@
                    data-filter-control="true"
                    data-filter-control-container="true"
                    data-ajax-options="ajaxOptions"
-                   data-click-to-select="true">
+                   >
                 <thead>
                     <tr>
                         <th data-field="state" data-checkbox="true"></th>

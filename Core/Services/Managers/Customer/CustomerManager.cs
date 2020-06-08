@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Core.Context;
 using Core.Data.Entities;
 using Core.Services.Base;
@@ -145,7 +146,7 @@ namespace Core.Services.Managers {
                         command.Parameters["@DATETO"].Value = to;
 
                         if(connection.State == System.Data.ConnectionState.Closed) {
-                           
+
                             await connection.OpenAsync();
                         }
 

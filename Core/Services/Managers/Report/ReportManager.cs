@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
-using Core.Context;
 using Core.Data.Entities;
 
 using Microsoft.Data.SqlClient;

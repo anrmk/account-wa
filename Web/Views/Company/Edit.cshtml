@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Edit Company";
     ViewData["SubTitle"] = "Please provide all required details to edit company info";
+
+    var customersUrl = Url.RouteUrl("GetCustomers");
 }
 
 @section Toolbar  {
@@ -144,7 +146,7 @@
             </div>
 
             <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
-                <table id="datatable" data-toggle="table" data-url="/api/customer"
+                <table id="datatable" data-toggle="table" data-url="@customersUrl"
                        data-query-params="queryParams"
                        data-total-field="totalItems"
                        data-data-field="items">

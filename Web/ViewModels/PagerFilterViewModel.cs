@@ -12,7 +12,7 @@ namespace Web.ViewModels {
         public string Sort { get; set; }
 
         [FromQuery(Name = "order")]
-        public string Order { get; set; }
+        public string Order { get; set; } = "asc";
 
         [FromQuery(Name = "offset")]
         public int Offset { get; set; } = 0;

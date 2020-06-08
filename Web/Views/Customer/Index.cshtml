@@ -1,6 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Customers";
     ViewData["Subtitle"] = "Organize and keep track of your customers by adding, deleting, merging, or restoring them in the system. This boosts efficiency knowing your customer list is clean and there are no duplicates.";
+
+    var customersUrl = Url.RouteUrl("GetCustomers");
 }
 
 <div class="card">
@@ -26,7 +28,7 @@
                     </div>
                 </div>
             </div>
-            <table id="datatable" data-toggle="table" data-url="/api/customer"
+            <table id="datatable" data-toggle="table" data-url="@customersUrl"
                    data-total-field="totalItems"
                    data-data-field="items">
                 <thead>

@@ -5,8 +5,8 @@
     Layout = null;
     var summaryRanges = (List<Web.ViewModels.CompanySummaryRangeViewModel>)ViewData["SummaryRanges"];
     var searchCriterias = (List<Web.ViewModels.InvoiceConstructorSearchViewModel>)ViewData["SearchCriterias"];
-    var constructors = (List<Web.ViewModels.InvoiceConstructorViewModel>) ViewData["Constructors"];
-    var customerCounts = (Dictionary<long, int>)ViewData["CustomerCounts"]; 
+    var constructors = (List<Web.ViewModels.InvoiceConstructorViewModel>)ViewData["Constructors"];
+    var customerCounts = (Dictionary<long, int>)ViewData["CustomerCounts"];
 }
 
 <div class="table-responsive">
@@ -32,37 +32,31 @@
                     </th>
                     @foreach(var summaryRange in summaryRanges) {
                         <td>
-                            @{ 
+                            @{
+                                var formId = Guid.NewGuid();
                                 var constructor = constructors.Where(x => x.SearchCriteriaId == criteria.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
                             }
-                            <form id="@(Guid.NewGuid())" asp-route="GenerateConstructorInvoices">
-                                <fieldset>
-                                    <input type="hidden" name="Id" value="@(constructor?.Id ?? 0)" />
-                                    <input type="hidden" name="CompanyId" value="@(Model.CompanyId)" />
-                                    <input type="hidden" name="SearchCriteriaId" value="@criteria.Id" />
-                                    <input type="hidden" name="SummaryRangeId" value="@summaryRange.Id" />
-                                    <input type="hidden" name="Date" value="@(Model.Date?.ToString("yyyy-MM-dd"))" />
-                                    <input type="hidden" name="Total" />
-                                    <div class="form-group">
-                                        <label>Count</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="number" name="Count" class="form-control" required aria-describedby="button-addon-@(criteria.Id)-@(summaryRange.Id)" value="@constructor?.Count" />
-                                            <div class="input-group-append">
-                                                <button class="btn btn-secondary" type="submit" id="button-addon-@(criteria.Id)-@(summaryRange.Id)"><i class="fa fa-sync-alt"></i></button>
-                                            </div>
+                            <form id="@formId" asp-route="UpdateDraftInvoices" asp-route-id="@(constructor.Id)">
+                                <input type="hidden" name="Id" value="@(constructor.Id)" />
+                                <input type="hidden" name="TotalAmount" value="@(constructor.TotalAmount)" />
+
+                                <div class="form-group">
+                                    <label>Count</label>
+                                    <input type="text" class="form-control count" name="Count_@constructor.Id" value="@constructor.Count" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Total</label>
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control totalAmount" name="Total_@constructor.Id" value="@constructor.TotalAmount" readonly />
+                                        <div class="input-group-append">
+                                            <button class="btn btn-secondary" type="submit" id="button-addon-@constructor.Id" form="@formId"><i class="fa fa-sync-alt"></i></button>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Total</label>
-                                        <input class="form-control total-string" name="Total_@(criteria.Id)_@(summaryRange.Id)" readonly />
-                                    </div>
-                                    <div class="form-group view">
-                                        @if(constructor != null) {
-                                            <a asp-action="View" asp-route-id="@constructor.Id" data-target="modal">View</a>
-                                        }
-                                    </div>
-                                </fieldset>
+                                </div>
                             </form>
+                            <div class="form-group view">
+                                <a asp-action="View" asp-route-id="@constructor.Id" data-target="modal">View</a>
+                            </div>
                         </td>
                     }
                     <td></td>

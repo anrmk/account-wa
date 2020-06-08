@@ -5,14 +5,6 @@
 
     $.fn.initModalLink('body');
 
-    var settings = {
-        debug: true,
-        validClass: 'is-valid',
-        errorClass: 'is-invalid'
-    };
-    $.validator.setDefaults(settings);
-    $.validator.unobtrusive.options = settings;
-
 }).ajaxStart(() => {
     $('form fieldset').attr('disabled', 'disabled');
 }).ajaxStop(() => {
@@ -22,7 +14,7 @@
     alert(jqxhr.responseText);
 });
 
-$.fn.initModalLink = function (target) {
+$.fn.initModalLink = function (target, callback = {}) {
     $(target).find('a[data-target=modal]').on('click', e => {
         e.preventDefault();
         var opt = {
@@ -30,7 +22,7 @@ $.fn.initModalLink = function (target) {
         }
 
         $.ajax(opt).done((data, status, jqXHR) => {
-            $(data).dialog('Your action is required', (action, e, content) => { });
+            $(data).dialog('Your action is required', callback);
         })
     });
 };
@@ -121,3 +113,31 @@ $.extend($.serializeJSON.defaultOptions, {
         //}
     }
 });
+
+$.extend($.validator, {
+    defaults: {
+        messages: {},
+        groups: {},
+        rules: {},
+        errorClass: "is-invalid",
+        validClass: "valid",
+        errorElement: "label",
+        focusInvalid: true,
+        errorContainer: $([]),
+        errorLabelContainer: $([]),
+        onsubmit: true,
+        ignore: ":hidden",              // default for ignore in jquery.validate.js
+        ignoreTitle: false,
+        onfocusin: function (element, event) {
+            this.lastActive = element;
+        }
+    }
+});
+
+//var settings = {
+//    debug: true,
+//    validClass: 'is-valid',
+//    errorClass: 'is-invalid'
+//};
+//$.validator.setDefaults(settings);
+//$.validator.unobtrusive.options = settings;

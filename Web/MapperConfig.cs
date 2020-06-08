@@ -124,7 +124,9 @@ namespace Web {
             CreateMap<InvoiceConstructorViewModel, InvoiceConstructorDto>()
                 .ForMember(d => d.Invoices, o => o.Ignore())
                 .ReverseMap()
-                .ForMember(d => d.TotalAmount, o => o.MapFrom(s => s.Invoices != null ? s.Invoices.Sum(x => x.Subtotal) : 0))
+
+                //.ForMember(d => d.Count, o => o.MapFrom(s => s.Invoices != null ? s.Invoices.Count() : 0))
+                //.ForMember(d => d.TotalAmount, o => o.MapFrom(s => s.Invoices != null ? s.Invoices.Sum(x => x.Subtotal) : 0))
                 ;
             ;
             CreateMap<InvoiceDraftViewModel, InvoiceDraftDto>().ReverseMap();

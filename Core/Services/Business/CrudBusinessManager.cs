@@ -117,13 +117,20 @@ namespace Core.Services.Business {
         #endregion
 
         #region INVOICE GENERATE CONSTRUCTOR
+        Task<List<InvoiceDraftDto>> GetInvoiceDraft(long constructorId);
+        Task<List<InvoiceDraftDto>> GetInvoiceDraft(long[] constructorIds);
         Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter);
-        Task<List<InvoiceDto>> CreateInvoiceDraft(long[] constructorIds);
+        Task<List<InvoiceDraftDto>> UpdateInvoiceDraft(long constructorId);
+        Task<InvoiceConstructorDto> CreateInvoiceDraft(InvoiceConstructorDto constructor);
+        Task<List<InvoiceDto>> CopyInvoiceFromDraft(long[] constructorIds);
         Task<bool> DeleteInvoiceDraft(long[] ids);
 
         Task<InvoiceConstructorDto> GetConstructorInvoice(long id);
+        Task<InvoiceConstructorDto> CreateConstructorInvoice(InvoiceConstructorDto dto);
+        Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto);
+
         Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date);
-        Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto constructor);
+
         #endregion
 
         #region PAYMENT
@@ -240,9 +247,7 @@ namespace Core.Services.Business {
                    (true)
                    && (x.No.Contains(search) || x.Name.Contains(search));
 
-            #region Sort
             var sortby = sort ?? "Name";
-            #endregion
 
             string[] include = new string[] { "Address" };
 
@@ -1183,8 +1188,9 @@ namespace Core.Services.Business {
 
             if(searchCriteriaDto.RandomSort)
                 customers = customers.OrderBy(x => Guid.NewGuid().ToString()).ToList();
-
-            //customers = customers.Take(dto.Count).ToList();
+            else /*if(dto.SortBy)*/ {
+                customers = SortExtension.OrderByDynamic(customers.AsQueryable(), "Id", false).ToList();
+            }
 
             return _mapper.Map<List<CustomerDto>>(customers);
         }
@@ -1374,8 +1380,8 @@ namespace Core.Services.Business {
 
         #endregion
 
-        #region CONSTRUCTOR INVOICE
-        public async Task<List<InvoiceDto>> CreateInvoiceDraft(long[] constructorIds) {
+        #region INVOICE DRAFT
+        public async Task<List<InvoiceDto>> CopyInvoiceFromDraft(long[] constructorIds) {
             var draftInvoices = await _invoiceDraftManager.FindByConstructorId(constructorIds);
             if(draftInvoices == null || draftInvoices.Count == 0) {
                 return null;
@@ -1384,6 +1390,16 @@ namespace Core.Services.Business {
             await _invoiceDraftManager.Delete(draftInvoices);
 
             return _mapper.Map<List<InvoiceDto>>(invoices);
+        }
+
+        public async Task<List<InvoiceDraftDto>> GetInvoiceDraft(long constructorId) {
+            var result = await _invoiceDraftManager.FindByConstructorId(constructorId);
+            return _mapper.Map<List<InvoiceDraftDto>>(result);
+        }
+
+        public async Task<List<InvoiceDraftDto>> GetInvoiceDraft(long[] constructorIds) {
+            var result = await _invoiceDraftManager.FindByConstructorId(constructorIds);
+            return _mapper.Map<List<InvoiceDraftDto>>(result);
         }
 
         public async Task<Pager<InvoiceDraftDto>> GetInvoiceDraftPage(InvoiceDraftFilterDto filter) {
@@ -1421,79 +1437,102 @@ namespace Core.Services.Business {
             return new Pager<InvoiceDraftDto>(result, count, page, filter.Limit);
         }
 
-        public async Task<bool> DeleteInvoiceDraft(long[] ids) {
-            var invoices = await _invoiceDraftManager.Filter(x => ids.Contains(x.Id));
-            int result = await _invoiceDraftManager.Delete(invoices);
-            return result != 0;
-        }
+        public async Task<InvoiceConstructorDto> CreateInvoiceDraft(InvoiceConstructorDto dto) {
+            var constructor = await _invoiceConstructorManager.Find(dto.Id);
 
-        public async Task<InvoiceConstructorDto> GetConstructorInvoice(long id) {
-            var entity = await _invoiceConstructorManager.Find(id);
-            var dto = _mapper.Map<InvoiceConstructorDto>(entity);
-            return dto;
-        }
+            var company = await _companyManager.FindInclude(constructor.CompanyId);
+            var summaryRange = await _companySummaryManager.Find(constructor.SummaryRangeId);
 
-        public async Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date) {
-            var entities = await _invoiceConstructorManager.Filter(x => x.CompanyId == companyId && x.Date == date);
-            return _mapper.Map<List<InvoiceConstructorDto>>(entities);
-        }
+            //var constructor = entity == null ? await _invoiceConstructorManager.Create(_mapper.Map<InvoiceConstructorEntity>(dto)) : await _invoiceConstructorManager.Update(_mapper.Map(dto, entity));
 
-        public async Task<InvoiceConstructorDto> CreateConstructorInvoices(InvoiceConstructorDto dto) {
-            var company = await _companyManager.FindInclude(dto.CompanyId);
-            //var searchCriteria = await _invoiceConstructorSearchManager.Find(dto.SearchCriteriaId);
-            var summaryRange = await _companySummaryManager.Find(dto.SummaryRangeId);
 
-            var entity = await _invoiceConstructorManager.Find(dto.Id);
-            var constructor = entity == null ? await _invoiceConstructorManager.Create(_mapper.Map<InvoiceConstructorEntity>(dto)) : await _invoiceConstructorManager.Update(_mapper.Map(dto, entity));
-
-            var invoices = await _invoiceDraftManager.FindByConstructorId(constructor.Id);
-
-            var dateFrom = dto.Date.FirstDayOfMonth();
-            var dateTo = dto.Date.LastDayOfMonth();
+            var dateFrom = constructor.Date.FirstDayOfMonth();
+            var dateTo = constructor.Date.LastDayOfMonth();
             var random = new Random();
 
-            if(invoices != null && invoices.Count != 0 && invoices.Count != dto.Count) {
-                await _invoiceDraftManager.Delete(invoices);
+            var customers = await _customerManager.FindByIds(dto.Customers.ToArray());
+
+            var newInvoices = new List<InvoiceDraftEntity>();
+            foreach(var customer in customers) {
+                var date = random.NextDate(dateFrom, dateTo);
+
+                byte[] bytes = new byte[4];
+                random.NextBytes(bytes);
+
+                var invoice = new InvoiceDraftEntity() {
+                    ConstructorId = constructor.Id,
+                    CompanyId = company.Id,
+                    CustomerId = customer.Id,
+                    Date = date,
+                    DueDate = date.AddDays(30),
+                    No = BitConverter.ToString(bytes).Replace("-", ""),
+                    Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To)
+                };
+                newInvoices.Add(invoice);
             }
+            if(newInvoices.Count > 0)
+                await _invoiceDraftManager.Create(newInvoices);
 
-            if(invoices != null && invoices.Count != 0 && invoices.Count == dto.Count) {
-                //Update invoices
-                foreach(var invoice in invoices) {
-                    var date = random.NextDate(dateFrom, dateTo);
-                    invoice.Date = date;
-                    invoice.Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To);
-                }
-                invoices = (await _invoiceDraftManager.Update(invoices)).ToList();
-            } else {
-                var customers = await GetCustomers(dto);
-                customers = customers.Take(dto.Count).ToList();
-
-                foreach(var customer in customers) {
-                    var date = random.NextDate(dateFrom, dateTo);
-
-                    byte[] bytes = new byte[4];
-                    random.NextBytes(bytes);
-
-                    var invoice = new InvoiceDraftEntity() {
-                        ConstructorId = constructor.Id,
-                        CompanyId = company.Id,
-                        CustomerId = customer.Id,
-                        Date = date,
-                        DueDate = date.AddDays(30),
-                        No = BitConverter.ToString(bytes).Replace("-", ""),
-                        Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To)
-                    };
-                    invoices.Add(invoice);
-                }
-
-                invoices = (await _invoiceDraftManager.Create(invoices)).ToList();
-            }
+            var invoices = await _invoiceDraftManager.FindByConstructorId(constructor.Id);
 
             constructor.Invoices = invoices;
             constructor.Count = invoices.Count;
 
             return _mapper.Map<InvoiceConstructorDto>(constructor);
         }
+
+        public async Task<List<InvoiceDraftDto>> UpdateInvoiceDraft(long constructorId) {
+            var constructor = await _invoiceConstructorManager.Find(constructorId);
+            var invoices = await _invoiceDraftManager.FindByConstructorId(constructor.Id);
+            var summaryRange = await _companySummaryManager.Find(constructor.SummaryRangeId);
+
+            var dateFrom = constructor.Date.FirstDayOfMonth();
+            var dateTo = constructor.Date.LastDayOfMonth();
+            var random = new Random();
+
+            foreach(var invoice in invoices) {
+                var date = random.NextDate(dateFrom, dateTo);
+                invoice.Date = date;
+                invoice.DueDate = date.AddDays(30);
+                invoice.Subtotal = random.NextDecimal(summaryRange.From, summaryRange.To);
+            }
+
+            await _invoiceDraftManager.Update(invoices.AsEnumerable());
+
+            return _mapper.Map<List<InvoiceDraftDto>>(invoices);
+        }
+
+        public async Task<bool> DeleteInvoiceDraft(long[] ids) {
+            var invoices = await _invoiceDraftManager.Filter(x => ids.Contains(x.Id));
+            int result = await _invoiceDraftManager.Delete(invoices);
+            return result != 0;
+        }
+
+        #endregion
+
+        #region CONSTRUCTOR INVOICE
+        public async Task<InvoiceConstructorDto> GetConstructorInvoice(long id) {
+            var entity = await _invoiceConstructorManager.FindInclude(id);
+            var dto = _mapper.Map<InvoiceConstructorDto>(entity);
+            return dto;
+        }
+
+        public async Task<InvoiceConstructorDto> CreateConstructorInvoice(InvoiceConstructorDto dto) {
+            var entity = _mapper.Map<InvoiceConstructorEntity>(dto);
+            entity = await _invoiceConstructorManager.Create(entity);
+            return _mapper.Map<InvoiceConstructorDto>(entity);
+        }
+
+        public async Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto) {
+            return null;
+        }
+
+        public async Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date) {
+            var entities = await _invoiceConstructorManager.FindAll(companyId, date);
+            return _mapper.Map<List<InvoiceConstructorDto>>(entities);
+        }
+
+
         #endregion
 
         #region PAYMENT

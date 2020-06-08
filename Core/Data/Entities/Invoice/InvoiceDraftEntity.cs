@@ -24,8 +24,10 @@ namespace Core.Data.Entities {
         [DataType(DataType.Date)]
         public DateTime DueDate { get; set; }
 
+        [ForeignKey("Constructor")]
         [Column("Constructor_Id")]
         public long? ConstructorId { get; set; }
+        public virtual InvoiceConstructorEntity Constructor { get; set; }
 
         [Column("Company_Id")]
         public long? CompanyId { get; set; }

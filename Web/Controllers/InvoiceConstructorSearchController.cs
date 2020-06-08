@@ -13,7 +13,6 @@ using Core.Services.Business;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 
 using Web.ViewModels;
 

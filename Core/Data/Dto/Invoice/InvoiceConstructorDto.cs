@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Core.Data.Dto {
     public class InvoiceConstructorDto {
@@ -13,8 +14,12 @@ namespace Core.Data.Dto {
 
         public long SummaryRangeId { get; set; }
 
-        public int Count { get; set; }
+        public List<long> Customers { get; set; }
 
         public virtual ICollection<InvoiceDraftDto> Invoices { get; set; }
+
+        public int Count => Invoices?.Count ?? 0;
+
+        public decimal TotalAmount => Invoices?.Count > 0 ? Invoices.Sum(x => x.Subtotal) : 0;
     }
 }

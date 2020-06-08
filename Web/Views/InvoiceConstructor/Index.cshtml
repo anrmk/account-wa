@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Invoice Constructor";
     var formId = Guid.NewGuid();
-    var createInvoiceUrl = Url.RouteUrl("CreateDraftInvoices");
+    var copyInvoiceFromDraftUrl = Url.RouteUrl("CopyInvoiceFromDraft");
 }
 
 <nav aria-label="breadcrumb">
@@ -46,7 +46,7 @@
                 Apply filter to view generated invoices in database
             </div>
             <div class="card-footer">
-                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary" disabled>Save</button>
+                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary" disabled >Save</button>
             </div>
         </div>
     </div>
@@ -54,17 +54,13 @@
 
 @section Scripts {
     <script type="text/javascript">
-        generateInvoices = function (e) {
+        updateDraftInvoices = function (e) {
             e.preventDefault();
             $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
                 if (status === 'success') {
-                    form.find('input[name=Id]').val(data.id);
-                    form.find('input[name=Count]').val(data.count);
-                    form.find('input[name=Total]').val(data.totalAmount);
-                    form.find('input:text[readonly]').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
-                    form.find('div.view').html(`<a href='/invoiceconstructor/view/${data.id}' data-target='modal'>View</a>`);
-
-                    $.fn.initModalLink(form);
+                    form.find('input.count').val(data.count);
+                    form.find('input[name=TotalAmount]').val(data.totalAmount);
+                    form.find('input.totalAmount').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
                 }
             });
         }
@@ -73,19 +69,19 @@
             //Sem by column
             content.find('tbody tr:eq(0) td').each((index) => {
                 var colSum = 0;
-                content.find('tbody tr').find('td:eq(' + index + ') input[name=Total]').each((_i, tde) => {
+                content.find('tbody tr td:eq(' + index + ') input[name=TotalAmount]').each((_i, tde) => {
                     var value = $(tde).val();
                     colSum += parseFloat(value || 0);
                 });
                 var totalTd = content.find('tfoot tr td:eq(' + index + ')');
                 totalTd.find('label').html($.fn.bootstrapTable.formatCurrency(colSum));
-                totalTd.find('input[name=Total]').val(colSum);
+                totalTd.find('input[name=TotalAmount]').val(colSum);
             });
 
             //Sum by row
             content.find('tbody tr, tfoot tr').each((index, tre) => {
                 var rowSum = 0;
-                $(tre).find('td input[name=Total]').each((_i, tde) => {
+                $(tre).find('td input[name=TotalAmount]').each((_i, tde) => {
                     var value = $(tde).val();
                     rowSum += parseFloat(value || 0);
                 });
@@ -94,16 +90,28 @@
         }
 
         $(document).ready(e => {
-            var $form = $(`#@(formId)`);
+            var $form = $(`#@(formId)`).on('submit', e => {
+                e.preventDefault();
+
+                $saveInvoiceDraftBtn.disabled();
+
+                $form.ajaxSubmit({}, (form, data, status, jqXHR) => {
+                    if (status === 'success') {
+                        $content.html(data).trigger('change').find('form').on('submit', e => updateDraftInvoices(e));
+
+                        $.fn.initModalLink($content, (action, evt, content) => {
+                            if (action === "hidden.bs.modal") {
+                                $form.submit();
+                            }
+                        });
+
+                        $saveInvoiceDraftBtn.enabled();
+                    }
+                })
+            });
+
             var $content = $('#constructorContent').on('change', e => {
-                var ids = $('#constructorContent form').find('input[name=Id]:not([value=0])').map(function (index, element) {
-                    return $(element).val()
-                });
-                if (ids.length > 0) {
-                    $saveInvoiceDraftBtn.enabled();
-                } else {
-                    $saveInvoiceDraftBtn.disabled();
-                }
+                countTotal(e, $content);
             });
 
             var $saveInvoiceDraftBtn = $('#saveInvoiceDraftBtn').on('click', e => {
@@ -115,7 +123,7 @@
                 if (ids.length > 0) {
                     var options = {
                         'type': 'post',
-                        'url': '@createInvoiceUrl',
+                        'url': '@copyInvoiceFromDraftUrl',
                         'data': { ids: ids.toArray() }
                     };
 
@@ -125,21 +133,6 @@
                     });
                 }
             });
-
-            $form.on('submit', e => {
-                e.preventDefault();
-
-                $saveInvoiceDraftBtn.disabled();
-
-                $form.ajaxSubmit({}, (form, data, status, jqXHR) => {
-                    if (status === 'success') {
-                        $content.html(data).find('form').on('submit', e => generateInvoices(e));
-                        $content.find('input:text[readonly]').on('change', e => countTotal(e, $content));
-                        $.fn.initModalLink($content);
-                    }
-                })
-            });
-
         });
     </script>
 }

@@ -16,6 +16,8 @@
     <Compile Remove="Migrations\20200529233233_init.Designer.cs" />
     <Compile Remove="Migrations\20200529235658_init.cs" />
     <Compile Remove="Migrations\20200529235658_init.Designer.cs" />
+    <Compile Remove="Migrations\20200608224226_update-invoicedraft-entity-2.cs" />
+    <Compile Remove="Migrations\20200608224226_update-invoicedraft-entity-2.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

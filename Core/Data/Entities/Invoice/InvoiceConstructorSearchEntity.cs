@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Core.Data.Enum;
+
 namespace Core.Data.Entities {
     [Table(name: "InvoiceConstructorSearches")]
     public class InvoiceConstructorSearchEntity: EntityBase<long> {
@@ -18,5 +20,7 @@ namespace Core.Data.Entities {
         public bool RandomSort { get; set; } = false;
 
         public bool OnlyNewCustomers { get; set; }
+
+        public CustomerTypes Type { get; set; }
     }
 }

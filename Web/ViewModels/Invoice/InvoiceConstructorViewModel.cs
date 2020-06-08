@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
@@ -22,6 +23,8 @@ namespace Web.ViewModels {
         public long SummaryRangeId { get; set; }
 
         [Required]
+        public List<long> Customers { get; set; }
+
         [Display(Name = "Select TOP record")]
         public int Count { get; set; }
 

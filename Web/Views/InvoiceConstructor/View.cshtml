@@ -1,67 +1,196 @@
 ﻿@model Web.ViewModels.InvoiceConstructorViewModel
-@{ 
+@{
     var tableId = Guid.NewGuid();
-    var tableUrl = Url.RouteUrl("GetDraftInvoices");
-    var tableDeleteUrl = Url.RouteUrl("DeleteDraftInvoices");
+
+    var customersUrl = Url.RouteUrl("GetDraftCustomers");
+
+    var draftInvoicesUrl = Url.RouteUrl("GetDraftInvoices");
+    var draftInvoiceDeleteUrl = Url.RouteUrl("DeleteDraftInvoices");
 }
 
 <div>
-    <div id="toolbar">
-        <button id="bulkDeleteBtn" class="btn btn-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    <div class="alert alert-dark">
+        <div class="row">
+            <div class="col">
+                <ul class="list-unstyled m-0">
+                    <li><strong>Search criteria:</strong> @ViewBag.SearchCriteria?.Name</li>
+                    <li><strong>Date:</strong> @Model.Date.ToString("MM.dd.yyyy")</li>
+                    <li><strong>Summary range:</strong> @ViewBag.SummaryRange</li>
+                    <li><strong>Customers:</strong> XX of XXX</li>
+                    <li><strong>Customer group:</strong> @(ViewBag.SearchCriteria?.OnlyNewCustomers ? "Only new customers" : "Exclude new customers")</li>
+                </ul>
+            </div>
+            <div class="col">
+                <ul class="list-unstyled m-0">
+                    <li><strong>Tags:</strong> @ViewBag.Tags</li>
+                    <li><strong>Types:</strong> @ViewBag.Types</li>
+                    <li><strong>Current invoices:</strong> @ViewBag.SearchCriteria?.CurrentInvoices</li>
+                    <li><strong>Late invoices:</strong> @ViewBag.SearchCriteria?.LateInvoices</li>
+                    <li><strong>Random sort:</strong> @ViewBag.SearchCriteria?.RandomSort</li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <table id="@tableId" data-toggle="table" data-url="@tableUrl"
-           data-query-params="queryParams"
-           data-total-field="totalItems"
-           data-data-field="items"
-           data-select-item-name="Invoices[]">
-        <thead>
-            <tr>
-                <th data-checkbox="true"></th>
-                <th data-field="no" data-sortable="true">Invoice</th>
-                <th data-field="customerCreatedDate" data-formatter="$.fn.bootstrapTable.formatDate">Customer<br />Created Date</th>
-                <th data-field="customerType">Type</th>
-                <th data-field="customerTags" data-formatter="tagsFormatter">Tags</th>
-                <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sorter="$.fn.bootstrapTable.sortDate" data-sortable="true">Date</th>
-                <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
-                <th data-field="subtotal" data-sortable="true" data-sort-name="subtotal" data-formatter="$.fn.bootstrapTable.formatCurrency">Amount</th>
-            </tr>
-        </thead>
-    </table>
+
+    <ul id="companyTab" class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" id="customers-tab" href="#customers">Customers</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" id="invoices-tab" href="#invoices">Invoices</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade active show" id="customers" role="tabpanel" aria-labelledby="customers-tab">
+            <form id="submitForm" asp-route="CreateConstructorInvoices">
+                <input asp-for="Id" type="hidden" />
+                <input asp-for="Date" type="hidden" value="@(Model.Date.ToString("yyyy-MM-dd"))" />
+                <input asp-for="CompanyId" type="hidden" />
+                <input asp-for="SearchCriteriaId" type="hidden" />
+                <input asp-for="SummaryRangeId" type="hidden" />
+                <input name="ConstructorId" type="hidden" value="@(Model.Id)" />
+
+                <div id="customerToolbar" role="toolbar">
+                    <div class="btn-toolbar">
+                        <div class="input-group mr-3">
+                            <input type="number" id="selectTopInput" class="form-control" min="0" />
+                            <div class="input-group-append">
+                                <button class="btn btn-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button id="generateDraftInvoice" class="btn btn-secondary">Generate</button>
+                        </div>
+                    </div>
+                </div>
+                <table id="@(tableId)-customers" data-toggle="table" data-url="@customersUrl"
+                       data-toolbar="#customerToolbar"
+                       data-query-params="queryParams"
+                       data-total-field="totalItems"
+                       data-data-field="items"
+                       data-unique-id="id"
+                       data-select-item-name="Customers[]">
+                    <thead>
+                        <tr>
+                            <th data-field="state" data-checkbox="true"></th>
+                            <th data-field="no" scope="col" data-sortable="true">No</th>
+                            <th data-field="name" scope="col" data-sortable="true">Name</th>
+                            <th data-field="createdDate" scope="col" data-formatter="$.fn.bootstrapTable.formatDate">Created Date</th>
+                            <th data-formatter="tagsFormatter" data-field="tags" scope="col">Tags</th>
+                            <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
+                            <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>
+                            <th data-field="totalInvoices" scope="col" data-sortable="true">Current Invoices</th>
+                            <th data-field="unpaidInvoices" scope="col" data-sortable="true">Late Invoices</th>
+                            <th data-field="terms" scope="col" data-width="20" data-width-unit="%" data-sortable="true">Terms</th>
+                        </tr>
+                    </thead>
+                </table>
+            </form>
+        </div>
+        <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
+            <div id="invoiceToolbar">
+                <button id="deleteInvoiceBtn" class="btn btn-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+            </div>
+
+            <table id="@(tableId)-invoices" data-toggle="table" data-url="@draftInvoicesUrl"
+                   data-toolbar="#invoiceToolbar"
+                   data-query-params="queryParams"
+                   data-total-field="totalItems"
+                   data-data-field="items"
+                   data-select-item-name="Invoices[]">
+                <thead>
+                    <tr>
+                        <th data-checkbox="true"></th>
+                        <th data-field="no" data-sortable="true">Invoice</th>
+                        <th data-field="customerCreatedDate" data-formatter="$.fn.bootstrapTable.formatDate">Customer<br />Created Date</th>
+                        <th data-field="customerType">Type</th>
+                        <th data-field="customerTags" data-formatter="tagsFormatter">Tags</th>
+                        <th data-field="date" data-formatter="$.fn.bootstrapTable.formatDate" data-sorter="$.fn.bootstrapTable.sortDate" data-sortable="true">Date</th>
+                        <th data-field="dueDate" data-formatter="$.fn.bootstrapTable.formatDate">Due Date</th>
+                        <th data-field="subtotal" data-sortable="true" data-sort-name="subtotal" data-formatter="$.fn.bootstrapTable.formatCurrency">Amount</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+
+
 </div>
 
 <script type="text/javascript">
     function queryParams(params) {
-        params.constructorId = @(Model.Id);
-        return params;
+        var filterForm = $('#submitForm').serializeJSON();
+        return $.extend({}, params, filterForm);
+    }
+
+    function selectTopRecords(table) {
+        var $selectTopInput = $('#selectTopInput');
+
+        var data = table.bootstrapTable('getData');
+        var check = $selectTopInput.val();
+
+        var ids = $.map(data, function (n) {
+            return n['id'];
+        })
+
+        table.bootstrapTable('uncheckAll');
+
+        if (ids.length > 0 && check > 0) {
+            table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
+        }
     }
 
     $(document).ready(e => {
-        $table = $('#@tableId').bootstrapTable().on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
-            var selections = $table.bootstrapTable('getSelections');
-            $bulkDeleteBtn.prop('disabled', !selections.length);
+        var $invoiceTable = $('#@(tableId)-invoices').bootstrapTable();
+        var $customerTable = $('#@(tableId)-customers').bootstrapTable().on('load-success.bs.table', function (data) {
+            selectTopRecords($(this));
+        });
+        $('#selectTopBtn').on('click', e => {
+            e.preventDefault();
+            selectTopRecords($customerTable);
+        })
+
+        $invoiceTable.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+            var selections = $(this).bootstrapTable('getSelections');
+
+            $deleteInvoiceBtn.prop('disabled', !selections.length);
         });;
 
-        $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+        var $deleteInvoiceBtn = $('#deleteInvoiceBtn').click(_ => {
             if (!confirm('Are you sure want to delete this?')) { return false; }
 
-            var selections = $table.bootstrapTable('getSelections');
+            var selections = $invoiceTable.bootstrapTable('getSelections');
             var ids = selections.map(x => x.id);
 
             if (ids.length > 0) {
                 var options = {
                     'type': 'post',
-                    'url': '@tableDeleteUrl',
+                    'url': '@draftInvoiceDeleteUrl',
                     'data': { ids: ids }
                 };
 
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (data == true) {
-                        $table.bootstrapTable('refresh');
+                        $invoiceTable.bootstrapTable('refresh');
+                        $customerTable.bootstrapTable('refresh')
                     } else {
-                        alert("First delete payments for these invoices!");
+                        alert('First delete payments for these invoices!');
                     }
                 });
             }
+        });
+
+        var $form = $('#submitForm').on('submit', e => {
+            e.preventDefault();
+
+            $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                if (status === 'success') {
+                    $invoiceTable.bootstrapTable('refresh');
+                    $customerTable.bootstrapTable('refresh');
+                }
+            });
         });
     });
 </script>
