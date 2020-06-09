@@ -19,8 +19,6 @@ namespace Core.Data.Entities {
 
         public bool RandomSort { get; set; } = false;
 
-        public bool OnlyNewCustomers { get; set; }
-
         public CustomerGroupType Group { get; set; }
     }
 }

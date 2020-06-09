@@ -53,41 +53,44 @@
                 <input asp-for="SummaryRangeId" type="hidden" />
                 <input name="ConstructorId" type="hidden" value="@(Model.Id)" />
 
-                <div id="customerToolbar" role="toolbar">
-                    <div class="btn-toolbar">
-                        <div class="input-group mr-3">
-                            <input type="number" id="selectTopInput" class="form-control" min="0" />
-                            <div class="input-group-append">
-                                <button class="btn btn-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
+                <fieldset>
+                    <div id="customerToolbar" role="toolbar">
+                        <div class="btn-toolbar">
+                            <div class="input-group mr-3">
+                                <input type="number" id="selectTopInput" class="form-control" min="0" />
+                                <div class="input-group-append">
+                                    <button class="btn btn-secondary" type="button" id="selectTopBtn"><i class="fas fa-sync-alt"></i></button>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button id="generateDraftInvoice" class="btn btn-secondary">Generate</button>
                             </div>
                         </div>
-                        <div class="btn-group">
-                            <button id="generateDraftInvoice" class="btn btn-secondary">Generate</button>
-                        </div>
                     </div>
-                </div>
-                <table id="@(tableId)-customers" data-toggle="table" data-url="@customersUrl"
-                       data-toolbar="#customerToolbar"
-                       data-query-params="queryParams"
-                       data-total-field="totalItems"
-                       data-data-field="items"
-                       data-unique-id="id"
-                       data-select-item-name="Customers[]">
-                    <thead>
-                        <tr>
-                            <th data-field="state" data-checkbox="true"></th>
-                            <th data-field="no" scope="col" data-sortable="true">No</th>
-                            <th data-field="name" scope="col" data-sortable="true">Name</th>
-                            <th data-field="createdDate" scope="col" data-formatter="$.fn.bootstrapTable.formatDate">Created Date</th>
-                            <th data-field="tags" scope="col" data-formatter="tagsFormatter">Tags</th>
-                            <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
-                            <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>
-                            <th data-field="totalInvoices" scope="col" data-sortable="true">Current Invoices</th>
-                            <th data-field="unpaidInvoices" scope="col" data-sortable="true">Late Invoices</th>
-                            <th data-field="terms" scope="col" data-width="20" data-width-unit="%" data-sortable="true">Terms</th>
-                        </tr>
-                    </thead>
-                </table>
+
+                    <table id="@(tableId)-customers" data-toggle="table" data-url="@customersUrl"
+                           data-toolbar="#customerToolbar"
+                           data-query-params="queryParams"
+                           data-total-field="totalItems"
+                           data-data-field="items"
+                           data-unique-id="id"
+                           data-select-item-name="Customers[]">
+                        <thead>
+                            <tr>
+                                <th data-field="state" data-checkbox="true"></th>
+                                <th data-field="no" scope="col" data-sortable="true">No</th>
+                                <th data-field="name" scope="col" data-sortable="true">Name</th>
+                                <th data-field="createdDate" scope="col" data-formatter="$.fn.bootstrapTable.formatDate">Created Date</th>
+                                <th data-field="tags" scope="col" data-formatter="tagsFormatter">Tags</th>
+                                <th data-field="type" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Type</th>
+                                <th data-field="recheck" scope="col" data-filter-control="select" data-width="10" data-width-unit="%">Recheck</th>
+                                <th data-field="totalInvoices" scope="col" data-sortable="true">Current Invoices</th>
+                                <th data-field="unpaidInvoices" scope="col" data-sortable="true">Late Invoices</th>
+                                <th data-field="terms" scope="col" data-width="20" data-width-unit="%" data-sortable="true">Terms</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </fieldset>
             </form>
         </div>
         <div class="tab-pane fade" id="invoices" role="tabpanel" aria-labelledby="invoices-tab">
@@ -113,9 +116,6 @@
             </table>
         </div>
     </div>
-
-
-
 </div>
 
 <script type="text/javascript">

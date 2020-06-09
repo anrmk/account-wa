@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Core.Data.Enum;
+using Core.Extension;
 
 namespace Web.ViewModels {
     public class InvoiceConstructorSearchViewModel {
@@ -32,5 +34,7 @@ namespace Web.ViewModels {
 
         [Display(Name = "Customer Group")]
         public CustomerGroupType Group { get; set; }
+
+        public string GroupName => EnumExtension.GetDescription(Group);
     }
 }

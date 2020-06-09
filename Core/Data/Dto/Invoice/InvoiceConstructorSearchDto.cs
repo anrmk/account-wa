@@ -16,8 +16,6 @@ namespace Core.Data.Dto {
 
         public bool RandomSort { get; set; }
 
-        public bool OnlyNewCustomers { get; set; }
-
         public CustomerGroupType Group { get; set; }
     }
 }
