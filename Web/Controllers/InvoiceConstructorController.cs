@@ -7,6 +7,7 @@ using AutoMapper;
 
 using Core.Context;
 using Core.Data.Dto;
+using Core.Data.Enum;
 using Core.Extension;
 using Core.Services.Business;
 
@@ -36,7 +37,7 @@ namespace Web.Controllers.Mvc {
             ViewBag.SearchCriterias = filters.Select(x => new SelectListItem() { Text = x.Name ?? $"Search criteria {x.Id}", Value = x.Id.ToString() });
 
             var model = new InvoiceConstructorFilterViewModel() {
-                Date = DateTime.Now
+                Date = DateTime.Now.LastDayOfMonth()
             };
             return View(model);
         }
@@ -48,13 +49,35 @@ namespace Web.Controllers.Mvc {
             ViewBag.SummaryRange = $"{summaryRange.From} - {summaryRange.To}";
 
             var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriteria(constructor.SearchCriteriaId);
-            ViewBag.SearchCriteria = searchCriteria;
+            ViewBag.SearchCriteria = _mapper.Map<InvoiceConstructorSearchViewModel>(searchCriteria);
+
+            if(searchCriteria.Group == CustomerGroupType.OnlyNew) {
+                ViewBag.CreatedDate = $"{constructor.Date.FirstDayOfMonth().ToString("MM.dd.yyyy")} - {constructor.Date.LastDayOfMonth().ToString("MM.dd.yyyy")}";
+            } else if(searchCriteria.Group == CustomerGroupType.ExcludeNew) {
+                ViewBag.CreatedDate = $"None - {constructor.Date.AddMonths(-1).LastDayOfMonth().ToString("MM.dd.yyyy")}";
+            } else if(searchCriteria.Group == CustomerGroupType.All) {
+                ViewBag.CreatedDate = $"None - {constructor.Date.LastDayOfMonth().ToString("MM.dd.yyyy")}";
+            }
 
             var tags = await _businessManager.GetCustomerTags();
             ViewBag.Tags = string.Join(',', tags.Where(x => searchCriteria.TagsIds.Contains(x.Id)).Select(x => x.Name));
 
             var types = await _businessManager.GetCustomerTypes();
             ViewBag.Types = string.Join(',', types.Where(x => searchCriteria.TypeIds.Contains(x.Id)).Select(x => x.Name));
+
+            var constructors = await _businessManager.GetConstructorInvoices(constructor.CompanyId, constructor.Date);
+            constructors = constructors.Where(x => x.SearchCriteriaId == constructor.SearchCriteriaId).ToList();
+
+            var invoices = await _businessManager.GetInvoiceDraft(constructors.Select(x => x.Id).ToArray());
+            ViewBag.Invoices = invoices.Count();
+
+            var customers = await _businessManager.GetCustomers(constructor);
+            ViewBag.Customers = customers.Count();
+
+
+
+            //ViewBag.CreatedDateFrom = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
+            //ViewBag.CreatedDateTo = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
 
             var model = _mapper.Map<InvoiceConstructorViewModel>(constructor);
             if(IsAjaxRequest)

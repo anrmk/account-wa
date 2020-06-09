@@ -1168,8 +1168,18 @@ namespace Core.Services.Business {
             var dateTo = dto.Date.LastDayOfMonth();
             var random = new Random();
 
-            var createdDateFrom = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
-            var createdDateTo = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
+            DateTime? createdDateFrom = null;
+            DateTime? createdDateTo = null;
+
+            if(searchCriteria.Group == CustomerGroupType.OnlyNew) {
+                createdDateFrom = dto.Date.FirstDayOfMonth();
+                createdDateTo = dto.Date.LastDayOfMonth();
+            } else if (searchCriteria.Group == CustomerGroupType.ExcludeNew) {
+                createdDateTo = dto.Date.AddMonths(-1).LastDayOfMonth();
+            } else if(searchCriteria.Group == CustomerGroupType.All) {
+                createdDateTo = dto.Date.LastDayOfMonth();
+            }
+
 
             var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
             var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();
@@ -1443,9 +1453,6 @@ namespace Core.Services.Business {
 
             var company = await _companyManager.FindInclude(constructor.CompanyId);
             var summaryRange = await _companySummaryManager.Find(constructor.SummaryRangeId);
-
-            //var constructor = entity == null ? await _invoiceConstructorManager.Create(_mapper.Map<InvoiceConstructorEntity>(dto)) : await _invoiceConstructorManager.Update(_mapper.Map(dto, entity));
-
 
             var dateFrom = constructor.Date.FirstDayOfMonth();
             var dateTo = constructor.Date.LastDayOfMonth();

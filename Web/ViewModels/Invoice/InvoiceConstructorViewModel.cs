@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+using Core.Extension;
 
 namespace Web.ViewModels {
     public class InvoiceConstructorViewModel {
@@ -13,6 +16,12 @@ namespace Web.ViewModels {
         [Required]
         [Display(Name = "Date")]
         public DateTime Date { get; set; }
+
+        [NotMapped]
+        public DateTime DateFrom => Date.FirstDayOfMonth();
+
+        [NotMapped]
+        public DateTime DateTo => Date.LastDayOfMonth();
 
         [Required]
         [Display(Name = "Search criterias")]
