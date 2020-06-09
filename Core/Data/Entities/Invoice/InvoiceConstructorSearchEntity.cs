@@ -21,6 +21,6 @@ namespace Core.Data.Entities {
 
         public bool OnlyNewCustomers { get; set; }
 
-        public CustomerTypes Type { get; set; }
+        public CustomerGroupType Group { get; set; }
     }
 }

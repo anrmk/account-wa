@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Core.Data.Enum;
 
 namespace Core.Data.Dto {
     public class InvoiceConstructorSearchDto {
@@ -16,5 +17,7 @@ namespace Core.Data.Dto {
         public bool RandomSort { get; set; }
 
         public bool OnlyNewCustomers { get; set; }
+
+        public CustomerGroupType Group { get; set; }
     }
 }

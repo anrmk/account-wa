@@ -1,5 +1,5 @@
 ﻿namespace Core.Data.Enum {
-    public enum CustomerTypes {
+    public enum CustomerGroupType {
         All = 0,
         OnlyNew = 1,
         ExcludeNew = 2

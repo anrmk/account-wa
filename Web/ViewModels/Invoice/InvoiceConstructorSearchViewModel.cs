@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Core.Data.Enum;
 
 namespace Web.ViewModels {
     public class InvoiceConstructorSearchViewModel {
@@ -29,7 +30,7 @@ namespace Web.ViewModels {
         [Display(Name = "Random sort")]
         public bool RandomSort { get; set; }
 
-        [Display(Name = "Only new customers")]
-        public bool OnlyNewCustomers { get; set; }
+        [Display(Name = "Customer Group")]
+        public CustomerGroupType Group { get; set; }
     }
 }

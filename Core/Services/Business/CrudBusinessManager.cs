@@ -8,6 +8,7 @@ using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Entities;
+using Core.Data.Enum;
 using Core.Extension;
 using Core.Services.Managers;
 
@@ -1167,8 +1168,8 @@ namespace Core.Services.Business {
             var dateTo = dto.Date.LastDayOfMonth();
             var random = new Random();
 
-            var createdDateFrom = searchCriteria.OnlyNewCustomers ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
-            var createdDateTo = searchCriteria.OnlyNewCustomers ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
+            var createdDateFrom = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
+            var createdDateTo = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
 
             var customers = await _customerManager.FindBulks(dto.CompanyId, dateFrom, dateTo);
             var recheckFilter = customers.GroupBy(x => x.Recheck).Select(x => x.Key.ToString()).ToList();

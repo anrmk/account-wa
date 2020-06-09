@@ -63,11 +63,8 @@
                         <span asp-validation-for="LateInvoices" class="text-danger"></span>
                     </div>
                     <div class="col-4">
-                        <label asp-for="OnlyNewCustomers">Customer Group</label>
-                        <select asp-for="OnlyNewCustomers" class="form-control">
-                            <option value="true">Only new customers</option>
-                            <option value="false">Exclude new customers</option>
-                        </select>
+                        <label asp-for="Group"></label>
+                        <select asp-for="Group" asp-items="Html.GetEnumSelectList<Core.Data.Enum.CustomerGroupType>()" class="form-control"> </select>
                     </div>
                 </div>
                 <div class="form-row mb-3">
