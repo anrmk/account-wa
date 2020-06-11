@@ -290,7 +290,7 @@ namespace Web.Controllers.Mvc {
                 var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
                 var currentReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date); //Найти отчет за текущий месяц
 
-                if(settings != null && settings.SaveCreditValues && savedReport != null && savedReport.IsPublished && currentReport != null && !currentReport.IsPublished)
+                if(settings != null && settings.SaveCreditValues && savedReport != null && savedReport.IsPublished && currentReport == null)
                     return Ok(true);
                 else
                     return Ok(false);
