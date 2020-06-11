@@ -29,7 +29,9 @@ namespace Core.Services.Managers {
             return await DbSet
                 .Include(x => x.Fields)
                 .Include(x => x.Files)
-                .Where(x => x.ApplicationUserId == new System.Guid(userId) && x.CompanyId == companyId).ToListAsync();
+                .Where(x => x.ApplicationUserId == new System.Guid(userId) && x.CompanyId == companyId)
+                .OrderBy(x => x.Date)
+                .ToListAsync();
         }
 
         public async Task<SavedReportEntity> FindInclude(long id) {

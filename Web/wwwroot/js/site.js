@@ -7,7 +7,7 @@
 
 }).ajaxStart(() => {
     $('form fieldset').attr('disabled', 'disabled');
-}).ajaxStop(() => {
+}).ajaxComplete(() => {
     $('form fieldset').removeAttr('disabled')
 }).ajaxError((e, jqxhr, settings, thrownError) => {
     window.console.log("Error", jqxhr.responseText);

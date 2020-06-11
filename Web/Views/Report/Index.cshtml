@@ -63,6 +63,21 @@
 
 @section Scripts {
     <script type="text/javascript">
+
+        function checkTheAbilityToSaveCredits(form) {
+            var formData = form.serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+
+            var options = {
+                'url': 'checkTheAbilityToSaveCredits',
+                'type': 'post',
+                'data': JSON.stringify(formData),
+                'processData': false,
+                'contentType': 'application/json; charset=utf-8'
+            }
+
+            return $.ajax(options);
+        }
+
         $(document).ready(e => {
             var $form = $('#@formId');
             //on export button click
@@ -121,28 +136,15 @@
 
             //on generate report
             $form.on('submit', e => {
-                $form.ajaxSubmit({}, (target, data, status) => {
-                    status === 'success' ? $('#content').html(data) : $('#content').empty();
-                });
                 e.preventDefault();
-            });
+                $.when(checkTheAbilityToSaveCredits($form)).then(result => {
+                    (result == true) ? $customerCreditsBtn.show() : $customerCreditsBtn.hide();
 
-            $('#companyId').on('change', e => {
-                e.preventDefault();
-                var formData = $('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
-
-                var options = {
-                    'url': 'checkTheAbilityToSaveCredits',
-                    'type': 'post',
-                    'data': JSON.stringify(formData),
-                    'processData': false,
-                    'contentType': 'application/json; charset=utf-8'
-                }
-
-                $.ajax(options).done((data, status, jqXHR) => {
-                    (data == true) ? $customerCreditsBtn.show() : $customerCreditsBtn.hide();
-                    //  $(data).dialog('Create customer credits');
+                    $form.ajaxSubmit({}, (target, data, status) => {
+                        status === 'success' ? $('#content').html(data) : $('#content').empty();
+                    })
                 });
+                
             });
         });
     </script>
