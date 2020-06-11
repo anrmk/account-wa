@@ -119,7 +119,7 @@
             //create/update customer credit limits/utilized
             $customerCreditsBtn = $('#customerCreditsBtn').click(e => {
                 e.preventDefault();
-                var formData = $('#filterReportForm').serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
+                var formData = $form.serializeJSON({ parseNumbers: true, useIntKeysAsArrayIndex: false });
 
                 var options = {
                     'url': 'createCustomerCredits',
