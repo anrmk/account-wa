@@ -237,6 +237,7 @@ namespace Web.Controllers.Mvc {
 
                             foreach(var data in report.Data) {
                                 var customer = data.Customer;
+
                                 var value = data.Data["Total"]; //new height credit
                                 if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
                                     value = Math.Ceiling(value);
@@ -251,22 +252,29 @@ namespace Web.Controllers.Mvc {
                                 };
 
                                 var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
-
-                                if(creditUtilizeds != null && creditUtilizeds.Count > 0) {
-                                    var creditUtilized = creditUtilizeds.OrderByDescending(x => x.CreatedDate)
+                                var creditUtilized = creditUtilizeds
+                                        .OrderByDescending(x => x.CreatedDate)
                                         .Where(x => x.CreatedDate <= date).FirstOrDefault();
 
-                                    if(creditUtilized != null) {
-                                        if(creditUtilized.Value < value)
-                                            await _businessManager.CreateCustomerCreditUtilized(dto);
-                                        else if(creditUtilized.Value > value && creditUtilized.CreatedDate == date) {
-                                            creditUtilized.Value = value;
-                                            await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
-                                        }
-                                    }
-                                } else {
+                                if(creditUtilized == null || creditUtilized.Value < value) {
                                     await _businessManager.CreateCustomerCreditUtilized(dto);
+                                } else {
+                                    if(creditUtilized?.CreatedDate == date) {
+                                        creditUtilized.Value = value;
+                                        await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                    }
                                 }
+                                //if(creditUtilized != null) {
+                                //    if(creditUtilized.Value < value)
+                                //        await _businessManager.CreateCustomerCreditUtilized(dto);
+                                //    else if(creditUtilized.Value > value && creditUtilized.CreatedDate == date) {
+                                //        creditUtilized.Value = value;
+                                //        await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                //    }
+                                //} else {
+                                //    await _businessManager.CreateCustomerCreditUtilized(dto);
+                                //}
+                              
                             }
                         } else {
                             return Ok($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
@@ -396,7 +404,6 @@ namespace Web.Controllers.Mvc {
             fileStreamResult.FileDownloadName = item.Name;
 
             return fileStreamResult;
-
         }
     }
 }
@@ -455,6 +462,7 @@ namespace Web.Controllers.Api {
                     #region Fields
                     var fields = new List<SavedReportFieldDto>();
                     fields.Add(new SavedReportFieldDto() {
+                        Code = "TotalCustomers",
                         Name = "Total Customers",
                         Value = report.TotalCustomers.ToString()
                     });
@@ -462,17 +470,20 @@ namespace Web.Controllers.Api {
                     //Add customer types
                     foreach(var ctype in customerTypes) {
                         fields.Add(new SavedReportFieldDto() {
+                            Code = ctype.Name, //not CODE!!!
                             Name = ctype.Name,
                             Value = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name].ToString() : "0"
                         });
                     }
 
                     fields.Add(new SavedReportFieldDto() {
+                        Code = "BalanceCustomers",
                         Name = "Balance",
                         Value = report.BalanceCustomers.ToString()
                     });
 
                     fields.Add(new SavedReportFieldDto() {
+                        Code = "NoBalanceCustomers",
                         Name = "No balance",
                         Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
                     });
@@ -480,6 +491,7 @@ namespace Web.Controllers.Api {
 
                     foreach(var column in report.Columns) {
                         fields.Add(new SavedReportFieldDto() {
+                            Code = column.Name,
                             Name = column.Name,
                             Value = $"{report.Balance[column.Name].Count}|{report.Balance[column.Name].Sum}"
                         });
@@ -579,6 +591,106 @@ namespace Web.Controllers.Api {
             mem.Position = 0;
 
             return mem.ToArray();
+        }
+
+        [HttpPost("CompareWithSaved", Name = "CompareWithSaved")]
+        public async Task<IActionResult> CompareWithSaved([FromBody] ReportFilterViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+
+                    var saved = await _crudBusinessManager.GetSavedReport(userId, model.CompanyId, model.Date);
+                    var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+
+                    var compareReport = new CompareReportViewModel() {
+                        Balance = new List<CompareReportFieldViewModel>(),
+                        Customers = new List<CompareReportFieldViewModel>(),
+                        CustomerTypes = new List<CompareReportFieldViewModel>(),
+                        CreditUtilized = new LinkedList<CompareReportFieldViewModel>()
+                    };
+
+                    foreach(var field in saved.Fields) {
+                        if(field.Code != null) {
+                            var reportValue = report.GetPropValue(field.Code)?.ToString() ?? null;
+                            if(reportValue != null) {
+                                var citem = new CompareReportFieldViewModel() {
+                                    Name = field.Name,
+                                    SavedValue = field.Value,
+                                    ReportValue = reportValue,
+                                    Status = field.Value.Equals(reportValue)
+                                };
+                                compareReport.Customers.Add(citem);
+                            }
+                        }
+                    }
+
+                    foreach(var field in saved.Fields) {
+                        if(field.Code != null) {
+                            var reportValue = report.CustomerTypes.ContainsKey(field.Code) ? report.CustomerTypes[field.Code].ToString() : null;
+                            if(reportValue != null) {
+                                var citem = new CompareReportFieldViewModel() {
+                                    Name = field.Name,
+                                    SavedValue = field.Value,
+                                    ReportValue = reportValue,
+                                    Status = field.Value.Equals(reportValue)
+                                };
+                                compareReport.CustomerTypes.Add(citem);
+                            }
+                        }
+                    }
+
+                    foreach(var field in saved.Fields) {
+                        if(field.Code != null) {
+                            var balance = report.Balance.ContainsKey(field.Code) ? report.Balance[field.Code] : null;
+                            if(balance != null) {
+                                var reportValue = balance.Count + "|" + balance.Sum;
+                                var citem = new CompareReportFieldViewModel() {
+                                    Name = field.Name,
+                                    SavedValue = field.Value,
+                                    ReportValue = reportValue,
+                                    Status = field.Value.Equals(reportValue)
+                                };
+                                compareReport.Balance.Add(citem);
+                            }
+                        }
+                    }
+
+                    if(company != null && company.Settings != null && company.Settings.SaveCreditValues) {
+                        var nullCreditUtilized = 0;
+                        var updateCreditUtilized = 0;
+                        foreach(var data in report.Data) {
+                            var customer = data.Customer;
+                            var value = data.Data["Total"];//new height credit
+
+                            var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
+                            var creditUtilized = creditUtilizeds
+                                        .OrderByDescending(x => x.CreatedDate)
+                                        .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();
+
+                            if(creditUtilized == null) {
+                                nullCreditUtilized++;
+                            } else {
+                                if(creditUtilized.Value < value) {
+                                    updateCreditUtilized++;
+                                }
+                            }
+                        }
+                        compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
+                            Name = "Customers count",
+                            SavedValue =  nullCreditUtilized.ToString(),
+                            ReportValue = updateCreditUtilized.ToString()
+                        });
+                    }
+
+                    string html = _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport).Result;
+                    return Ok(html);
+                }
+            } catch(Exception er) {
+                return BadRequest(er);
+            }
+
+            return Ok();
         }
     }
 }

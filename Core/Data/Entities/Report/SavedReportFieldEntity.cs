@@ -11,5 +11,7 @@ namespace Core.Data.Entities {
         [Column("SavedReport_Id")]
         public long? ReportId { get; set; }
         public SavedReportEntity Report { get; set; }
+
+        public string Code { get; set; }
     }
 }

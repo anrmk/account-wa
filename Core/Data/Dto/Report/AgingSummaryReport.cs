@@ -13,6 +13,7 @@ namespace Core.Data.Dto {
 
         public int TotalCustomers { get; set; }
         public int BalanceCustomers { get; set; }
+        public int NoBalanceCustomers => TotalCustomers - BalanceCustomers;
 
         public Dictionary<string, AgingSummaryBalance> Balance { get; set; }
 

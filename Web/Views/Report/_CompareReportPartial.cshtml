@@ -1,0 +1,105 @@
+﻿@model Web.ViewModels.CompareReportViewModel
+@{
+    Layout = null;
+}
+
+<div class="row">
+    <div class="col">
+        <h6>Customers</h6>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Saved</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model.CustomerTypes) {
+                    <tr class="@(item.Status ? "" : "table-danger")">
+                        <td>@item.Name</td>
+                        <td>@item.SavedValue</td>
+                        <td>@item.ReportValue</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h6>Customer Types</h6>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Saved</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model.Customers) {
+                    <tr class="@(item.Status ? "" : "table-danger")">
+                        <td>@item.Name</td>
+                        <td>@item.SavedValue</td>
+                        <td>@item.ReportValue</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <h6>Credit Utilized</h6>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Null credits</th>
+                    <th>Update credits</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach(var item in Model.CreditUtilized) {
+                    <tr class="@(item.Status ? "" : "table-danger")">
+                        <td>@item.Name</td>
+                        <td>@item.SavedValue</td>
+                        <td>@item.ReportValue</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <h6>Balance</h6>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Saved</th>
+                    <th>Report</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach(var item in Model.Balance) {
+                    var countSaved = item.SavedValue.Split('|')[0];
+                    var amountSaved = decimal.Parse(item.SavedValue.Split('|')[1]);
+                    var amountSavedStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountSaved);
+
+                    var countReport = item.ReportValue.Split('|')[0];
+                    var amountReport = decimal.Parse(item.ReportValue.Split('|')[1]);
+                    var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
+
+                    <tr class="@(item.Status ? "" : "table-danger")">
+                        <td>@item.Name</td>
+                        <td>
+                            <span class="text-nowrap d-block">Count: @countSaved</span>
+                            <span class="text-nowrap d-block">Amount: @amountSavedStr</span>
+                        </td>
+                        <td>
+                            <span class="text-nowrap d-block">Count: @countReport</span>
+                            <span class="text-nowrap d-block">Amount: @amountReportStr</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
