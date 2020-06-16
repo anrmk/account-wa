@@ -1,6 +1,7 @@
 ﻿@model Web.ViewModels.CompareReportViewModel
 @{
     Layout = null;
+    var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
 }
 
 <div class="row">
@@ -11,7 +12,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Saved</th>
-                    <th>Report</th>
+                    <th>Generated</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,7 +32,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Saved</th>
-                    <th>Report</th>
+                    <th>Generated</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,26 +46,31 @@
             </tbody>
         </table>
 
-        <h6>Credit Utilized</h6>
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Null credits</th>
-                    <th>Update credits</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                @foreach(var item in Model.CreditUtilized) {
-                    <tr class="@(item.Status ? "" : "table-danger")">
-                        <td>@item.Name</td>
-                        <td>@item.SavedValue</td>
-                        <td>@item.ReportValue</td>
+        <h6>Credit Utilized</h6>
+        @if(companySettings.SaveCreditValues) {
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Null credits</th>
+                        <th>Update credits</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                    @foreach(var item in Model.CreditUtilized) {
+                        <tr class="@(item.Status ? "" : "table-danger")">
+                            <td>@item.Name</td>
+                            <td>@item.SavedValue</td>
+                            <td>@item.ReportValue</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        } else {
+            <div class="alert alert-primary">Disabled in company settings</div>
+        }
     </div>
     <div class="col">
         <h6>Balance</h6>
@@ -73,7 +79,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Saved</th>
-                    <th>Report</th>
+                    <th>Generated</th>
                 </tr>
             </thead>
 
@@ -88,14 +94,14 @@
                     var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
 
                     <tr class="@(item.Status ? "" : "table-danger")">
-                        <td>@item.Name</td>
+                        <td>@(item.Name.Equals("-31-0") ? "Current" : item.Name)</td>
                         <td>
-                            <span class="text-nowrap d-block">Count: @countSaved</span>
-                            <span class="text-nowrap d-block">Amount: @amountSavedStr</span>
+                            <span class="text-nowrap d-block">@countSaved</span>
+                            <span class="text-nowrap d-block">@amountSavedStr</span>
                         </td>
                         <td>
-                            <span class="text-nowrap d-block">Count: @countReport</span>
-                            <span class="text-nowrap d-block">Amount: @amountReportStr</span>
+                            <span class="text-nowrap d-block">@countReport</span>
+                            <span class="text-nowrap d-block">@amountReportStr</span>
                         </td>
                     </tr>
                 }

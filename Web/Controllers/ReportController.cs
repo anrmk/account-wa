@@ -18,7 +18,10 @@ using Core.Services.Managers;
 using CsvHelper;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -274,7 +277,7 @@ namespace Web.Controllers.Mvc {
                                 //} else {
                                 //    await _businessManager.CreateCustomerCreditUtilized(dto);
                                 //}
-                              
+
                             }
                         } else {
                             return Ok($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
@@ -488,7 +491,7 @@ namespace Web.Controllers.Api {
                         Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
                     });
 
-
+                    //Add Balance
                     foreach(var column in report.Columns) {
                         fields.Add(new SavedReportFieldDto() {
                             Code = column.Name,
@@ -601,6 +604,10 @@ namespace Web.Controllers.Api {
                     var company = await _crudBusinessManager.GetCompany(model.CompanyId);
 
                     var saved = await _crudBusinessManager.GetSavedReport(userId, model.CompanyId, model.Date);
+                    if(saved == null) {
+                        return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM.dd.yyyy")}");
+                    }
+
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
 
                     var compareReport = new CompareReportViewModel() {
@@ -610,6 +617,7 @@ namespace Web.Controllers.Api {
                         CreditUtilized = new LinkedList<CompareReportFieldViewModel>()
                     };
 
+                    #region CUSTOMERS
                     foreach(var field in saved.Fields) {
                         if(field.Code != null) {
                             var reportValue = report.GetPropValue(field.Code)?.ToString() ?? null;
@@ -624,44 +632,55 @@ namespace Web.Controllers.Api {
                             }
                         }
                     }
+                    #endregion
 
-                    foreach(var field in saved.Fields) {
-                        if(field.Code != null) {
-                            var reportValue = report.CustomerTypes.ContainsKey(field.Code) ? report.CustomerTypes[field.Code].ToString() : null;
-                            if(reportValue != null) {
-                                var citem = new CompareReportFieldViewModel() {
-                                    Name = field.Name,
-                                    SavedValue = field.Value,
-                                    ReportValue = reportValue,
-                                    Status = field.Value.Equals(reportValue)
-                                };
-                                compareReport.CustomerTypes.Add(citem);
-                            }
+                    #region CUSTOMER TYPES
+                    var customerTypesField = await _crudBusinessManager.GetCustomerTypes();
+                    foreach(var field in customerTypesField) {
+                        var savedValue = saved.Fields.Where(x => x.Name.Equals(field.Name)).FirstOrDefault();
+                        var reportValue = report.CustomerTypes.ContainsKey(field.Name) ? report.CustomerTypes[field.Name].ToString() : null;
+                        if(reportValue != null) {
+                            var citem = new CompareReportFieldViewModel() {
+                                Name = field.Name,
+                                SavedValue = savedValue?.Value ?? "",
+                                ReportValue = reportValue,
+                                Status = reportValue.Equals(savedValue?.Value ?? "")
+                            };
+                            compareReport.CustomerTypes.Add(citem);
                         }
                     }
+                    #endregion
 
-                    foreach(var field in saved.Fields) {
-                        if(field.Code != null) {
-                            var balance = report.Balance.ContainsKey(field.Code) ? report.Balance[field.Code] : null;
-                            if(balance != null) {
-                                var reportValue = balance.Count + "|" + balance.Sum;
-                                var citem = new CompareReportFieldViewModel() {
-                                    Name = field.Name,
-                                    SavedValue = field.Value,
-                                    ReportValue = reportValue,
-                                    Status = field.Value.Equals(reportValue)
-                                };
-                                compareReport.Balance.Add(citem);
-                            }
-                        }
+                    #region BALANCE
+                    var balanceField = saved.Fields.Where(x => x.Value.Contains('|')).Select(x => x.Name).ToList(); //Select only BALANCE fields
+                    var columns = balanceField.Count > report.Columns.Count ? balanceField : report.Columns.Select(x => x.Name).ToList();
+
+                    foreach(var field in columns) {
+                        var savedValue = saved.Fields.Where(x => x.Name.Equals(field)).FirstOrDefault()?.Value ?? "0|0";
+                        var reportValue = report.Balance.ContainsKey(field) ? report.Balance[field].Count + "|"+ report.Balance[field].Sum : "0|0";
+
+                        var citem = new CompareReportFieldViewModel() {
+                            Name = field,
+                            SavedValue = savedValue,
+                            ReportValue = reportValue,
+                            Status = savedValue.Equals(reportValue)
+                        };
+                        compareReport.Balance.Add(citem);
                     }
+                    #endregion
 
+                    #region CREDIT UTILIZED
                     if(company != null && company.Settings != null && company.Settings.SaveCreditValues) {
                         var nullCreditUtilized = 0;
                         var updateCreditUtilized = 0;
                         foreach(var data in report.Data) {
                             var customer = data.Customer;
                             var value = data.Data["Total"];//new height credit
+                            if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                                value = Math.Ceiling(value);
+                            } else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                                value = Math.Floor(value);
+                            }
 
                             var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
                             var creditUtilized = creditUtilizeds
@@ -678,12 +697,18 @@ namespace Web.Controllers.Api {
                         }
                         compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
                             Name = "Customers count",
-                            SavedValue =  nullCreditUtilized.ToString(),
-                            ReportValue = updateCreditUtilized.ToString()
+                            SavedValue = nullCreditUtilized.ToString(),
+                            ReportValue = updateCreditUtilized.ToString(),
+                            Status = nullCreditUtilized == 0 && updateCreditUtilized == 0
                         });
                     }
+                    #endregion
 
-                    string html = _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport).Result;
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                        { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
+                    };
+
+                    string html = _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport, viewDataDictionary).Result;
                     return Ok(html);
                 }
             } catch(Exception er) {
