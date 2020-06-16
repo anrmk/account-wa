@@ -20,10 +20,8 @@
 
             <main role="main" class="col-lg-10 col-md-9 ml-sm-auto px-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <div>
-                        <h3 class="mb-0">@ViewData["Title"]</h3>
-                        <p class="lead mb-0">@ViewData["SubTitle"]</p>
-                    </div>
+                    <h3>@ViewData["Title"]</h3>
+
                     @RenderSection("Toolbar", required: false)
                 </div>
 

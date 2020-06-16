@@ -81,7 +81,7 @@ namespace Core.Services.Business {
             });
 
             _col.Add(new AgingSummaryPeriod() {
-                Name = "Latest"
+                Name = "Total Late"
             });
 
             _col.Add(new AgingSummaryPeriod() {
@@ -145,7 +145,7 @@ namespace Core.Services.Business {
                         Count = balance.Values.Sum(x => x.Count),
                         Sum = report.Values.Sum(x => x.Data["Total"])
                     });
-                } else if(c.Name.Equals("Latest")) {
+                } else if(c.Name.Equals("Total Late")) {
 
                 } else {
                     balance.Add(c.Name, new AgingSummaryBalance {
@@ -155,7 +155,7 @@ namespace Core.Services.Business {
                 }
             }
 
-            balance.Add("Latest", new AgingSummaryBalance {
+            balance.Add("Total Late", new AgingSummaryBalance {
                 Count = balance["Total"].Count - balance["-31-0"].Count,
                 Sum = balance["Total"].Sum - balance["-31-0"].Sum
             });

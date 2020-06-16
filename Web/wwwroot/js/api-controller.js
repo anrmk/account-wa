@@ -79,9 +79,9 @@ $.fn.randomDate = function (from, to) {
 }
 
 $.fn.disabled = function () {
-    $(this).attr('disabled', 'disabled');
+    $(this).attr('disabled', 'disabled').addClass('disabled');
 }
 
 $.fn.enabled = function () {
-    $(this).removeAttr('disabled');
+    $(this).removeAttr('disabled').removeClass('disabled');
 }

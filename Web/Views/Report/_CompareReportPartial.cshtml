@@ -93,7 +93,7 @@
                     var amountReport = decimal.Parse(item.ReportValue.Split('|')[1]);
                     var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
 
-                    <tr class="@(item.Status ? "" : "table-danger")">
+                    <tr class="@(item.Name.Equals("Total") ? "table-active" : "") @(item.Status ? "" : "table-danger")">
                         <td>@(item.Name.Equals("-31-0") ? "Current" : item.Name)</td>
                         <td>
                             <span class="text-nowrap d-block">@countSaved</span>

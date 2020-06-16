@@ -397,7 +397,7 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var report = await _businessManager.GetSavedReport(item.ReportId ?? 0);
+            //var report = await _businessManager.GetSavedReport(item.ReportId ?? 0);
 
             MemoryStream ms = new MemoryStream();
             ms.Write(item.File, 0, item.File.Length);

@@ -6,9 +6,11 @@
     $.fn.initModalLink('body');
 
 }).ajaxStart(() => {
-    $('form fieldset').attr('disabled', 'disabled');
+    $('form fieldset').disabled();
+    $('div[role=toolbar]').find('a, button').disabled()
 }).ajaxComplete(() => {
-    $('form fieldset').removeAttr('disabled')
+    $('form fieldset').enabled();
+    $('div[role=toolbar]').find('a, button').enabled()
 }).ajaxError((e, jqxhr, settings, thrownError) => {
     window.console.log("Error", jqxhr.responseText);
     alert(jqxhr.responseText);

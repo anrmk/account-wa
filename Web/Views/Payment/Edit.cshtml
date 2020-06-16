@@ -2,11 +2,10 @@
 
 @{
     ViewData["Title"] = "Edit Payment";
-    //ViewData["SubTitle"] = "Please provide all required details to register new customer";
 }
 
 @section Toolbar  {
-    <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-toolbar mb-2 mb-md-0" role="toolbar">
         <div class="btn-group mr-2">
             <form method="POST" asp-action="Delete">
                 <input asp-for="Id" type="hidden" />

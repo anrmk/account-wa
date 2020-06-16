@@ -5,7 +5,9 @@
 }
 
 @section Toolbar  {
-    <button id="bulkDeleteBtn" class="btn btn-danger" disabled><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+<div class="btn-toolbar" role="toolbar">
+    <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+</div>
 }
 
 <div class="card">
@@ -55,7 +57,7 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
-            var $table = $('#datatable');
+            $table = $('#datatable');
 
             $filterBtn = $('#filterBtn').click(_ => {
                 var options = {
@@ -106,11 +108,24 @@
                 }
             });
 
+            $table.on('load-success.bs.table', function () {
+                toolbarActivity();
+            });
+
             $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
-                var selections = $table.bootstrapTable('getSelections');
-                $bulkDeleteBtn.prop('disabled', !selections.length);
+                toolbarActivity();
             });
         })
+
+        function toolbarActivity() {
+            var selections = $table.bootstrapTable('getSelections');
+
+            if (!selections.length) {
+                $bulkDeleteBtn.hide();
+            } else {
+                $bulkDeleteBtn.show();
+            }
+        }
 
         function queryParams(params) {
             if (!params.search) {

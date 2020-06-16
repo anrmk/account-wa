@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
-    ViewData["Subtitle"] = "Unpaid balances for each customer, grouped by days past due.";
     var formId = Guid.NewGuid();
 
     var compareWithSavedUrl = Url.RouteUrl("CompareWithSaved");
@@ -10,8 +9,7 @@
 }
 
 @section Toolbar {
-    <div class="btn-toolbar">
-
+    <div class="btn-toolbar" role="toolbar">
         <div class="btn-group mr-2">
             <button id="customerCreditsBtn" class="btn btn-secondary" style="display: none">
                 <i class="far fa-plus-square mr-2"></i> Create Credits
@@ -60,7 +58,7 @@
                     </fieldset>
                 </form>
             </div>
-            <div class="card-footer">
+            <div class="card-footer" role="toolbar">
                 <button class="btn btn-primary" form="@formId">Generate</button>
             </div>
         </div>

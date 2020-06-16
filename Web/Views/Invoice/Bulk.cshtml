@@ -1,20 +1,19 @@
 ﻿@model Web.ViewModels.CustomerFilterViewModel
 @{
     ViewData["Title"] = "Create Bulk Invoicing";
-    ViewData["SubTitle"] = "Bulk Invoicing is ideal for when you have a lot of clients to bill for a lot of work. Use the Bulk Invoice wizard to quickly create and send invoices to all of your clients quickly!";
-
+   
     var customersUrl = Url.RouteUrl("GetCustomers");
 }
 
 
 @section Toolbar {
-    <div class="btn-toolbar">
-        <div class="btn-group text-nowrap">
-            <button id="saveSearchCriteriaBtn" class="btn btn-secondary">
-                <i class="far fa-save mr-2"></i> Save
-            </button>
-        </div>
+<div class="btn-toolbar" role="toolbar">
+    <div class="btn-group text-nowrap">
+        <button id="saveSearchCriteriaBtn" class="btn btn-secondary">
+            <i class="far fa-save mr-2"></i> Save
+        </button>
     </div>
+</div>
 }
 
 

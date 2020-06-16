@@ -105,7 +105,7 @@
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
                         @foreach(var column in Model.Columns) {
-                            if(!column.Name.Equals("Latest")) {
+                            if(!column.Name.Equals("Total Late")) {
                                 <th scope="col">
                                     @if(column.Name == "-31-0") {
                                         <span>Current</span>
@@ -125,7 +125,7 @@
                             <td scope="row">@summary.Customer.No</td>
                             <td scope="row">@summary.Customer.Name</td>
                             @foreach(var column in Model.Columns) {
-                                @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Latest")) {
+                                @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Total Late")) {
                                     <td>@(summary.Data[column.Name] == 0 ? "" : Core.Extension.NumberExtensionMethods.ToCurrency(summary.Data[column.Name]))</td>
                                 }
                             }
