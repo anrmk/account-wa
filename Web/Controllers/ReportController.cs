@@ -437,13 +437,7 @@ namespace Web.Controllers.Api {
 
                             foreach(var data in report.Data) {
                                 var customer = data.Customer;
-
                                 var value = data.Data["Total"]; //new height credit
-                                //if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
-                                //    value = Math.Ceiling(value);
-                                //} else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
-                                //    value = Math.Floor(value);
-                                //}
 
                                 if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
                                     value = Math.Ceiling(value);
@@ -705,14 +699,23 @@ namespace Web.Controllers.Api {
 
                     #region CREDIT UTILIZED
                     if(company != null && company.Settings != null && company.Settings.SaveCreditValues) {
+                        var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
+                        if(creditUtilizedSettings == null) {
+                            creditUtilizedSettings = new CustomerCreditUtilizedSettingsDto() {
+                                RoundType = company.Settings.RoundType
+                            };
+                        }
+
                         var nullCreditUtilized = 0;
                         var updateCreditUtilized = 0;
+
                         foreach(var data in report.Data) {
                             var customer = data.Customer;
                             var value = data.Data["Total"];//new height credit
-                            if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+
+                            if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
                                 value = Math.Ceiling(value);
-                            } else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                            } else if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
                                 value = Math.Floor(value);
                             }
 
@@ -721,13 +724,19 @@ namespace Web.Controllers.Api {
                                         .OrderByDescending(x => x.CreatedDate)
                                         .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();
 
-                            if(creditUtilized == null) {
+                            if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
                                 nullCreditUtilized++;
-                            } else {
-                                if(creditUtilized.Value < value) {
-                                    updateCreditUtilized++;
-                                }
+                            }else if(creditUtilized.Value < value) {
+                                updateCreditUtilized++;
                             }
+
+                            //if(creditUtilized == null) {
+                            //    nullCreditUtilized++;
+                            //} else {
+                            //    if(creditUtilized.Value < value) {
+                            //        updateCreditUtilized++;
+                            //    }
+                            //}
                         }
                         compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
                             Name = "Customers count",
