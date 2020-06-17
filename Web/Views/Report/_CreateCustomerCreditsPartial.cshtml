@@ -1,44 +1,68 @@
-﻿@model Web.ViewModels.CreateCustomerCreditsViewModel
+﻿@model Web.ViewModels.ReportFilterViewModel
 
 @{
     Layout = null;
-    var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
+    var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["Co"];
+    var formId = Guid.NewGuid();
 }
 
-<div class="alert alert-primary">Save High Credit Utilized command complete!</div>
+<form id="@(formId)" asp-route="CreateCustomerCreditUtilized">
+    <fieldset>
+        <input asp-for="CompanyId" type="hidden" />
+        <input asp-for="NumberOfPeriods" type="hidden" />
+        <div class="form-group row mb-3">
+            <div class="col">
+                <label asp-for="Date"></label>
+                <input asp-for="Date" type="date" class="form-control" required readonly>
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+
+            <div class="col">
+                <label asp-for="RoundType"></label>
+                <select asp-for="RoundType" asp-items="Html.GetEnumSelectList<Core.Data.Enum.RoundType>()" class="form-control"> </select>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
 <div class="row">
-    <div class="col">
-        <h6>Company</h6>
-        <table class="table table-bordered table-sm">
-            <tbody>
-                <tr>
-                    <th scope="row">Company</th>
-                    <td>@Model.Company.Name</td>
-                </tr>
-                <tr>
-                    <th scope="row">Settings Round Type</th>
-                    <td>@companySettings.RoundName</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
     <div class="col">
         <h6>Customer Credits Utilized</h6>
         <table class="table table-bordered table-sm">
-            <tbody>
+            <thead>
                 <tr>
                     <th>Total</th>
-                    <td>@Model.TotalCount</td>
-                </tr>
-                <tr>
                     <th>Created</th>
-                    <td>@Model.CreatedCount</td>
-                </tr>
-                <tr>
                     <th>Updated</th>
-                    <td>@Model.UpdatedCount</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><label id="customerTotalCount"></label></td>
+                    <td><label id="customerCreditUtilizedCreatedCount"></label></td>
+                    <td><label id="customerCreditUtilizedUpdatedCount"></label></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script type="text/javascript">
+    $(document).ready(e => {
+        var customerTotalCount = $('#customerTotalCount');
+        var customerCreditUtilizedCreatedCount = $('#customerCreditUtilizedCreatedCount');
+        var customerCreditUtilizedUpdatedCount = $('#customerCreditUtilizedUpdatedCount');
+
+        var $form = $('#@formId').on('submit', e => {
+            e.preventDefault();
+            $form.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+                if (status === 'success') {
+                    customerTotalCount.html(data.created + data.updated);
+                    customerCreditUtilizedCreatedCount.html(data.created);
+                    customerCreditUtilizedUpdatedCount.html(data.updated);
+                   // window.modal.modal('hide');
+                }
+            });
+        });
+    });
+</script>

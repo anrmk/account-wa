@@ -58,7 +58,7 @@ namespace Core.Services.Business {
         Task<List<CustomerDto>> GetCustomers(long[] ids);
         Task<List<CustomerDto>> GetCustomers(long companyId);
         Task<List<CustomerDto>> GetCustomers(InvoiceConstructorDto dto);
-        //Task<List<CustomerDto>> GetBulkCustomers(long companyId, DateTime from, DateTime to);
+
         Task<CustomerDto> CreateCustomer(CustomerDto dto);
         Task<List<CustomerDto>> CreateOrUpdateCustomer(List<CustomerDto> list, List<string> columns);
         Task<List<CustomerImportCreditsDto>> CreateOrUpdateCustomerCredits(List<CustomerImportCreditsDto> list, List<string> columns);
@@ -82,6 +82,14 @@ namespace Core.Services.Business {
         Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto);
         Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto);
         Task<bool> DeleteCustomerCreditUtilized(long id);
+
+        //Credit Utilized Settings
+        Task<CustomerCreditUtilizedSettingsDto> GetCustomerCreditUtilizedSettings(long id);
+        Task<CustomerCreditUtilizedSettingsDto> GetCustomerCreditUtilizedSettings(long companyId, DateTime date);
+        Task<List<CustomerCreditUtilizedSettingsDto>> GetCustomerCreditUtilizedSettingsList(long companyId);
+        Task<CustomerCreditUtilizedSettingsDto> CreateCustomerCreditUtilizedSettings(CustomerCreditUtilizedSettingsDto dto);
+        Task<CustomerCreditUtilizedSettingsDto> UpdateCustomerCreditUtilizedSettings(long id, CustomerCreditUtilizedSettingsDto dto);
+        Task<bool> DeleteCustomerCreditUtilizedSettings(long id);
 
         //Tags
         Task<List<CustomerTagDto>> GetCustomerTags();
@@ -183,6 +191,7 @@ namespace Core.Services.Business {
         private readonly ICustomerActivityManager _customerActivityManager;
         private readonly ICustomerCreditLimitManager _customerCreditLimitManager;
         private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
+        private readonly ICustomerCreditUtilizedSettingsManager _customerCreditUtilizedSettingsManager;
         private readonly ICustomerTagManager _customerTagManager;
         private readonly ICustomerTagLinkManager _customerTagLinkManager;
         private readonly ICustomerTypeManager _customerTypeManager;
@@ -205,7 +214,7 @@ namespace Core.Services.Business {
             ICompanySummaryRangeManager companySummaryManager,
             ICompanyExportSettingsManager companyExportSettingsManager,
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
-            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
+            ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerCreditUtilizedSettingsManager customerCreditUtilizedSettingsManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
             IInvoiceManager invoiceManager, IInvoiceConstructorManager invoiceConstructorManager, IInvoiceDraftManager invoiceDraftManager, IPaymentManager paymentManager,
             IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IInvoiceConstructorSearchManager invoiceConstructorSearchManager) {
             _mapper = mapper;
@@ -220,6 +229,7 @@ namespace Core.Services.Business {
             _customerActivityManager = customerActivityManager;
             _customerCreditLimitManager = customerCreditLimitManager;
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
+            _customerCreditUtilizedSettingsManager = customerCreditUtilizedSettingsManager;
             _customerTagManager = customerTagManager;
             _customerTagLinkManager = customerTagLinkManager;
             _customerTypeManager = customerTypeManager;
@@ -1019,6 +1029,54 @@ namespace Core.Services.Business {
                 return false;
             }
             int result = await _customerCreditUtilizedManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
+
+        #region CREDIT UTILIZED SETTINGS
+        public async Task<CustomerCreditUtilizedSettingsDto> GetCustomerCreditUtilizedSettings(long id) {
+            var result = await _customerCreditUtilizedSettingsManager.Find(id);
+            return _mapper.Map<CustomerCreditUtilizedSettingsDto>(result);
+        }
+
+        public async Task<CustomerCreditUtilizedSettingsDto> GetCustomerCreditUtilizedSettings(long companyId, DateTime date) {
+            var result = await _customerCreditUtilizedSettingsManager.FindInclude(companyId, date);
+            return _mapper.Map<CustomerCreditUtilizedSettingsDto>(result);
+        }
+
+        public async Task<List<CustomerCreditUtilizedSettingsDto>> GetCustomerCreditUtilizedSettingsList(long companyId) {
+            var result = await _customerCreditUtilizedSettingsManager.FindByCompany(companyId);
+            return _mapper.Map<List<CustomerCreditUtilizedSettingsDto>>(result);
+        }
+
+        public async Task<CustomerCreditUtilizedSettingsDto> CreateCustomerCreditUtilizedSettings(CustomerCreditUtilizedSettingsDto dto) {
+            var entity = _mapper.Map<CustomerCreditUtilizedSettingsEntity>(dto);
+            entity = await _customerCreditUtilizedSettingsManager.Create(entity);
+
+            return _mapper.Map<CustomerCreditUtilizedSettingsDto>(entity);
+        }
+
+        public async Task<CustomerCreditUtilizedSettingsDto> UpdateCustomerCreditUtilizedSettings(long id, CustomerCreditUtilizedSettingsDto dto) {
+            if(id != dto.Id) {
+                return null;
+            }
+            var entity = await _customerCreditUtilizedSettingsManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            var newEntity = _mapper.Map(dto, entity);
+            entity = await _customerCreditUtilizedSettingsManager.Update(newEntity);
+
+            return _mapper.Map<CustomerCreditUtilizedSettingsDto>(entity);
+        }
+
+        public async Task<bool> DeleteCustomerCreditUtilizedSettings(long id) {
+            var entity = await _customerCreditUtilizedSettingsManager.Find(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _customerCreditUtilizedSettingsManager.Delete(entity);
             return result != 0;
         }
         #endregion

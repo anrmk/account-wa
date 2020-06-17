@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Core.Data.Enum;
 
 namespace Web.ViewModels {
     public class ReportFilterViewModel {
@@ -16,5 +17,7 @@ namespace Web.ViewModels {
         [Display(Name = "Number of periods")]
         [Range(1, 10)]
         public int NumberOfPeriods { get; set; } = 4;
+
+        public RoundType RoundType { get; set; }
     }
 }

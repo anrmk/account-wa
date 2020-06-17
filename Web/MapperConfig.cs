@@ -84,6 +84,7 @@ namespace Web {
 
             CreateMap<CustomerCreditLimitViewModel, CustomerCreditLimitDto>().ReverseMap();
             CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
+            CreateMap<CustomerCreditUtilizedSettingsViewModel, CustomerCreditUtilizedSettingsDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
             CreateMap<CustomerTagViewModel, CustomerTagDto>().ReverseMap();
 

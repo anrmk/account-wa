@@ -119,6 +119,7 @@ namespace Core {
             ;
             CreateMap<CustomerAddressDto, CustomerAddressEntity>().ReverseMap();
             CreateMap<CustomerCreditUtilizedDto, CustomerCreditUtilizedEntity>().ReverseMap();
+            CreateMap<CustomerCreditUtilizedSettingsDto, CustomerCreditUtilizedSettingsEntity>().ReverseMap();
             CreateMap<CustomerCreditLimitDto, CustomerCreditLimitEntity>().ReverseMap();
             CreateMap<CustomerActivityDto, CustomerActivityEntity>().ReverseMap();
             CreateMap<CustomerTagDto, CustomerTagEntity>().ReverseMap();
