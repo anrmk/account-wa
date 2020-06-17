@@ -1,16 +1,17 @@
 ﻿using System;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 
 namespace Core.Extension {
     public static class EnumExtension {
         public static string GetDescription(Enum value) {
-            DescriptionAttribute attribute = value.GetType()
+            DisplayAttribute attribute = value.GetType()
                 .GetField(value.ToString())
-                .GetCustomAttributes(typeof(DescriptionAttribute), false)
-                .SingleOrDefault() as DescriptionAttribute;
-            return attribute == null ? value.ToString() : attribute.Description;
+                .GetCustomAttributes(typeof(DisplayAttribute), false)
+                .SingleOrDefault() as DisplayAttribute;
+            return attribute == null ? value.ToString() : attribute.GetDescription();
         }
 
         public static T GetEnumValueFromDescription<T>(string description) {

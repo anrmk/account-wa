@@ -168,7 +168,7 @@
                 <form id="submitSettingsForm" method="POST" asp-action="EditSettings">
                     <input name="CompanyId" type="hidden" value="@Model.Id" />
                     <input asp-for="Id" type="hidden" value="@Model.SettingsId" />
-                    <div class="form-group row mb-3">
+                    <div class="form-group row">
                         <div class="col">
                             <label asp-for="SaveCreditValues"></label>
                             <select asp-for="SaveCreditValues" class="form-control">
@@ -183,6 +183,23 @@
                         </div>
                     </div>
                 </form>
+                <h6>Credit Utilized Settings</h6>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Round Type</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in ViewBag.CreditUtilizedSettings) {
+                            <tr>
+                                <td>@item.RoundName</td>
+                                <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
 
             <div class="tab-pane fade" id="exportSettings" role="tabpanel" aria-labelledby="exportSettings-tab">

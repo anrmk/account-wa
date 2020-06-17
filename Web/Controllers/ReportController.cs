@@ -639,7 +639,7 @@ namespace Web.Controllers.Api {
 
                     var saved = await _businessManager.GetSavedReport(userId, model.CompanyId, model.Date);
                     if(saved == null) {
-                        return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM.dd.yyyy")}");
+                        return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM/dd/yyyy")}");
                     }
 
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);

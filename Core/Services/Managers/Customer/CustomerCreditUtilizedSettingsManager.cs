@@ -22,7 +22,9 @@ namespace Core.Services.Managers {
         }
 
         public async Task<List<CustomerCreditUtilizedSettingsEntity>> FindByCompany(long companyId) {
-            return await DbSet.Where(x => x.CompanyId == companyId).ToListAsync();
+            return await DbSet.Where(x => x.CompanyId == companyId)
+                .OrderBy(x => x.Date)
+                .ToListAsync();
         }
     }
 }

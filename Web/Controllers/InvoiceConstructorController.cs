@@ -52,11 +52,11 @@ namespace Web.Controllers.Mvc {
             ViewBag.SearchCriteria = _mapper.Map<InvoiceConstructorSearchViewModel>(searchCriteria);
 
             if(searchCriteria.Group == CustomerGroupType.OnlyNew) {
-                ViewBag.CreatedDate = $"{constructor.Date.FirstDayOfMonth().ToString("MM.dd.yyyy")} - {constructor.Date.LastDayOfMonth().ToString("MM.dd.yyyy")}";
+                ViewBag.CreatedDate = $"{constructor.Date.FirstDayOfMonth().ToString("MM/dd/yyyy")} - {constructor.Date.LastDayOfMonth().ToString("MM/dd/yyyy")}";
             } else if(searchCriteria.Group == CustomerGroupType.ExcludeNew) {
-                ViewBag.CreatedDate = $"None - {constructor.Date.AddMonths(-1).LastDayOfMonth().ToString("MM.dd.yyyy")}";
+                ViewBag.CreatedDate = $"None - {constructor.Date.AddMonths(-1).LastDayOfMonth().ToString("MM/dd/yyyy")}";
             } else if(searchCriteria.Group == CustomerGroupType.All) {
-                ViewBag.CreatedDate = $"None - {constructor.Date.LastDayOfMonth().ToString("MM.dd.yyyy")}";
+                ViewBag.CreatedDate = $"None - {constructor.Date.LastDayOfMonth().ToString("MM/dd/yyyy")}";
             }
 
             var tags = await _businessManager.GetCustomerTags();

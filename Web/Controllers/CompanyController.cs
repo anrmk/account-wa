@@ -86,6 +86,9 @@ namespace Web.Controllers.Mvc {
             var exportSetting = await _businessManager.GetCompanyAllExportSettings(item.Id);
             ViewBag.ExportSettings = exportSetting;
 
+            var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettingsList(item.Id);
+            ViewBag.CreditUtilizedSettings = _mapper.Map<List<CustomerCreditUtilizedSettingsViewModel>>(creditUtilizedSettings);
+
             var model = _mapper.Map<CompanyViewModel>(item);
 
             return View(model);
