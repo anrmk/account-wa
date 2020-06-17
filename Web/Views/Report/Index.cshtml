@@ -5,7 +5,7 @@
     var formId = Guid.NewGuid();
 
     var compareWithSavedUrl = Url.RouteUrl("CompareWithSaved");
-
+    var createCustomerCreditsUrl = Url.RouteUrl("CreateCustomerCredits");
 }
 
 @section Toolbar {
@@ -136,16 +136,15 @@
                 var formData = $form.serializeJSON();
 
                 var options = {
-                    'url': 'createCustomerCredits',
+                    'url': '@(createCustomerCreditsUrl)',
                     'type': 'post',
                     'data': JSON.stringify(formData),
-                    'processData': false,
                     'contentType': 'application/json; charset=utf-8'
                 }
 
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (status === 'success') {
-                        $(`<div>${data}</div>`).dialog('Credit Utilized Saved');
+                        $(`<div>${data}</div>`).dialog('Credit Credits');
                     }
                 });
             });

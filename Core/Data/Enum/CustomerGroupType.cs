@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Core.Data.Enum {
     public enum CustomerGroupType {
@@ -9,7 +8,7 @@ namespace Core.Data.Enum {
         [Display(Name = "Only new customers", Description = "Only new customers")]
         OnlyNew = 1,
 
-        [Display(Name = "Exclude new customers", Description ="Exclude new customers")]
+        [Display(Name = "Exclude new customers", Description = "Exclude new customers")]
         ExcludeNew = 2
     }
 }

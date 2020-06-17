@@ -223,72 +223,6 @@ namespace Web.Controllers.Mvc {
             return BadRequest();
         }
 
-        [HttpPost]
-        [Route("createCustomerCredits")]
-        public async Task<IActionResult> CreateCredits([FromBody] ReportFilterViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var company = await _businessManager.GetCompany(model.CompanyId);
-                    if(company != null && company.Settings != null && company.Settings.SaveCreditValues) { //возможно ли сохранение лимитов
-                        var date = model.Date.LastDayOfMonth();
-                        var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
-
-                        var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
-
-                        if(savedReport != null && savedReport.IsPublished) {
-                            var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
-
-                            foreach(var data in report.Data) {
-                                var customer = data.Customer;
-
-                                var value = data.Data["Total"]; //new height credit
-                                if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
-                                    value = Math.Ceiling(value);
-                                } else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
-                                    value = Math.Floor(value);
-                                }
-
-                                var dto = new CustomerCreditUtilizedDto() {
-                                    CreatedDate = date,
-                                    Value = value, //Округление
-                                    CustomerId = customer.Id
-                                };
-
-                                var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
-                                var creditUtilized = creditUtilizeds
-                                        .OrderByDescending(x => x.CreatedDate)
-                                        .Where(x => x.CreatedDate <= date).FirstOrDefault();
-
-                                if(creditUtilized == null || creditUtilized.Value < value) {
-                                    await _businessManager.CreateCustomerCreditUtilized(dto);
-                                } else {
-                                    if(creditUtilized?.CreatedDate == date) {
-                                        creditUtilized.Value = value;
-                                        await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
-                                    }
-                                }
-                                //if(creditUtilized != null) {
-                                //    if(creditUtilized.Value < value)
-                                //        await _businessManager.CreateCustomerCreditUtilized(dto);
-                                //    else if(creditUtilized.Value > value && creditUtilized.CreatedDate == date) {
-                                //        creditUtilized.Value = value;
-                                //        await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
-                                //    }
-                                //} else {
-                                //    await _businessManager.CreateCustomerCreditUtilized(dto);
-                                //}
-
-                            }
-                        } else {
-                            return Ok($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
-                        }
-                    }
-                }
-            } catch(Exception er) {
-                Console.WriteLine(er.Message);
-            }
-            return Ok("Save High Credit Utilized command complete!");
-        }
 
         [HttpPost]
         [Route("checkTheAbilityToSaveCredits")]
@@ -419,17 +353,17 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly IReportBusinessManager _reportBusinessManager;
-        private readonly ICrudBusinessManager _crudBusinessManager;
+        private readonly ICrudBusinessManager _businessManager;
 
         public ReportController(IMemoryCache memoryCache,
             IMapper mapper, IViewRenderService viewRenderService,
-            ICrudBusinessManager crudBusinessManager,
-            IReportBusinessManager businessManager) {
+            ICrudBusinessManager businessManager,
+            IReportBusinessManager reportbusinessManager) {
             _memoryCache = memoryCache;
             _mapper = mapper;
             _viewRenderService = viewRenderService;
-            _reportBusinessManager = businessManager;
-            _crudBusinessManager = crudBusinessManager;
+            _reportBusinessManager = reportbusinessManager;
+            _businessManager = businessManager;
         }
 
         [HttpPost("RunAgingReport", Name = "RunAgingReport")]
@@ -451,7 +385,7 @@ namespace Web.Controllers.Api {
         [Route("savedReport")]
         public async Task<IActionResult> GetSavedReport(long companyId, DateTime date) {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _crudBusinessManager.GetSavedReport(userId, companyId, date);
+            var result = await _businessManager.GetSavedReport(userId, companyId, date);
             return Ok(result);
         }
 
@@ -460,7 +394,7 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    var customerTypes = await _crudBusinessManager.GetCustomerTypes();
+                    var customerTypes = await _businessManager.GetCustomerTypes();
 
                     #region Fields
                     var fields = new List<SavedReportFieldDto>();
@@ -506,7 +440,7 @@ namespace Web.Controllers.Api {
 
                     if(model.ExportSettings != null) {
                         foreach(var settingId in model.ExportSettings) {
-                            var settings = await _crudBusinessManager.GetCompanyExportSettings(settingId);
+                            var settings = await _businessManager.GetCompanyExportSettings(settingId);
                             if(settings != null) {
                                 var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
                                 if(file != null) {
@@ -537,7 +471,7 @@ namespace Web.Controllers.Api {
                     dto.Fields = fields;
                     dto.Files = files;
 
-                    var result = await _crudBusinessManager.CreateSavedReport(dto);
+                    var result = await _businessManager.CreateSavedReport(dto);
                     return Ok(result);
                 }
             } catch(Exception er) {
@@ -546,9 +480,76 @@ namespace Web.Controllers.Api {
             return null;
         }
 
+        [HttpPost("CreateCustomerCredits", Name = "CreateCustomerCredits")]
+        public async Task<IActionResult> CreateCustomerCredits([FromBody] ReportFilterViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    if(company != null && company.Settings != null && company.Settings.SaveCreditValues) { //возможно ли сохранение лимитов
+                        var date = model.Date.LastDayOfMonth();
+                        var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
+
+                        var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
+
+                        if(savedReport != null && savedReport.IsPublished) {
+                            var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
+                           
+                            var customerCredits = new CreateCustomerCreditsViewModel() {
+                                TotalCount = report.Data.Count,
+                                Company = _mapper.Map<CompanyViewModel>(company)
+                            };
+
+                            foreach(var data in report.Data) {
+                                var customer = data.Customer;
+
+                                var value = data.Data["Total"]; //new height credit
+                                if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                                    value = Math.Ceiling(value);
+                                } else if(company.Settings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                                    value = Math.Floor(value);
+                                }
+
+                                var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
+                                var creditUtilized = creditUtilizeds
+                                        .OrderByDescending(x => x.CreatedDate)
+                                        .Where(x => x.CreatedDate <= date).FirstOrDefault();
+
+                                if(creditUtilized == null || creditUtilized.Value < value) {
+                                    await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
+                                        CreatedDate = date,
+                                        Value = value, //Округление
+                                        CustomerId = customer.Id
+                                    });
+                                    customerCredits.CreatedCount++;
+                                } else {
+                                    if(creditUtilized?.CreatedDate == date) {
+                                        creditUtilized.Value = value;
+                                        await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                        customerCredits.UpdatedCount++;
+                                    }
+                                }
+                            }
+
+                            var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                                { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
+                            };
+
+                            string html = _viewRenderService.RenderToStringAsync("_CreateCustomerCreditsPartial", customerCredits, viewDataDictionary).Result;
+                            return Ok(html);
+                        } else {
+                            throw new Exception($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
+                        }
+                    }
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message);
+            }
+            return NotFound();
+        }
+
         [HttpPost("PublishSavedReport", Name = "PublishSavedReport")]
         public async Task<IActionResult> PublishSavedReport(long id) {
-            var result = await _crudBusinessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
+            var result = await _businessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
             return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
@@ -601,9 +602,9 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var company = await _crudBusinessManager.GetCompany(model.CompanyId);
+                    var company = await _businessManager.GetCompany(model.CompanyId);
 
-                    var saved = await _crudBusinessManager.GetSavedReport(userId, model.CompanyId, model.Date);
+                    var saved = await _businessManager.GetSavedReport(userId, model.CompanyId, model.Date);
                     if(saved == null) {
                         return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM.dd.yyyy")}");
                     }
@@ -635,7 +636,7 @@ namespace Web.Controllers.Api {
                     #endregion
 
                     #region CUSTOMER TYPES
-                    var customerTypesField = await _crudBusinessManager.GetCustomerTypes();
+                    var customerTypesField = await _businessManager.GetCustomerTypes();
                     foreach(var field in customerTypesField) {
                         var savedValue = saved.Fields.Where(x => x.Name.Equals(field.Name)).FirstOrDefault();
                         var reportValue = report.CustomerTypes.ContainsKey(field.Name) ? report.CustomerTypes[field.Name].ToString() : null;
@@ -657,7 +658,7 @@ namespace Web.Controllers.Api {
 
                     foreach(var field in columns) {
                         var savedValue = saved.Fields.Where(x => x.Name.Equals(field)).FirstOrDefault()?.Value ?? "0|0";
-                        var reportValue = report.Balance.ContainsKey(field) ? report.Balance[field].Count + "|"+ report.Balance[field].Sum : "0|0";
+                        var reportValue = report.Balance.ContainsKey(field) ? report.Balance[field].Count + "|" + report.Balance[field].Sum : "0|0";
 
                         var citem = new CompareReportFieldViewModel() {
                             Name = field,
@@ -682,7 +683,7 @@ namespace Web.Controllers.Api {
                                 value = Math.Floor(value);
                             }
 
-                            var creditUtilizeds = await _crudBusinessManager.GetCustomerCreditUtilizeds(customer.Id);
+                            var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
                             var creditUtilized = creditUtilizeds
                                         .OrderByDescending(x => x.CreatedDate)
                                         .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();

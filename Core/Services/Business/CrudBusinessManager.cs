@@ -1174,7 +1174,7 @@ namespace Core.Services.Business {
             if(searchCriteria.Group == CustomerGroupType.OnlyNew) {
                 createdDateFrom = dto.Date.FirstDayOfMonth();
                 createdDateTo = dto.Date.LastDayOfMonth();
-            } else if (searchCriteria.Group == CustomerGroupType.ExcludeNew) {
+            } else if(searchCriteria.Group == CustomerGroupType.ExcludeNew) {
                 createdDateTo = dto.Date.AddMonths(-1).LastDayOfMonth();
             } else if(searchCriteria.Group == CustomerGroupType.All) {
                 createdDateTo = dto.Date.LastDayOfMonth();

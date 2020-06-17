@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Core.Extension {
     public static class EnumExtension {
@@ -26,7 +23,7 @@ namespace Core.Extension {
             var field = fields
                 .SelectMany(f => f.GetCustomAttributes(typeof(DescriptionAttribute), false), (f, a) => new { Field = f, Att = a })
                 .Where(a => ((DescriptionAttribute)a.Att).Description == description).SingleOrDefault();
-            
+
             return field == null ? default(T) : (T)field.Field.GetRawConstantValue();
         }
     }

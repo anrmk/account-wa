@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using Core.Data.Enum;
 
 namespace Core.Data.Dto {

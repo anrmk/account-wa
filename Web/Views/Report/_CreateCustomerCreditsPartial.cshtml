@@ -1,0 +1,44 @@
+﻿@model Web.ViewModels.CreateCustomerCreditsViewModel
+
+@{
+    Layout = null;
+    var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
+}
+
+<div class="alert alert-primary">Save High Credit Utilized command complete!</div>
+<div class="row">
+    <div class="col">
+        <h6>Company</h6>
+        <table class="table table-bordered table-sm">
+            <tbody>
+                <tr>
+                    <th scope="row">Company</th>
+                    <td>@Model.Company.Name</td>
+                </tr>
+                <tr>
+                    <th scope="row">Settings Round Type</th>
+                    <td>@companySettings.RoundName</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col">
+        <h6>Customer Credits Utilized</h6>
+        <table class="table table-bordered table-sm">
+            <tbody>
+                <tr>
+                    <th>Total</th>
+                    <td>@Model.TotalCount</td>
+                </tr>
+                <tr>
+                    <th>Created</th>
+                    <td>@Model.CreatedCount</td>
+                </tr>
+                <tr>
+                    <th>Updated</th>
+                    <td>@Model.UpdatedCount</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
