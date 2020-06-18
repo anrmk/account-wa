@@ -6,7 +6,7 @@
 
 <div class="row">
     <div class="col">
-        <h6>Customers</h6>
+        <h6><label asp-for="CustomerTypes"></label></h6>
         <table class="table table-bordered table-sm">
             <thead>
                 <tr>
@@ -26,7 +26,7 @@
             </tbody>
         </table>
 
-        <h6>Customer Types</h6>
+        <h6><label asp-for="Customers"></label></h6>
         <table class="table table-bordered table-sm">
             <thead>
                 <tr>
@@ -47,7 +47,7 @@
         </table>
 
 
-        <h6>Credit Utilized</h6>
+        <h6><label asp-for="CreditUtilized"></label></h6>
         @if(companySettings.SaveCreditValues) {
             <table class="table table-bordered table-sm">
                 <thead>
@@ -73,7 +73,7 @@
         }
     </div>
     <div class="col">
-        <h6>Balance</h6>
+        <h6><label asp-for="Balance"></label></h6>
         <table class="table table-bordered table-sm">
             <thead>
                 <tr>

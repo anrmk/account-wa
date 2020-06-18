@@ -726,7 +726,7 @@ namespace Web.Controllers.Api {
 
                             if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
                                 nullCreditUtilized++;
-                            }else if(creditUtilized.Value < value) {
+                            } else if(creditUtilized.Value < value) {
                                 updateCreditUtilized++;
                             }
 

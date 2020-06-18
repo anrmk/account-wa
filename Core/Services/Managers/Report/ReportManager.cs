@@ -25,9 +25,9 @@ namespace Core.Services.Managers {
         }
 
         public async Task<List<InvoiceEntity>> GetAgingInvoices(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriod) {
-            var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], " +
+            var query = "SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], INV.[CreatedDate]," +
                         "PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, " +
-                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CustomerType_Id] AS CustomerTypeId, CUST.[Name] AS CustomerTypeName, " +
+                        "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CustomerType_Id] AS CustomerTypeId, CUST.[Name] AS CustomerTypeName, CUS.[CreatedDate] AS CustomerCreatedDate, " +
                         "CACT.[Id] AS ActivityId, CACT.[CreatedDate] AS ActivityDate, CACT.[IsActive] AS ActivityStatus, " +
                         "CLIM.[Id] AS CreditLimitId, CLIM.[Value] AS CreditLimit, CLIM.[CreatedDate] AS CreditLimitDate, " +
                         "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, " +
@@ -85,7 +85,8 @@ namespace Core.Services.Managers {
                                     TaxRate = reader["TaxRate"] != DBNull.Value ? (decimal)reader["TaxRate"] : 0,
                                     Date = (DateTime)reader["Date"],
                                     DueDate = (DateTime)reader["DueDate"],
-                                    IsDraft = (bool)reader["IsDraft"]
+                                    IsDraft = (bool)reader["IsDraft"],
+                                    CreatedDate = (DateTime)reader["CreatedDate"]
                                 };
 
                                 if(reader["CustomerId"] != DBNull.Value) {
@@ -94,7 +95,8 @@ namespace Core.Services.Managers {
                                         No = reader["CustomerAccountNumber"] as string,
                                         Name = reader["CustomerName"] as string,
                                         PhoneNumber = reader["CustomerPhoneNumber"] as string,
-                                        Terms = reader["CustomerTerms"] as string
+                                        Terms = reader["CustomerTerms"] as string,
+                                        CreatedDate = (DateTime)reader["CustomerCreatedDate"]
                                     };
 
                                     if(reader["CustomerAddressId"] != DBNull.Value) {
