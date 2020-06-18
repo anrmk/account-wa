@@ -2,6 +2,9 @@
 @{
     Layout = null;
     var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
+    var creditUtilizedSettings = (Web.ViewModels.CustomerCreditUtilizedSettingsViewModel)ViewData["CreditUtilizedSettings"];
+
+
 }
 
 <div class="row">
@@ -47,7 +50,12 @@
         </table>
 
 
-        <h6><label asp-for="CreditUtilized"></label></h6>
+        <h6>
+            <label asp-for="CreditUtilized" class="d-block mb-0"></label>
+            @if(creditUtilizedSettings != null) {
+                <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}": $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
+            }
+        </h6>
         @if(companySettings != null && companySettings.SaveCreditValues) {
             <table class="table table-bordered table-sm">
                 <thead>

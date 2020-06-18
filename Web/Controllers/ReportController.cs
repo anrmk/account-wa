@@ -631,6 +631,10 @@ namespace Web.Controllers.Api {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                     var company = await _businessManager.GetCompany(model.CompanyId);
 
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                        { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
+                    };
+
                     var saved = await _businessManager.GetSavedReport(userId, model.CompanyId, model.Date);
                     if(saved == null) {
                         return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM/dd/yyyy")}");
@@ -702,9 +706,11 @@ namespace Web.Controllers.Api {
                         var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
                         if(creditUtilizedSettings == null) {
                             creditUtilizedSettings = new CustomerCreditUtilizedSettingsDto() {
-                                RoundType = company.Settings.RoundType
+                                RoundType = company.Settings.RoundType,
+                                CompanyId = company.Id
                             };
                         }
+                        viewDataDictionary.Add("CreditUtilizedSettings", _mapper.Map<CustomerCreditUtilizedSettingsViewModel>(creditUtilizedSettings));
 
                         var nullCreditUtilized = 0;
                         var updateCreditUtilized = 0;
@@ -729,14 +735,6 @@ namespace Web.Controllers.Api {
                             } else if(creditUtilized.Value < value) {
                                 updateCreditUtilized++;
                             }
-
-                            //if(creditUtilized == null) {
-                            //    nullCreditUtilized++;
-                            //} else {
-                            //    if(creditUtilized.Value < value) {
-                            //        updateCreditUtilized++;
-                            //    }
-                            //}
                         }
                         compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
                             Name = "Customers count",
@@ -746,10 +744,6 @@ namespace Web.Controllers.Api {
                         });
                     }
                     #endregion
-
-                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                        { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
-                    };
 
                     string html = _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport, viewDataDictionary).Result;
                     return Ok(html);
