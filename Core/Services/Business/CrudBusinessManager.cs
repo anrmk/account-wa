@@ -1308,7 +1308,6 @@ namespace Core.Services.Business {
                     List<InvoiceEntity> newList = new List<InvoiceEntity>();
 
                     foreach(var p in filter.Periods) {
-                        //var dash = p.Contains('+') ? p.LastIndexOf('+') : p.LastIndexOf('-');
                         int filterFrom, filterTo;
 
                         if(p.Contains('+')) {
@@ -1328,9 +1327,22 @@ namespace Core.Services.Business {
                                      && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
                                 ));
                             }
+                        } else if(p.Equals("Total Late")) {
+                            filterFrom = 1;
+                            filterTo = 30 * filter.NumberOfPeriods;
+                            newList.AddRange(invoices.Where(x =>
+                                true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                                   //  && ((filter.Date.Value - x.DueDate).Days <= filterTo)
+                                     && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                                ));
+                        } else if(p.Equals("Total")) {
+                            filterFrom = -31;
+                            filterTo = 30 * filter.NumberOfPeriods;
+                            newList.AddRange(invoices.Where(x =>
+                                true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
+                                     && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
+                                ));
                         }
-
-
                     }
                     invoices = newList;
                 }

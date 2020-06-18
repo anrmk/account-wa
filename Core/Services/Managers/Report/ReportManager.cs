@@ -33,13 +33,13 @@ namespace Core.Services.Managers {
                         "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, " +
                         "ADDR.[Id] as CustomerAddressId, ADDR.[Address] as CustomerAddress, ADDR.[Address2] as CustomerAddress2, ADDR.[City] as CustomerCity, ADDR.[State] as CustomerState, ADDR.[ZipCode] as CustomerZipCode, ADDR.[Country] as CustomerCountry, " +
                         "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
-                        "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  " +
-                        "FROM [accountWa].[dbo].[Invoices] AS INV  " +
+                        "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate " +
+                        "FROM [accountWa].[dbo].[Invoices] AS INV " +
                         "LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO " +
                         "LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  " +
                         "LEFT JOIN [accountWa].[dbo].[CustomerTypes] as CUST ON CUS.[CustomerType_Id] = CUST.[Id] " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities] " + //проверяем на активность пользователя
-                                                                                                     //"WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
+                         //"WHERE [Customer_Id] = CUS.[Id] AND [IsActive] = 'TRUE' AND [CreatedDate] <= @DATETO " +
                             "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO " +
                             "ORDER BY [CreatedDate] DESC) AS CACT " +
                         "OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditLimit] " +
