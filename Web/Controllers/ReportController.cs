@@ -643,10 +643,12 @@ namespace Web.Controllers.Api {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
 
                     var compareReport = new CompareReportViewModel() {
+                        Date = model.Date,
                         Balance = new List<CompareReportFieldViewModel>(),
                         Customers = new List<CompareReportFieldViewModel>(),
                         CustomerTypes = new List<CompareReportFieldViewModel>(),
-                        CreditUtilized = new LinkedList<CompareReportFieldViewModel>()
+                        CreditUtilized = new List<CompareReportFieldViewModel>(),
+                        CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
                     };
 
                     #region CUSTOMERS
@@ -732,10 +734,26 @@ namespace Web.Controllers.Api {
 
                             if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
                                 nullCreditUtilized++;
+                                compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                                    No = customer.No,
+                                    Name = customer.Name,
+                                    OldValue = creditUtilized?.Value ?? 0,
+                                    NewValue = value,
+                                    Status = true
+                                });
+
                             } else if(creditUtilized.Value < value) {
                                 updateCreditUtilized++;
+                                compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                                    No = customer.No,
+                                    Name = customer.Name,
+                                    OldValue = creditUtilized?.Value ?? 0,
+                                    NewValue = value,
+                                    Status = false
+                                });
                             }
                         }
+
                         compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
                             Name = "Customers count",
                             SavedValue = nullCreditUtilized.ToString(),

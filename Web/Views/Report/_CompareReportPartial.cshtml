@@ -3,117 +3,171 @@
     Layout = null;
     var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
     var creditUtilizedSettings = (Web.ViewModels.CustomerCreditUtilizedSettingsViewModel)ViewData["CreditUtilizedSettings"];
-
-
 }
 
-<div class="row">
-    <div class="col">
-        <h6><label asp-for="CustomerTypes"></label></h6>
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Saved</th>
-                    <th>Generated</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var item in Model.CustomerTypes) {
-                    <tr class="@(item.Status ? "" : "table-danger")">
-                        <td>@item.Name</td>
-                        <td>@item.SavedValue</td>
-                        <td>@item.ReportValue</td>
-                    </tr>
+<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link active" id="pills-general-tab" data-toggle="pill" href="#pills-general" role="tab" aria-controls="pills-general" aria-selected="true">General</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" id="pills-creditutilized-tab" data-toggle="pill" href="#pills-creditutilized" role="tab" aria-controls="pills-creditutilized" aria-selected="false">Credit Utilized</a>
+    </li>
+</ul>
+<div class="tab-content" >
+    <div class="tab-pane fade show active" id="pills-general" role="tabpanel" aria-labelledby="pills-general-tab">
+        <div class="row">
+            <div class="col">
+                <h6><label asp-for="CustomerTypes"></label></h6>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Saved</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in Model.CustomerTypes) {
+                            <tr class="@(item.Status ? "" : "table-danger")">
+                                <td>@item.Name</td>
+                                <td>@item.SavedValue</td>
+                                <td>@item.ReportValue</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <h6><label asp-for="Customers"></label></h6>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Saved</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var item in Model.Customers) {
+                            <tr class="@(item.Status ? "" : "table-danger")">
+                                <td>@item.Name</td>
+                                <td>@item.SavedValue</td>
+                                <td>@item.ReportValue</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <h6>
+                    <label asp-for="CreditUtilized" class="d-block mb-0"></label>
+                    @if(creditUtilizedSettings != null) {
+                        <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}": $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
+                    }
+                </h6>
+                @if(companySettings != null && companySettings.SaveCreditValues) {
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Null credits</th>
+                                <th>Update credits</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach(var item in Model.CreditUtilized) {
+                                <tr class="@(item.Status ? "" : "table-danger")">
+                                    <td>@item.Name</td>
+                                    <td>@item.SavedValue</td>
+                                    <td>@item.ReportValue</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                } else {
+                    <div class="alert alert-primary">Disabled in company settings</div>
                 }
-            </tbody>
-        </table>
+            </div>
+            <div class="col">
+                <h6><label asp-for="Balance"></label></h6>
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Saved</th>
+                            <th>Generated</th>
+                        </tr>
+                    </thead>
 
-        <h6><label asp-for="Customers"></label></h6>
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Saved</th>
-                    <th>Generated</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var item in Model.Customers) {
-                    <tr class="@(item.Status ? "" : "table-danger")">
-                        <td>@item.Name</td>
-                        <td>@item.SavedValue</td>
-                        <td>@item.ReportValue</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                    <tbody>
+                        @foreach(var item in Model.Balance) {
+                            var countSaved = item.SavedValue.Split('|')[0];
+                            var amountSaved = decimal.Parse(item.SavedValue.Split('|')[1]);
+                            var amountSavedStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountSaved);
 
+                            var countReport = item.ReportValue.Split('|')[0];
+                            var amountReport = decimal.Parse(item.ReportValue.Split('|')[1]);
+                            var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
 
+                            <tr class="@(item.Status ? "" : "table-danger")">
+                                <td>@(item.Name.Equals("-31-0") ? "Current" : item.Name)</td>
+                                <td>
+                                    <span class="text-nowrap d-block">@countSaved</span>
+                                    <span class="text-nowrap d-block">@amountSavedStr</span>
+                                </td>
+                                <td>
+                                    <span class="text-nowrap d-block">@countReport</span>
+                                    <span class="text-nowrap d-block">@amountReportStr</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="pills-creditutilized" role="tabpanel" aria-labelledby="pills-creditutilized-tab">
         <h6>
-            <label asp-for="CreditUtilized" class="d-block mb-0"></label>
+            <label asp-for="CreditUtilized" class="d-block mb-0">Credit Utilized (@Model.Date.ToString("MM/dd/yyyy"))</label>
             @if(creditUtilizedSettings != null) {
                 <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}": $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
             }
         </h6>
-        @if(companySettings != null && companySettings.SaveCreditValues) {
+        <div class="table-responsive">
             <table class="table table-bordered table-sm">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Null credits</th>
-                        <th>Update credits</th>
+                        <th rowspan="2">Account Number</th>
+                        <th rowspan="2">Customer</th>
+                        <th colspan="2">Null credits</th>
+                        <th colspan="2">Update credits</th>
+                    </tr>
+                    <tr>
+                        <th>Old</th>
+                        <th>New</th>
+                        <th>Old</th>
+                        <th>New</th>
                     </tr>
                 </thead>
-
                 <tbody>
-                    @foreach(var item in Model.CreditUtilized) {
-                        <tr class="@(item.Status ? "" : "table-danger")">
+                    @foreach(var item in Model.CreditUtilizedList) {
+                        <tr>
+                            <td>@item.No</td>
                             <td>@item.Name</td>
-                            <td>@item.SavedValue</td>
-                            <td>@item.ReportValue</td>
+                            @if(item.Status) {
+                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</td>
+                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</td>
+                                <td></td>
+                                <td></td>
+                            } else {
+                                <td></td>
+                                <td></td>
+                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</td>
+                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</td>
+                            }
                         </tr>
                     }
                 </tbody>
             </table>
-        } else {
-            <div class="alert alert-primary">Disabled in company settings</div>
-        }
-    </div>
-    <div class="col">
-        <h6><label asp-for="Balance"></label></h6>
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Saved</th>
-                    <th>Generated</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach(var item in Model.Balance) {
-                    var countSaved = item.SavedValue.Split('|')[0];
-                    var amountSaved = decimal.Parse(item.SavedValue.Split('|')[1]);
-                    var amountSavedStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountSaved);
-
-                    var countReport = item.ReportValue.Split('|')[0];
-                    var amountReport = decimal.Parse(item.ReportValue.Split('|')[1]);
-                    var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
-
-                    <tr class="@(item.Status ? "" : "table-danger")">
-                        <td>@(item.Name.Equals("-31-0") ? "Current" : item.Name)</td>
-                        <td>
-                            <span class="text-nowrap d-block">@countSaved</span>
-                            <span class="text-nowrap d-block">@amountSavedStr</span>
-                        </td>
-                        <td>
-                            <span class="text-nowrap d-block">@countReport</span>
-                            <span class="text-nowrap d-block">@amountReportStr</span>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        </div>
     </div>
 </div>
