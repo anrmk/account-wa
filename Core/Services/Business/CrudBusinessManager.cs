@@ -136,7 +136,7 @@ namespace Core.Services.Business {
 
         Task<InvoiceConstructorDto> GetConstructorInvoice(long id);
         Task<InvoiceConstructorDto> CreateConstructorInvoice(InvoiceConstructorDto dto);
-        Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto);
+        //Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto);
 
         Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date);
 
@@ -1601,9 +1601,9 @@ namespace Core.Services.Business {
             return _mapper.Map<InvoiceConstructorDto>(entity);
         }
 
-        public async Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto) {
-            return null;
-        }
+        //public async Task<InvoiceConstructorDto> UpdateConstructorInvoice(long id, InvoiceConstructorDto dto) {
+        //    return null;
+        //}
 
         public async Task<List<InvoiceConstructorDto>> GetConstructorInvoices(long companyId, DateTime date) {
             var entities = await _invoiceConstructorManager.FindAll(companyId, date);

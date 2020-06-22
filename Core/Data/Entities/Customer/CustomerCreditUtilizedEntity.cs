@@ -14,6 +14,8 @@ namespace Core.Data.Entities {
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? Value { get; set; }
 
+        public bool IsIgnored { get; set; }
+
         [ScaffoldColumn(false)]
         [DataType(DataType.DateTime)]
         public DateTime CreatedDate { get; set; } = DateTime.Now;
