@@ -68,8 +68,8 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Null credits</th>
-                                <th>Update credits</th>
+                                <th>Credits for create</th>
+                                <th>Credits for update</th>
                             </tr>
                         </thead>
 
@@ -136,33 +136,60 @@
             <table class="table table-bordered table-sm">
                 <thead>
                     <tr>
+                        <th rowspan="2">#</th>
                         <th rowspan="2">Account Number</th>
-                        <th rowspan="2">Customer</th>
-                        <th colspan="2">Null credits</th>
-                        <th colspan="2">Update credits</th>
+                        <th rowspan="2">Business Name</th>
+                        <th colspan="2">Credits for create</th>
+                        <th colspan="2">Credits for update</th>
                     </tr>
                     <tr>
-                        <th>Old</th>
-                        <th>New</th>
-                        <th>Old</th>
-                        <th>New</th>
+                        <th width="120px">Old</th>
+                        <th width="120px">New</th>
+                        <th width="120px">Old</th>
+                        <th width="120px">New</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(var item in Model.CreditUtilizedList) {
+                    @for(var i = 0; i < Model.CreditUtilizedList.Count(); i++) {
+                        var item = Model.CreditUtilizedList.ElementAt(i);
                         <tr>
+                            <td>@(i + 1)</td>
                             <td>@item.No</td>
                             <td>@item.Name</td>
                             @if(item.Status) {
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</td>
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</td>
-                                <td></td>
-                                <td></td>
+                                <td>
+                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
+                                    <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")&nbsp;</small>
+                                </td>
+                                <td>
+                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
+                                    <small>&nbsp;</small>
+                                </td>
+                                <td>
+                                    <span>&nbsp;</span>
+                                    <small>&nbsp;</small>
+                                </td>
+                                <td>
+                                    <span>&nbsp;</span>
+                                    <small>&nbsp;</small>
+                                </td>
                             } else {
-                                <td></td>
-                                <td></td>
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</td>
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</td>
+                                <td>
+                                    <span>&nbsp;</span>
+                                    <small>&nbsp;</small>
+                                </td>
+                                <td>
+                                    <span>&nbsp;</span>
+                                    <small>&nbsp;</small>
+                                </td>
+                                <td>
+                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
+                                    <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")</small>
+                                </td>
+                                <td>
+                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
+                                    <small>&nbsp;</small>
+                                </td>
                             }
                         </tr>
                     }

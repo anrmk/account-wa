@@ -738,6 +738,7 @@ namespace Web.Controllers.Api {
                                     No = customer.No,
                                     Name = customer.Name,
                                     OldValue = creditUtilized?.Value ?? 0,
+                                    OldDate = creditUtilized?.CreatedDate,
                                     NewValue = value,
                                     Status = true
                                 });
@@ -748,6 +749,7 @@ namespace Web.Controllers.Api {
                                     No = customer.No,
                                     Name = customer.Name,
                                     OldValue = creditUtilized?.Value ?? 0,
+                                    OldDate = creditUtilized?.CreatedDate,
                                     NewValue = value,
                                     Status = false
                                 });

@@ -32,6 +32,7 @@ namespace Web.ViewModels {
         public string No { get; set; }
         public string Name { get; set; }
         public decimal OldValue { get; set; }
+        public DateTime? OldDate { get; set; }
         public decimal NewValue { get; set; }
         public bool Status { get; set; }
     }
