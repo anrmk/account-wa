@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 using Core.Data.Enum;
@@ -20,5 +21,8 @@ namespace Web.ViewModels {
         public int NumberOfPeriods { get; set; } = 4;
 
         public RoundType RoundType { get; set; }
+
+        //[Display(Name = "Customers")]
+        public virtual List<long> CreditUtilizeds { get; set; }
     }
 }

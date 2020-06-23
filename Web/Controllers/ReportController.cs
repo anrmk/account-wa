@@ -393,11 +393,39 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> CustomerCreditUtilizedSettingsView([FromQuery] ReportFilterViewModel model) {
             if(ModelState.IsValid) {
                 var company = await _businessManager.GetCompany(model.CompanyId);
+                
+                var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
+                model.RoundType = creditUtilizedSettings == null ? company.Settings.RoundType : creditUtilizedSettings.RoundType;
 
-                var utilizedSettingsDto = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
-                model.RoundType = utilizedSettingsDto == null ? company.Settings.RoundType : utilizedSettingsDto.RoundType;
+                var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+                var creditUtilizedList = new List<CustomerCreditUtilizedViewModel>();
 
-                string html = _viewRenderService.RenderToStringAsync("_CreateCustomerCreditsPartial", model).Result;
+                foreach(var data in report.Data) {
+                    var customer = data.Customer;
+
+                    var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
+                    var creditUtilized = creditUtilizeds
+                                .OrderByDescending(x => x.CreatedDate)
+                                .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();
+
+                    if(creditUtilized != null && creditUtilized.IsIgnored) {
+                        var value = data.Data["Total"];
+
+                        if(model.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                            value = Math.Ceiling(value);
+                        } else if(model.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                            value = Math.Floor(value);
+                        }
+
+                        creditUtilizedList.Add(_mapper.Map<CustomerCreditUtilizedViewModel>(creditUtilized));
+                    }
+                }
+
+                var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                        { "CreditUtilizedList", _mapper.Map<List<CustomerCreditUtilizedViewModel>>(creditUtilizedList) }
+                    };
+
+                string html = _viewRenderService.RenderToStringAsync("_CreateCustomerCreditsPartial", model, viewDataDictionary).Result;
                 return Ok(html);
             }
             return BadRequest();
@@ -432,8 +460,9 @@ namespace Web.Controllers.Api {
                                 }
                             }
                             #endregion
-                            var createdCount = 0;
-                            var updatedCount = 0;
+                            var createCreditUtilized = 0;
+                            var updateCreditUtilized = 0;
+                            var ignoreCreditUtilized = 0;
 
                             foreach(var data in report.Data) {
                                 var customer = data.Customer;
@@ -454,24 +483,38 @@ namespace Web.Controllers.Api {
                                 //  ИЛИ
                                 //  записть есть и даты не совпадают, а также значение меньше значения текущего отчета
                                 //  создать запись
-                                if(creditUtilized == null || (creditUtilized.CreatedDate != date && creditUtilized.Value < value)) {
+                                if(creditUtilized == null) {
                                     await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
                                         CreatedDate = date,
                                         Value = value,
                                         CustomerId = customer.Id
                                     });
-                                    createdCount++;
-                                }
-                                //  иначе проверить предыдущее значение со значением текущего отчета
-                                //  если меньше - обновить запись
-                                else if(creditUtilized.Value < value) {
-                                    creditUtilized.Value = value;
-                                    await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
-                                    updatedCount++;
+                                    createCreditUtilized++;
+                                } else if(creditUtilized.Value < value) { // если новое значение больше предыдущей записи
+                                    if(creditUtilized.CreatedDate != date) {
+                                        if(!creditUtilized.IsIgnored || (model.CreditUtilizeds != null && model.CreditUtilizeds.Contains(creditUtilized.Id))) {
+                                            await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
+                                                CreatedDate = date,
+                                                Value = value,
+                                                CustomerId = customer.Id
+                                            });
+                                            createCreditUtilized++;
+                                        } else {
+                                            ignoreCreditUtilized++;
+                                        }
+                                    } else {
+                                        if(creditUtilized.IsIgnored && !model.CreditUtilizeds.Contains(creditUtilized.Id)) { //если установлени признак IsIgnored && клиент не выбрал запись из списка
+                                            ignoreCreditUtilized++;
+                                        } else {
+                                            creditUtilized.Value = value;
+                                            await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                            updateCreditUtilized++;
+                                        }
+                                    }
                                 }
                             }
 
-                            return Ok(new { Updated = updatedCount, Created = createdCount });
+                            return Ok(new { Updated = updateCreditUtilized, Created = createCreditUtilized, Ignored = ignoreCreditUtilized });
                         } else {
                             throw new Exception($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
                         }
@@ -647,7 +690,7 @@ namespace Web.Controllers.Api {
                         Balance = new List<CompareReportFieldViewModel>(),
                         Customers = new List<CompareReportFieldViewModel>(),
                         CustomerTypes = new List<CompareReportFieldViewModel>(),
-                        CreditUtilized = new List<CompareReportFieldViewModel>(),
+                        CreditUtilized = new List<CompareCreditsFieldViewModel>(),
                         CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
                     };
 
@@ -714,8 +757,9 @@ namespace Web.Controllers.Api {
                         }
                         viewDataDictionary.Add("CreditUtilizedSettings", _mapper.Map<CustomerCreditUtilizedSettingsViewModel>(creditUtilizedSettings));
 
-                        var nullCreditUtilized = 0;
+                        var createCreditUtilized = 0;
                         var updateCreditUtilized = 0;
+                        var ignoreCreditUtilized = 0;
 
                         foreach(var data in report.Data) {
                             var customer = data.Customer;
@@ -733,34 +777,41 @@ namespace Web.Controllers.Api {
                                         .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();
 
                             if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
-                                nullCreditUtilized++;
+                                createCreditUtilized++;
                                 compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                    No = customer.No,
-                                    Name = customer.Name,
+                                    Id = customer.Id,
+                                    CustomerNo = customer.No,
+                                    CustomerName = customer.Name,
                                     OldValue = creditUtilized?.Value ?? 0,
                                     OldDate = creditUtilized?.CreatedDate,
                                     NewValue = value,
                                     Status = true
                                 });
-
                             } else if(creditUtilized.Value < value) {
-                                updateCreditUtilized++;
+                                if(creditUtilized.IsIgnored) {
+                                    ignoreCreditUtilized++;
+                                } else {
+                                    updateCreditUtilized++;
+                                }
                                 compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                    No = customer.No,
-                                    Name = customer.Name,
+                                    Id = customer.Id,
+                                    CustomerNo = customer.No,
+                                    CustomerName = customer.Name,
                                     OldValue = creditUtilized?.Value ?? 0,
                                     OldDate = creditUtilized?.CreatedDate,
+                                    IsIgnored = creditUtilized.IsIgnored,
                                     NewValue = value,
                                     Status = false
                                 });
                             }
                         }
 
-                        compareReport.CreditUtilized.Add(new CompareReportFieldViewModel() {
+                        compareReport.CreditUtilized.Add(new CompareCreditsFieldViewModel() {
                             Name = "Customers count",
-                            SavedValue = nullCreditUtilized.ToString(),
-                            ReportValue = updateCreditUtilized.ToString(),
-                            Status = nullCreditUtilized == 0 && updateCreditUtilized == 0
+                            CreateCount = createCreditUtilized,
+                            UpdateCount = updateCreditUtilized,
+                            IgnoredCount = ignoreCreditUtilized,
+                            Status = createCreditUtilized == 0 && updateCreditUtilized == 0
                         });
                     }
                     #endregion

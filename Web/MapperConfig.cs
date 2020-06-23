@@ -83,7 +83,11 @@ namespace Web {
                 .ForMember(d => d.Country, o => o.MapFrom(s => (s.Address != null) ? s.Address.Country : ""));
 
             CreateMap<CustomerCreditLimitViewModel, CustomerCreditLimitDto>().ReverseMap();
-            CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>().ReverseMap();
+            CreateMap<CustomerCreditUtilizedViewModel, CustomerCreditUtilizedDto>()
+                .ReverseMap()
+                .ForMember(d => d.CustomerNo, o => o.MapFrom(s => s.Customer != null ? s.Customer.No : ""))
+                .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""))
+                ;
             CreateMap<CustomerCreditUtilizedSettingsViewModel, CustomerCreditUtilizedSettingsDto>().ReverseMap();
             CreateMap<CustomerActivityViewModel, CustomerActivityDto>().ReverseMap();
             CreateMap<CustomerTagViewModel, CustomerTagDto>().ReverseMap();

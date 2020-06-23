@@ -2,9 +2,11 @@
 
 @{
     Layout = null;
-    var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["Co"];
+    var creditUtilizedList = (List<Web.ViewModels.CustomerCreditUtilizedViewModel>)ViewData["CreditUtilizedList"];
+
     var formId = Guid.NewGuid();
 }
+
 
 <form id="@(formId)" asp-route="CreateCustomerCreditUtilized">
     <fieldset>
@@ -22,8 +24,37 @@
                 <select asp-for="RoundType" asp-items="Html.GetEnumSelectList<Core.Data.Enum.RoundType>()" class="form-control"> </select>
             </div>
         </div>
+        <h6>Customer Credits Utilized Ignored</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Account Number</th>
+                        <th>Business Name</th>
+                        <th>Credits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(var i = 0; i < creditUtilizedList.Count(); i++) {
+                        var item = creditUtilizedList[i];
+                        <tr>
+                            <td><input name="CreditUtilizeds[]" type="checkbox" value="@(item.Id)" checked="checked" /></td>
+                            <td>@item.CustomerNo</td>
+                            <td>@item.CustomerName</td>
+                            <td>
+                                <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.Value)</span>
+                                <small class="text-muted">@item.CreatedDate.ToString("MM/dd/yyyy")&nbsp;</small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </fieldset>
 </form>
+
+
 
 <div class="row">
     <div class="col">
@@ -34,6 +65,7 @@
                     <th>Total</th>
                     <th>Created</th>
                     <th>Updated</th>
+                    <th>Ignored</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,6 +73,7 @@
                     <td><label id="customerTotalCount"></label></td>
                     <td><label id="customerCreditUtilizedCreatedCount"></label></td>
                     <td><label id="customerCreditUtilizedUpdatedCount"></label></td>
+                    <td><label id="customerCreditUtilizedIgnoredCount"></label></td>
                 </tr>
             </tbody>
         </table>
@@ -52,6 +85,7 @@
         var customerTotalCount = $('#customerTotalCount');
         var customerCreditUtilizedCreatedCount = $('#customerCreditUtilizedCreatedCount');
         var customerCreditUtilizedUpdatedCount = $('#customerCreditUtilizedUpdatedCount');
+        var customerCreditUtilizedIgnoredCount = $('#customerCreditUtilizedIgnoredCount');
 
         var $form = $('#@formId').on('submit', e => {
             e.preventDefault();
@@ -60,6 +94,7 @@
                     customerTotalCount.html(data.created + data.updated);
                     customerCreditUtilizedCreatedCount.html(data.created);
                     customerCreditUtilizedUpdatedCount.html(data.updated);
+                    customerCreditUtilizedIgnoredCount.html(data.ignored);
                    // window.modal.modal('hide');
                 }
             });

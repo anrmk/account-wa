@@ -252,5 +252,5 @@ ModelManifest.xml
 .fake/
 
 # JAVASCRIPT/CSS
-core.es5.js
-core.es5.min.js
+*.min.js
+*.min.css

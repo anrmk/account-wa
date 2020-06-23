@@ -10,6 +10,12 @@ namespace Web.ViewModels {
         [Display(Name = "Customer")]
         public long? CustomerId { get; set; }
 
+        [Display(Name = "#")]
+        public string CustomerNo { get; set; }
+
+        [Display(Name = "Business Name")]
+        public string CustomerName { get; set; }
+
         [Required]
         [Display(Name = "Credit Utilized")]
         [Column(TypeName = "decimal(18, 2)")]

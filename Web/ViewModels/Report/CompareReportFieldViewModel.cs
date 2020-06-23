@@ -16,7 +16,7 @@ namespace Web.ViewModels {
         public ICollection<CompareReportFieldViewModel> Balance { get; set; }
 
         [Display(Name = "Credit Utilized")]
-        public ICollection<CompareReportFieldViewModel> CreditUtilized { get; set; }
+        public ICollection<CompareCreditsFieldViewModel> CreditUtilized { get; set; }
 
         public ICollection<CompareReportCreditUtilizedViewModel> CreditUtilizedList { get; set; }
     }
@@ -28,12 +28,24 @@ namespace Web.ViewModels {
         public bool Status { get; set; }
     }
 
-    public class CompareReportCreditUtilizedViewModel {
-        public string No { get; set; }
+    public class CompareCreditsFieldViewModel {
         public string Name { get; set; }
+        public int CreateCount { get; set; }
+        public int UpdateCount { get; set; }
+        public int IgnoredCount { get; set; }
+        public bool Status { get; set; }
+    }
+
+    public class CompareReportCreditUtilizedViewModel {
+        public long Id { get; set; }
+
+        public string CustomerNo { get; set; }
+        public string CustomerName { get; set; }
         public decimal OldValue { get; set; }
         public DateTime? OldDate { get; set; }
         public decimal NewValue { get; set; }
+        public bool IsIgnored { get; set; }
+
         public bool Status { get; set; }
     }
 }

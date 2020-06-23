@@ -3,6 +3,7 @@
     Layout = null;
     var companySettings = (Web.ViewModels.CompanySettingsViewModel)ViewData["CompanySettings"];
     var creditUtilizedSettings = (Web.ViewModels.CustomerCreditUtilizedSettingsViewModel)ViewData["CreditUtilizedSettings"];
+
 }
 
 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
@@ -10,10 +11,10 @@
         <a class="nav-link active" id="pills-general-tab" data-toggle="pill" href="#pills-general" role="tab" aria-controls="pills-general" aria-selected="true">General</a>
     </li>
     <li class="nav-item" role="presentation">
-        <a class="nav-link" id="pills-creditutilized-tab" data-toggle="pill" href="#pills-creditutilized" role="tab" aria-controls="pills-creditutilized" aria-selected="false">Credit Utilized</a>
+        <a class="nav-link @(creditUtilizedSettings == null || !companySettings.SaveCreditValues ? "disabled" : "")" id="pills-creditutilized-tab" data-toggle="pill" href="#pills-creditutilized" role="tab" aria-controls="pills-creditutilized" aria-selected="false">Credit Utilized</a>
     </li>
 </ul>
-<div class="tab-content" >
+<div class="tab-content">
     <div class="tab-pane fade show active" id="pills-general" role="tabpanel" aria-labelledby="pills-general-tab">
         <div class="row">
             <div class="col">
@@ -70,6 +71,7 @@
                                 <th>Name</th>
                                 <th>Credits for create</th>
                                 <th>Credits for update</th>
+                                <th>Credits ignored</th>
                             </tr>
                         </thead>
 
@@ -77,8 +79,9 @@
                             @foreach(var item in Model.CreditUtilized) {
                                 <tr class="@(item.Status ? "" : "table-danger")">
                                     <td>@item.Name</td>
-                                    <td>@item.SavedValue</td>
-                                    <td>@item.ReportValue</td>
+                                    <td>@item.CreateCount</td>
+                                    <td>@item.UpdateCount</td>
+                                    <td>@item.IgnoredCount</td>
                                 </tr>
                             }
                         </tbody>
@@ -141,8 +144,11 @@
                         <th rowspan="2">Business Name</th>
                         <th colspan="2">Credits for create</th>
                         <th colspan="2">Credits for update</th>
+                        <th colspan="2">Credits ignored</th>
                     </tr>
                     <tr>
+                        <th width="120px">Old</th>
+                        <th width="120px">New</th>
                         <th width="120px">Old</th>
                         <th width="120px">New</th>
                         <th width="120px">Old</th>
@@ -152,36 +158,40 @@
                 <tbody>
                     @for(var i = 0; i < Model.CreditUtilizedList.Count(); i++) {
                         var item = Model.CreditUtilizedList.ElementAt(i);
-                        <tr>
-                            <td>@(i + 1)</td>
-                            <td>@item.No</td>
-                            <td>@item.Name</td>
-                            @if(item.Status) {
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@item.CustomerNo</td>
+                        <td>@item.CustomerName</td>
+                        @if(item.Status) {
+                            <td>
+                                <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
+                                <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")&nbsp;</small>
+                            </td>
+                            <td>
+                                <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
+                                <small>&nbsp;</small>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        } else {
+                            <td></td>
+                            <td></td>
+                            @if(!item.IsIgnored) {
                                 <td>
                                     <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
-                                    <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")&nbsp;</small>
+                                    <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")</small>
                                 </td>
                                 <td>
                                     <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
                                     <small>&nbsp;</small>
                                 </td>
-                                <td>
-                                    <span>&nbsp;</span>
-                                    <small>&nbsp;</small>
-                                </td>
-                                <td>
-                                    <span>&nbsp;</span>
-                                    <small>&nbsp;</small>
-                                </td>
+                                <td></td>
+                                <td></td>
                             } else {
-                                <td>
-                                    <span>&nbsp;</span>
-                                    <small>&nbsp;</small>
-                                </td>
-                                <td>
-                                    <span>&nbsp;</span>
-                                    <small>&nbsp;</small>
-                                </td>
+                                <td></td>
+                                <td></td>
                                 <td>
                                     <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
                                     <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")</small>
@@ -191,7 +201,8 @@
                                     <small>&nbsp;</small>
                                 </td>
                             }
-                        </tr>
+                        }
+                    </tr>
                     }
                 </tbody>
             </table>

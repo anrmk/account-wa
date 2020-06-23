@@ -20,7 +20,9 @@ namespace Core.Services.Managers {
         public CustomerCreditUtilizedManager(IApplicationContext context) : base(context) { }
 
         public async Task<List<CustomerCreditUtilizedEntity>> FindAllByCustomerId(long customerId) {
-            return await DbSet.Where(x => x.CustomerId == customerId).ToListAsync();
+            return await DbSet
+                .Include(x => x.Customer)
+                .Where(x => x.CustomerId == customerId).ToListAsync();
         }
 
         public async Task<CustomerCreditUtilizedEntity> FindByCustomerIdAndDate(long customerId, DateTime date) {
