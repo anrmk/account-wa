@@ -427,8 +427,8 @@ namespace Web.Controllers.Api {
                         } else if(model.RoundType == Core.Data.Enum.RoundType.RoundDown) {
                             value = Math.Floor(value);
                         }
-
-                        creditUtilizedList.Add(_mapper.Map<CustomerCreditUtilizedViewModel>(creditUtilized));
+                        if(creditUtilized.Value < value)
+                            creditUtilizedList.Add(_mapper.Map<CustomerCreditUtilizedViewModel>(creditUtilized));
                     }
                 }
                 creditUtilizedList = creditUtilizedList.OrderBy(x => x.CreatedDate == model.Date).ToList();
