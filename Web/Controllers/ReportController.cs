@@ -431,7 +431,7 @@ namespace Web.Controllers.Api {
                         creditUtilizedList.Add(_mapper.Map<CustomerCreditUtilizedViewModel>(creditUtilized));
                     }
                 }
-
+                creditUtilizedList = creditUtilizedList.OrderBy(x => x.CreatedDate == model.Date).ToList();
                 var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "CreditUtilizedList", _mapper.Map<List<CustomerCreditUtilizedViewModel>>(creditUtilizedList) }
                     };
@@ -511,9 +511,9 @@ namespace Web.Controllers.Api {
                             });
                             createCreditUtilized++;
                         } else if(creditUtilized.Value < value) { // если новое значение больше предыдущей записи
-                            if(creditUtilized.CreatedDate != date) {
-                                if(!creditUtilized.IsIgnored || (model.CreditUtilizeds != null && model.CreditUtilizeds.Contains(creditUtilized.Id))) {
-                                    await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
+                            if(creditUtilized.CreatedDate < date) { // если даты не равны
+                                if(!creditUtilized.IsIgnored || model.CreditUtilizeds == null || !model.CreditUtilizeds.Contains(creditUtilized.Id)) { // если знаение со статусом Ignore и оно не выбрано, тогда проигнорировать
+                                    await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() { //создать новую запись
                                         CreatedDate = date,
                                         Value = value,
                                         CustomerId = customer.Id
@@ -522,12 +522,12 @@ namespace Web.Controllers.Api {
                                 } else {
                                     ignoreCreditUtilized++;
                                 }
-                            } else {
-                                if(creditUtilized.IsIgnored && !model.CreditUtilizeds.Contains(creditUtilized.Id)) { //если установлени признак IsIgnored && клиент не выбрал запись из списка
+                            } else if(creditUtilized.CreatedDate == date) { // если даты равны
+                                if(creditUtilized.IsIgnored) {
                                     ignoreCreditUtilized++;
                                 } else {
                                     creditUtilized.Value = value;
-                                    creditUtilized = await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                    creditUtilized = await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized); // изменить значение записи
                                     updateCreditUtilized++;
                                 }
                             }
