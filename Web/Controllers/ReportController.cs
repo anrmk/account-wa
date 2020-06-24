@@ -457,7 +457,7 @@ namespace Web.Controllers.Api {
                     var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
                     if(savedReports != null && savedReports.Count > 0) {
                         var prevReport = savedReports.Where(x => x.Date == previousDate).FirstOrDefault();
-                        if(prevReport == null || prevReport.IsPublished) {
+                        if(prevReport == null || !prevReport.IsPublished) {
                             throw new Exception($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
                         }
                     }
@@ -498,6 +498,10 @@ namespace Web.Controllers.Api {
                         var creditUtilized = creditUtilizeds
                                 .OrderByDescending(x => x.CreatedDate)
                                 .Where(x => x.CreatedDate <= date).FirstOrDefault();
+
+                        if(customer.No == "540061957") {
+                            Console.WriteLine("540061957");
+                        }
 
                         //  если в БД нет записей 
                         //  ИЛИ
