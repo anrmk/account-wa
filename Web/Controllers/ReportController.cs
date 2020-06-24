@@ -4,10 +4,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AutoMapper;
+
+using Castle.MicroKernel.Registration;
 
 using Core.Context;
 using Core.Data.Dto;
@@ -375,14 +378,22 @@ namespace Web.Controllers.Api {
             }
 
             var company = await _businessManager.GetCompany(model.CompanyId);
+
             if(company != null && company.Settings != null) {
+                var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+                if(savedReports == null || savedReports.Count == 0) {//Если у компании нет вообще сохраненных репортов, дать возможность сохранить КРЕДИТЫ
+                    return Ok(true);
+                }
+
                 var settings = company.Settings;
                 var date = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
-                var currentReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date); //Найти отчет за текущий месяц
+                var prevReport = savedReports.Where(x => x.Date == date).FirstOrDefault();
+                //await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
+                var currentReport = savedReports.Where(x => x.Date == model.Date).FirstOrDefault();
+                //await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date); //Найти отчет за текущий месяц
 
-                if(settings != null && settings.SaveCreditValues && savedReport != null && savedReport.IsPublished && currentReport == null)
+                if(settings != null && settings.SaveCreditValues && prevReport != null && prevReport.IsPublished && currentReport == null)
                     return Ok(true);
             }
 
@@ -393,7 +404,7 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> CustomerCreditUtilizedSettingsView([FromQuery] ReportFilterViewModel model) {
             if(ModelState.IsValid) {
                 var company = await _businessManager.GetCompany(model.CompanyId);
-                
+
                 var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
                 model.RoundType = creditUtilizedSettings == null ? company.Settings.RoundType : creditUtilizedSettings.RoundType;
 
@@ -436,94 +447,98 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var company = await _businessManager.GetCompany(model.CompanyId);
-                    if(company != null && company.Settings != null && company.Settings.SaveCreditValues) { //возможно ли сохранение лимитов
-                        var date = model.Date.LastDayOfMonth();
-                        var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
+                    if(company == null || company.Settings == null || !company.Settings.SaveCreditValues) {//возможно ли сохранение лимитов
+                        throw new Exception("Please, check company settings!");
+                    }
 
-                        var savedReport = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, previousDate); //Найти отчет за предыдущий месяц
+                    var date = model.Date.LastDayOfMonth();
+                    var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                        if(savedReport != null && savedReport.IsPublished) {
-                            var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
+                    var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+                    if(savedReports != null && savedReports.Count > 0) {
+                        var prevReport = savedReports.Where(x => x.Date == previousDate).FirstOrDefault();
+                        if(prevReport == null || prevReport.IsPublished) {
+                            throw new Exception($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
+                        }
+                    }
 
-                            #region CREDIT UTILIZED SETTINGS
-                            var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
-                            if(creditUtilizedSettings == null) {
-                                creditUtilizedSettings = await _businessManager.CreateCustomerCreditUtilizedSettings(new CustomerCreditUtilizedSettingsDto() {
-                                    CompanyId = model.CompanyId,
-                                    Date = model.Date,
-                                    RoundType = model.RoundType
-                                });
-                            } else {
-                                if(creditUtilizedSettings.RoundType != model.RoundType) {
-                                    creditUtilizedSettings.RoundType = model.RoundType;
-                                    creditUtilizedSettings = await _businessManager.UpdateCustomerCreditUtilizedSettings(creditUtilizedSettings.Id, creditUtilizedSettings);
-                                }
-                            }
-                            #endregion
-                            var createCreditUtilized = 0;
-                            var updateCreditUtilized = 0;
-                            var ignoreCreditUtilized = 0;
+                    var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, date, 30, model.NumberOfPeriods, false);
 
-                            foreach(var data in report.Data) {
-                                var customer = data.Customer;
-                                var value = data.Data["Total"]; //new height credit
+                    #region CREDIT UTILIZED SETTINGS
+                    var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
+                    if(creditUtilizedSettings == null) {
+                        creditUtilizedSettings = await _businessManager.CreateCustomerCreditUtilizedSettings(new CustomerCreditUtilizedSettingsDto() {
+                            CompanyId = model.CompanyId,
+                            Date = model.Date,
+                            RoundType = model.RoundType
+                        });
+                    } else {
+                        if(creditUtilizedSettings.RoundType != model.RoundType) {
+                            creditUtilizedSettings.RoundType = model.RoundType;
+                            creditUtilizedSettings = await _businessManager.UpdateCustomerCreditUtilizedSettings(creditUtilizedSettings.Id, creditUtilizedSettings);
+                        }
+                    }
+                    #endregion
 
-                                if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
-                                    value = Math.Ceiling(value);
-                                } else if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
-                                    value = Math.Floor(value);
-                                }
+                    var createCreditUtilized = 0;
+                    var updateCreditUtilized = 0;
+                    var ignoreCreditUtilized = 0;
 
-                                var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
-                                var creditUtilized = creditUtilizeds
-                                        .OrderByDescending(x => x.CreatedDate)
-                                        .Where(x => x.CreatedDate <= date).FirstOrDefault();
+                    foreach(var data in report.Data) {
+                        var customer = data.Customer;
+                        var value = data.Data["Total"]; //new height credit
 
-                                //  если в БД нет записей 
-                                //  ИЛИ
-                                //  записть есть и даты не совпадают, а также значение меньше значения текущего отчета
-                                //  создать запись
-                                if(creditUtilized == null) {
+                        if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                            value = Math.Ceiling(value);
+                        } else if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                            value = Math.Floor(value);
+                        }
+
+                        var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
+                        var creditUtilized = creditUtilizeds
+                                .OrderByDescending(x => x.CreatedDate)
+                                .Where(x => x.CreatedDate <= date).FirstOrDefault();
+
+                        //  если в БД нет записей 
+                        //  ИЛИ
+                        //  записть есть и даты не совпадают, а также значение меньше значения текущего отчета
+                        //  создать запись
+                        if(creditUtilized == null) {
+                            await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
+                                CreatedDate = date,
+                                Value = value,
+                                CustomerId = customer.Id
+                            });
+                            createCreditUtilized++;
+                        } else if(creditUtilized.Value < value) { // если новое значение больше предыдущей записи
+                            if(creditUtilized.CreatedDate != date) {
+                                if(!creditUtilized.IsIgnored || (model.CreditUtilizeds != null && model.CreditUtilizeds.Contains(creditUtilized.Id))) {
                                     await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
                                         CreatedDate = date,
                                         Value = value,
                                         CustomerId = customer.Id
                                     });
                                     createCreditUtilized++;
-                                } else if(creditUtilized.Value < value) { // если новое значение больше предыдущей записи
-                                    if(creditUtilized.CreatedDate != date) {
-                                        if(!creditUtilized.IsIgnored || (model.CreditUtilizeds != null && model.CreditUtilizeds.Contains(creditUtilized.Id))) {
-                                            await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
-                                                CreatedDate = date,
-                                                Value = value,
-                                                CustomerId = customer.Id
-                                            });
-                                            createCreditUtilized++;
-                                        } else {
-                                            ignoreCreditUtilized++;
-                                        }
-                                    } else {
-                                        if(creditUtilized.IsIgnored && !model.CreditUtilizeds.Contains(creditUtilized.Id)) { //если установлени признак IsIgnored && клиент не выбрал запись из списка
-                                            ignoreCreditUtilized++;
-                                        } else {
-                                            creditUtilized.Value = value;
-                                            await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
-                                            updateCreditUtilized++;
-                                        }
-                                    }
+                                } else {
+                                    ignoreCreditUtilized++;
+                                }
+                            } else {
+                                if(creditUtilized.IsIgnored && !model.CreditUtilizeds.Contains(creditUtilized.Id)) { //если установлени признак IsIgnored && клиент не выбрал запись из списка
+                                    ignoreCreditUtilized++;
+                                } else {
+                                    creditUtilized.Value = value;
+                                    creditUtilized = await _businessManager.UpdateCustomerCreditUtilized(creditUtilized.Id, creditUtilized);
+                                    updateCreditUtilized++;
                                 }
                             }
-
-                            return Ok(new { Updated = updateCreditUtilized, Created = createCreditUtilized, Ignored = ignoreCreditUtilized });
-                        } else {
-                            throw new Exception($"You must save and publish a report for the previous period: {previousDate.ToShortDateString()}");
                         }
                     }
+                    return Ok(new { Updated = updateCreditUtilized, Created = createCreditUtilized, Ignored = ignoreCreditUtilized });
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message);
             }
-            return NotFound();
+            return Ok();
         }
 
         [HttpPost("CreateSavedReport", Name = "CreateSavedReport")]
@@ -612,9 +627,9 @@ namespace Web.Controllers.Api {
                     return Ok(result);
                 }
             } catch(Exception er) {
-                Console.WriteLine(er.Message);
+                return BadRequest(er.Message);
             }
-            return null;
+            return Ok();
         }
 
         [HttpPost("PublishSavedReport", Name = "PublishSavedReport")]
@@ -820,9 +835,48 @@ namespace Web.Controllers.Api {
                     return Ok(html);
                 }
             } catch(Exception er) {
-                return BadRequest(er);
+                return BadRequest(er.Message);
             }
 
+            return Ok();
+        }
+
+        [HttpPost("CheckingCustomerAccountNumber", Name = "CheckingCustomerAccountNumber")]
+        public async Task<IActionResult> CheckingCustomerAccountNumber([FromBody] ReportFilterViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                    }
+
+                    var customers = new List<CustomerListViewModel>();
+                    var regex = new Regex(company.Settings.AccountNumberTemplate);
+
+                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+                    foreach(var data in result.Data) {
+                        var customer = data.Customer;
+                        var isMatch = regex.IsMatch(customer.No);
+
+                        if(!isMatch) {
+                            customers.Add(_mapper.Map<CustomerListViewModel>(customer));
+                        }
+                    }
+
+                    if(customers.Count == 0) {
+                        return Ok($"{result.Data.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
+                    }
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                            { "Company", _mapper.Map<CompanyViewModel>(company)},
+                            { "TotalCustomers", result.Data.Count }
+                        };
+
+                    string html = _viewRenderService.RenderToStringAsync("_CheckingCustomerAccountNumberPartial", customers, viewDataDictionary).Result;
+                    return Ok(html);
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message);
+            }
             return Ok();
         }
     }

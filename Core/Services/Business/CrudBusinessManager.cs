@@ -78,6 +78,7 @@ namespace Core.Services.Business {
 
         //Credit Utilized
         Task<CustomerCreditUtilizedDto> GetCustomerCreditUtilized(long id);
+        //Task<CustomerCreditUtilizedDto> GetCustomerCreditUtilized(long companyId, DateTime date);
         Task<List<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizeds(long customerId);
         Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto);
         Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto);
@@ -992,6 +993,11 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerCreditUtilizedDto>(result);
         }
 
+        //public async Task<CustomerCreditUtilizedDto> GetCustomerCreditUtilized(long companyId, DateTime date) {
+        //    var result = await _customerCreditUtilizedManager.FindByCustomerIdAndDate(companyId, date);
+        //    return _mapper.Map<CustomerCreditUtilizedDto>(result);
+        //}
+
         public async Task<List<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizeds(long customerId) {
             var result = await _customerCreditUtilizedManager.FindAllByCustomerId(customerId);
             return _mapper.Map<List<CustomerCreditUtilizedDto>>(result);
@@ -1332,7 +1338,7 @@ namespace Core.Services.Business {
                             filterTo = 30 * filter.NumberOfPeriods;
                             newList.AddRange(invoices.Where(x =>
                                 true && ((filter.Date.Value - x.DueDate).Days >= filterFrom)
-                                   //  && ((filter.Date.Value - x.DueDate).Days <= filterTo)
+                                     //  && ((filter.Date.Value - x.DueDate).Days <= filterTo)
                                      && (x.Subtotal * (1 + x.TaxRate / 100)) - (x.Payments?.Sum(x => x.Amount) ?? 0) > 0
                                 ));
                         } else if(p.Equals("Total")) {

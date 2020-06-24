@@ -25,7 +25,7 @@ namespace Web {
             #region COMPANY
             CreateMap<CompanyViewModel, CompanyDto>()
                 .ForMember(d => d.Address, o => o.MapFrom(s => new CompanyAddressDto() { Id = s.AddressId, Address = s.Address, Address2 = s.Address2, City = s.City, State = s.State, ZipCode = s.ZipCode, Country = s.Country }))
-                .ForMember(d => d.Settings, o => o.MapFrom(s => new CompanySettingsDto() { Id = s.SettingsId, RoundType = s.RoundType, SaveCreditValues = s.SaveCreditValues }))
+                .ForMember(d => d.Settings, o => o.MapFrom(s => new CompanySettingsDto() { Id = s.SettingsId, RoundType = s.RoundType, SaveCreditValues = s.SaveCreditValues, AccountNumberTemplate = s.AccountNumberTemplate }))
                 .ForMember(d => d.Customers, o => o.MapFrom(s => s.Customers.Select(x => new CustomerDto() { Id = x })))
                 .ReverseMap()
 
@@ -40,6 +40,7 @@ namespace Web {
                 .ForMember(d => d.SettingsId, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.Id : 0))
                 .ForMember(d => d.RoundType, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.RoundType : 0))
                 .ForMember(d => d.SaveCreditValues, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.SaveCreditValues : false))
+                .ForMember(d => d.AccountNumberTemplate, o => o.MapFrom(s => (s.Settings != null) ? s.Settings.AccountNumberTemplate : ""))
 
                 .ForMember(d => d.Customers, o => o.MapFrom(s => s.Customers.Select(x => x.Id)));
 

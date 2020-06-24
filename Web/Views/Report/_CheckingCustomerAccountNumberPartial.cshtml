@@ -1,0 +1,41 @@
+﻿@model List<Web.ViewModels.CustomerListViewModel>
+@{
+    Layout = null;
+    var company = (Web.ViewModels.CompanyViewModel)ViewData["Company"];
+    var formId = Guid.NewGuid();
+}
+
+<div class="alert alert-dark">
+    <div class="row">
+        <div class="col">
+            <ul class="list-unstyled m-0">
+                <li><strong>Company:</strong> @company.Name</li>
+                <li><strong>Customer Template:</strong> @company.AccountNumberTemplate</li>
+                <li><strong>Total Customers:</strong> @ViewData["TotalCustomers"]</li>
+                <li><strong>Customers not mathes:</strong> @Model.Count</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<table id="@(formId)" class="table table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>Account Number</th>
+            <th>Business Name</th>
+            <th>Created Date</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach(var customer in Model) {
+            <tr>
+                <td>@customer.No</td>
+                <td>@customer.Name</td>
+                <td>@customer.CreatedDate.ToString("MM/dd/yyyy")</td>
+                <td>@customer.Type</td>
+            </tr>
+        }
+    </tbody>
+</table>

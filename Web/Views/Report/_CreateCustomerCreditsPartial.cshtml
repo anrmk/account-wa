@@ -7,7 +7,6 @@
     var formId = Guid.NewGuid();
 }
 
-
 <form id="@(formId)" asp-route="CreateCustomerCreditUtilized">
     <fieldset>
         <input asp-for="CompanyId" type="hidden" />
@@ -24,39 +23,41 @@
                 <select asp-for="RoundType" asp-items="Html.GetEnumSelectList<Core.Data.Enum.RoundType>()" class="form-control"> </select>
             </div>
         </div>
-        <h6>Customer Credits Utilized Ignored</h6>
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Account Number</th>
-                        <th>Business Name</th>
-                        <th>Credits</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(var i = 0; i < creditUtilizedList.Count(); i++) {
-                        var item = creditUtilizedList[i];
+        @if(creditUtilizedList.Count() > 0) {
+            <h6>Customer Credits Utilized Ignored</h6>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead>
                         <tr>
-                            <td><input name="CreditUtilizeds[]" type="checkbox" value="@(item.Id)" checked="checked" /></td>
-                            <td>@item.CustomerNo</td>
-                            <td>@item.CustomerName</td>
-                            <td>
-                                <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.Value)</span>
-                                <small class="text-muted">@item.CreatedDate.ToString("MM/dd/yyyy")&nbsp;</small>
-                            </td>
+                            <th></th>
+                            <th>#</th>
+                            <th>Account Number</th>
+                            <th>Business Name</th>
+                            <th>Credits</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @for(var i = 0; i < creditUtilizedList.Count(); i++) {
+                            var item = creditUtilizedList[i];
+                            <tr>
+                                <td><input name="CreditUtilizeds[]" type="checkbox" value="@(item.Id)" checked="checked" /></td>
+                                <td>@(i+1)</td>
+                                <td>@item.CustomerNo</td>
+                                <td>@item.CustomerName</td>
+                                <td>
+                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.Value)</span>
+                                    <small class="text-muted">@item.CreatedDate.ToString("MM/dd/yyyy")&nbsp;</small>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </fieldset>
 </form>
 
-
-
-<div class="row">
+<div id="customerResult" class="row" style="display:none">
     <div class="col">
         <h6>Customer Credits Utilized</h6>
         <table class="table table-bordered table-sm">
@@ -82,6 +83,7 @@
 
 <script type="text/javascript">
     $(document).ready(e => {
+        var $customerResult = $('#customerResult');
         var customerTotalCount = $('#customerTotalCount');
         var customerCreditUtilizedCreatedCount = $('#customerCreditUtilizedCreatedCount');
         var customerCreditUtilizedUpdatedCount = $('#customerCreditUtilizedUpdatedCount');
@@ -89,13 +91,15 @@
 
         var $form = $('#@formId').on('submit', e => {
             e.preventDefault();
+            $customerResult.hide();
             $form.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
                 if (status === 'success') {
                     customerTotalCount.html(data.created + data.updated);
                     customerCreditUtilizedCreatedCount.html(data.created);
                     customerCreditUtilizedUpdatedCount.html(data.updated);
                     customerCreditUtilizedIgnoredCount.html(data.ignored);
-                   // window.modal.modal('hide');
+
+                    $customerResult.show();
                 }
             });
         });

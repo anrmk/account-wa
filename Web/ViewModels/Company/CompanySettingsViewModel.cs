@@ -14,5 +14,9 @@ namespace Web.ViewModels {
 
         [Display(Name = "Save Credit Value")]
         public bool SaveCreditValues { get; set; }
+
+        [Display(Name = "Customer account number template (regex)")]
+        [MaxLength(64)]
+        public string AccountNumberTemplate { get; set; }
     }
 }

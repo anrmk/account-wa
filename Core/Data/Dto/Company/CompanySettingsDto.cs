@@ -7,5 +7,7 @@ namespace Core.Data.Dto {
         public RoundType RoundType { get; set; }
 
         public bool SaveCreditValues { get; set; }
+
+        public string AccountNumberTemplate { get; set; }
     }
 }

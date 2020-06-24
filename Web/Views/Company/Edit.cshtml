@@ -4,6 +4,7 @@
     ViewData["Title"] = "Edit Company";
 
     var customersUrl = Url.RouteUrl("GetCustomers");
+    var creditUtilizedSettings =(List<Web.ViewModels.CustomerCreditUtilizedSettingsViewModel>)ViewBag.CreditUtilizedSettings;
 }
 
 @section Toolbar  {
@@ -168,7 +169,7 @@
                 <form id="submitSettingsForm" method="POST" asp-action="EditSettings">
                     <input name="CompanyId" type="hidden" value="@Model.Id" />
                     <input asp-for="Id" type="hidden" value="@Model.SettingsId" />
-                    <div class="form-group row">
+                    <div class="form-row mb-3">
                         <div class="col">
                             <label asp-for="SaveCreditValues"></label>
                             <select asp-for="SaveCreditValues" class="form-control">
@@ -182,24 +183,37 @@
                             <select asp-for="RoundType" asp-items="Html.GetEnumSelectList<Core.Data.Enum.RoundType>()" class="form-control"> </select>
                         </div>
                     </div>
+
+                    @if(creditUtilizedSettings != null && creditUtilizedSettings.Count > 0) {
+                    <div class="form-row mb-3">
+                        <h6>Credit Utilized Settings</h6>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Round Type</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var item in creditUtilizedSettings) {
+                                    <tr>
+                                        <td>@item.RoundName</td>
+                                        <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    }
+
+                    <div class="form-row mb-3">
+                        <div class="col">
+                            <label asp-for="AccountNumberTemplate"></label>
+                            <input asp-for="AccountNumberTemplate" class="form-control" />
+                        </div>
+                    </div>
                 </form>
-                <h6>Credit Utilized Settings</h6>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Round Type</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach(var item in ViewBag.CreditUtilizedSettings) {
-                            <tr>
-                                <td>@item.RoundName</td>
-                                <td>@item.Date.ToString("MM/dd/yyyy")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                
             </div>
 
             <div class="tab-pane fade" id="exportSettings" role="tabpanel" aria-labelledby="exportSettings-tab">
@@ -235,7 +249,7 @@
             }
 
             return $.extend({}, params, {
-                'companyId': @Model.Id
+                'companyId': @(Model.Id)
             });
         }
 

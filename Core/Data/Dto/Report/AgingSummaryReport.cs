@@ -27,10 +27,10 @@ namespace Core.Data.Dto {
     public class AgingSummaryData {
         public string AccountNo { get; set; }
 
-        public string CustomerNo { get; set; }
+        //public string CustomerNo { get; set; }
         public string CustomerName { get; set; }
-        public string CustomerAddress { get; set; }
-        public string CustomerAddress2 { get; set; }
+        //public string CustomerAddress { get; set; }
+        //public string CustomerAddress2 { get; set; }
 
         public CustomerDto Customer { get; set; }
 
