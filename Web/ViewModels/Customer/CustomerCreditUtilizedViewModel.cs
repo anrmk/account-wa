@@ -21,7 +21,7 @@ namespace Web.ViewModels {
         [Column(TypeName = "decimal(18, 2)")]
         public decimal Value { get; set; }
 
-        [Display(Name ="Is Ignored")]
+        [Display(Name = "Is Ignored")]
         public bool IsIgnored { get; set; }
 
         [Required]

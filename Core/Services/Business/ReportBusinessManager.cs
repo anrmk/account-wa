@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AutoMapper;
 
 using Core.Data.Dto;
 using Core.Data.Entities;
+using Core.Data.Enum;
 using Core.Extension;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
     public interface IReportBusinessManager {
         Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
+        Task<ReportStatusDto> CheckingCustomerAccountNumber(long companyId, DateTime dateTo, int numberOfPeriods);
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -201,6 +204,36 @@ namespace Core.Services.Business {
                 //DEBT
                 DoubleDebt = doubleDebt
             };
+        }
+
+        public async Task<ReportStatusDto> CheckingCustomerAccountNumber(long companyId, DateTime dateTo, int numberOfPeriods) {
+            try {
+                var company = await _companyManager.FindInclude(companyId);
+                if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                    throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                }
+
+                var customers = new List<CustomerDto>();
+                var regex = new Regex(company.Settings.AccountNumberTemplate);
+
+                var result = await GetAgingReport(companyId, dateTo, 30, numberOfPeriods, false);
+                foreach(var data in result.Data) {
+                    var customer = data.Customer;
+                    var isMatch = regex.IsMatch(customer.No);
+
+                    if(!isMatch) {
+                        customers.Add(customer);
+                    }
+                }
+
+                if(customers.Count == 0) {
+                    return new ReportStatusDto(ReportCheckStatus.Success, $"{result.Data.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
+                } else {
+                    return new ReportStatusDto(ReportCheckStatus.Warning, $"{customers.Count} out of ${result.Data.Count} customers do not match the \"Account Number\" in the company settings template ");
+                }
+            } catch(Exception ex) {
+                return new ReportStatusDto(ReportCheckStatus.Danger, ex.Message);
+            }
         }
     }
 }

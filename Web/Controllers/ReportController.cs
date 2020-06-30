@@ -4,13 +4,10 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AutoMapper;
-
-using Castle.MicroKernel.Registration;
 
 using Core.Context;
 using Core.Data.Dto;
@@ -215,8 +212,11 @@ namespace Web.Controllers.Mvc {
                         NumberOfPeriods = model.NumberOfPeriods
                     };
 
-                    var settings = await _businessManager.GetCompanyAllExportSettings(company.Id);
+                    var settings = await _businessManager.GetCompanyAllExportSettings(model.CompanyId);
                     ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
+
+                    var checkingCustomerAccountNumber = await _reportBusinessManager.CheckingCustomerAccountNumber(model.CompanyId, model.Date, model.NumberOfPeriods);
+                    ViewBag.CheckingCustomerAccountNumber = _mapper.Map<ReportStatusViewModel>(checkingCustomerAccountNumber);
 
                     return View("_SavedReportPartial", result);
                 }
@@ -363,8 +363,7 @@ namespace Web.Controllers.Api {
             return null;
         }
 
-        [HttpGet]
-        [Route("savedReport")]
+        [HttpGet("GetSavedReport", Name = "GetSavedReport")]
         public async Task<IActionResult> GetSavedReport(long companyId, DateTime date) {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var result = await _businessManager.GetSavedReport(userId, companyId, date);

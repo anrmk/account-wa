@@ -2,14 +2,19 @@
 
 @{
     Layout = null;
+    var checkCustomerAccountNumber = (Web.ViewModels.ReportStatusViewModel)ViewData["CheckingCustomerAccountNumber"];
+
+    var tableId = checkCustomerAccountNumber.Status == Core.Data.Enum.ReportCheckStatus.Success ? Guid.NewGuid() : Guid.Empty;
+
+    var getSavedReportUrl = Url.RouteUrl("GetSavedReport");
 }
 
 @if(Model.IsPublished) {
-    <div class="">
+    <div class="alert alert-warning">
         This report is published and you cannot change the parameters.
     </div>
 } else {
-    <form id="savedReportPartialForm" asp-route="CreateSavedReport">
+    <form id="@(tableId)" asp-route="CreateSavedReport">
         <fieldset>
             <input type="hidden" asp-for="Name" />
             <input type="hidden" asp-for="CompanyId" />
@@ -43,16 +48,20 @@
             </div>
         </fieldset>
     </form>
+    <div class="alert alert-@(checkCustomerAccountNumber.Status.ToString().ToLower())">
+        <h6 class="alert-heading">Checking customer account number</h6>
+        @checkCustomerAccountNumber.Message
+    </div>
 }
 
 <script type="text/javascript">
     $(document).ready(e => {
-        var $savedReportPartialForm = $('#savedReportPartialForm').on('submit', e => {
+        var $savedReportPartialForm = $('#@(tableId)').on('submit', e => {
             e.preventDefault();
 
             var formData = $(e.target).serializeJSON();
             var opt = {
-                url: '/api/report/savedReport',
+                url: '@(getSavedReportUrl)',
                 data: { 'companyId': formData.CompanyId, 'date': formData.Date }
             };
 
@@ -61,7 +70,7 @@
                     if (!confirm("This report exists in the database. Are you sure to overwrite it?")) {
                         return;
                     }
-                } 
+                }
 
                 $(e.target).ajaxSubmit({}, (target, data, status) => {
                     status === 'success' ? window.modal.modal('hide') : alert(status);

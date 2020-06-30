@@ -29,7 +29,6 @@ $.fn.initModalLink = function (target, callback = {}) {
     });
 };
 
-
 $.fn.dialog = function (header, callback) {
     callback = callback || function () { };
     $.when(
@@ -38,10 +37,11 @@ $.fn.dialog = function (header, callback) {
 
         window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
             var form = $('.modal .modal-content form').on('submit');
+            var formId = form.attr('id');
 
             var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
-            if (form.length == 1) {
-                submitBtn.attr('form', form.attr('id')).removeAttr('hidden');
+            if (form.length == 1 && formId != '00000000-0000-0000-0000-000000000000') {
+                submitBtn.attr('form', formId).removeAttr('hidden');
             } else {
                 submitBtn.attr('hidden', 'hidden');
             }
@@ -98,11 +98,6 @@ $.extend($.fn.bootstrapTable.defaults, {
     }
 });
 
-//$.extend($.fn.bootstrapTable.columnDefaults, {
-//    align: 'center',
-//    valign: 'middle'
-//})
-
 $.extend($.serializeJSON.defaultOptions, {
     'parseNumbers': true,
     'useIntKeysAsArrayIndex': false,
@@ -135,11 +130,3 @@ $.extend($.validator, {
         }
     }
 });
-
-//var settings = {
-//    debug: true,
-//    validClass: 'is-valid',
-//    errorClass: 'is-invalid'
-//};
-//$.validator.setDefaults(settings);
-//$.validator.unobtrusive.options = settings;
