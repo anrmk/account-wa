@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Web.ViewModels {
     //Customer Credit Limits & Credit Utilized Import Fomr
@@ -12,6 +13,7 @@ namespace Web.ViewModels {
     //Customer Import Form
     public class CustomerBulkViewModel {
         [Required]
+        [Display(Name ="Company*")]
         public long? CompanyId { get; set; }
 
         public List<CustomerColViewModel> Columns { get; set; }
@@ -21,6 +23,8 @@ namespace Web.ViewModels {
 
         //import rows
         public List<CustomerRowViewModel[]> Rows { get; set; }
+
+        public int[] CheckedRecords { get; set; }
     }
 
     public class CustomerColViewModel {

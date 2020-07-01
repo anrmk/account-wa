@@ -1,7 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Customers";
-   
+
     var customersUrl = Url.RouteUrl("GetCustomers");
+    var uploadCustomersUrl = Url.RouteUrl("UploadCustomers");
 }
 
 <div class="card">
@@ -17,7 +18,8 @@
                     </button>
                     <div class="dropdown-menu" aria-labelledby="uploadGroupBtn">
                         <label class="dropdown-item">
-                            <input type="file" style="display: none;" action="/customer/upload" method="POST">
+                            <input type="file" style="display: none;" action="@(uploadCustomersUrl)" method="POST">
+                            @*<input type="file" style="display: none;" asp-action="UploadCustomers" action="/customer/upload" method="POST">*@
                             Upload Customers
                         </label>
                         <label class="dropdown-item">
@@ -63,32 +65,43 @@
             return `<a href='/customer/edit/${row.id}' class='btn btn-secondary mr-1' >Edit</a>`;
         }
 
-        function showImportDialog(html, status) {
-            $(html).dialog('Import CSV', (action, evt, content) => {
-                if (action === 'modal.on.load') {
-                    $(content).on('submit', e => {
-                        e.preventDefault();
+        //function showImportDialog(html, status) {
+        //    $(html).dialog('Import CSV', (action, evt, content) => {
+        //        if (action === 'modal.on.load') {
+        //            $(content).on('submit', e => {
+        //                e.preventDefault();
 
-                        $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                            if (status === 'success') {
-                                $('#datatable').bootstrapTable('refresh');
-                                window.modal.modal('hide');
-                            } else if (status === 'error') {
-                                alert(jqXHR.responseText);
-                            }
-                        });
-                    });
-                }
-            });
-        }
+        //                $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
+        //                    if (status === 'success') {
+        //                        $('#datatable').bootstrapTable('refresh');
+        //                        window.modal.modal('hide');
+        //                    } else if (status === 'error') {
+        //                        alert(jqXHR.responseText);
+        //                    }
+        //                });
+        //            });
+        //        }
+        //    });
+        //}
 
         $(document).ready(() => {
             $('input[type=file]').on('change', e => {
                 $(e.target).uploadFile((element, data, status, jqXHR) => {
                     if (status === 'success') {
-                        showImportDialog(data.html);
-                    } else if (status === 'error') {
-                        alert(jqXHR.responseText);
+                        $(data).dialog('Upload Customers CSV', (eventName, _, target) => {
+                            if (eventName === 'shown.bs.modal') {
+                                target.on('submit', e => {
+                                    e.preventDefault();
+
+                                    $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
+                                        if (status === 'success') {
+                                            $('#datatable').bootstrapTable('refresh');
+                                            window.modal.modal('hide');
+                                        }
+                                    });
+                                })
+                            }
+                        });
                     }
                 });
             });

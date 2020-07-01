@@ -229,7 +229,7 @@ namespace Core.Services.Business {
                 if(customers.Count == 0) {
                     return new ReportStatusDto(ReportCheckStatus.Success, $"{result.Data.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
                 } else {
-                    return new ReportStatusDto(ReportCheckStatus.Warning, $"{customers.Count} out of ${result.Data.Count} customers do not match the \"Account Number\" in the company settings template ");
+                    return new ReportStatusDto(ReportCheckStatus.Warning, $"{customers.Count} out of {result.Data.Count} customers do not match the \"Account Number\" in the company settings template");
                 }
             } catch(Exception ex) {
                 return new ReportStatusDto(ReportCheckStatus.Danger, ex.Message);

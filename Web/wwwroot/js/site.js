@@ -36,7 +36,7 @@ $.fn.dialog = function (header, callback) {
         $('.modal .modal-body').empty().html(this),
 
         window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
-            var form = $('.modal .modal-content form').on('submit');
+            var form = $('.modal .modal-content form');//.on('submit');
             var formId = form.attr('id');
 
             var submitBtn = $('.modal .modal-footer #modalSubmitBtn');

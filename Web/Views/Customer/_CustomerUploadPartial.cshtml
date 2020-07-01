@@ -1,0 +1,115 @@
+﻿@model Web.ViewModels.CustomerBulkViewModel
+
+@{
+    Layout = null;
+    var formId = Guid.NewGuid();
+    var createUploadedCustomersUrl = Url.RouteUrl("CreateUploadedCustomers");
+    var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingUploadCustomersAccountNumber");
+}
+
+<form id="@formId" action="@(createUploadedCustomersUrl )" method="post">
+    <fieldset>
+        <div class="form-row mb-3 align-items-end">
+            <div class="col">
+                <label asp-for="CompanyId"></label>
+                <div class="input-group">
+                    <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
+                        <option value="" disabled selected>Nothing selected</option>
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Check</button>
+                        <div class="dropdown-menu">
+                            <a id="checkingCustomerAccountNumberBtn" class="dropdown-item" href="#">Checking customer Account Number</a>
+                            <a id="checkingCustomerBusinessNameBtn" class="dropdown-item" href="#">Checking customer Business Name</a>
+                        </div>
+                    </div>
+                </div>
+                <small class="form-text text-muted">* Indicates required field</small>
+            </div>
+        </div>
+
+        <div div class="form-row mb-3">
+            <ul class="list-unstyled m-0">
+                <li><div id="checkingCustomerAccountNumberResult"></div></li>
+                <li><div id="checkingCustomerBusinessNameResult"></div></li>
+            </ul>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th rowspan="2"></th>
+                        <th rowspan="2"><input type="checkbox" id="checkboxToggleBtn" checked /></th>
+                        @for(var i = 0; i < Model.HeadRow.Count(); i++) {
+                            <th>@Model.HeadRow[i]</th>
+                        }
+                    </tr>
+                    <tr>
+                        @for(var i = 0; i < Model.HeadRow.Count(); i++) {
+                            var column = Model.HeadRow[i];
+                            <th>
+                                <input type="hidden" name="HeadRow[]" value="@column" />
+                                <input type="hidden" name="Columns[][Index]" value="@i" />
+                                <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
+                                    <option value="" selected>Nothing selected</option>
+                                </select>
+                            </th>
+                        }
+                    </tr>
+                    <tr></tr>
+                </thead>
+                <tbody>
+                    @for(var i = 0; i < Model.Rows.Count; i++) {
+                        var rows = Model.Rows[i];
+                        <tr id="tr_@(i)" data-id="@(i)">
+                            <td>@(i + 1)</td>
+                            <td>
+                                <input type="checkbox" name="CheckedRecords[]" value="@(i)" checked />
+                            </td>
+                            @for(var j = 0; j < rows.Count(); j++) {
+                                var row = rows[j];
+                                <td>@row.Value</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</form>
+
+<script type="text/javascript">
+    $(document).ready((e) => {
+        var $form = $('#@(formId)');
+        $('#checkboxToggleBtn').on('change', (e) => {
+            e.preventDefault();
+            var $checkboxes = $form.find('table tbody input[type=checkbox]');
+            $checkboxes.prop('checked', $(e.target).is(':checked'))
+        });
+
+        $('#checkingCustomerAccountNumberBtn').on('click', (e) => {
+            e.preventDefault();
+            var formData = JSON.stringify($form.serializeJSON());
+
+            var options = {
+                'url': '@(checkingCustomerAccountNumberUrl)',
+                'type': 'post',
+                'data': formData,
+                'processData': false,
+                'contentType': 'application/json; charset=utf-8'
+            };
+
+            $.ajax(options).done((data, status, jqXHR) => {
+                if (status === 'success') {
+                    $('#checkingCustomerAccountNumberResult').text(data.message);
+                    if (Array.isArray(data.customers)) {
+                        var tbody = $form.find('table tbody')
+                            tbody.find('tr').removeClass('table-warning');
+                        data.customers.forEach(x => tbody.find(`tr[data-id=${x}]`).addClass('table-warning'));
+                    }
+                }
+            });
+        });
+    });
+</script>

@@ -145,3 +145,9 @@ div.document p {
   font-size: .75rem;
   text-transform: uppercase;
 }
+
+@media (min-width: 1200px) {
+  .modal-xl {
+    max-width: 80%;
+  }
+}

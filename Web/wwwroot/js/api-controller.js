@@ -85,3 +85,11 @@ $.fn.disabled = function () {
 $.fn.enabled = function () {
     $(this).removeAttr('disabled').removeClass('disabled');
 }
+
+$.fn.check = function () {
+    $(this).prop("checked", true);
+}
+
+$.fn.uncheck = function () {
+    $(this).prop("checked", false);
+}

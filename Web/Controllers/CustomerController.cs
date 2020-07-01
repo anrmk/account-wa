@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using AutoMapper;
@@ -14,7 +15,9 @@ using Core.Services.Business;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -155,80 +158,6 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
                 return BadRequest(er);
             }
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Upload([FromForm] IFormCollection forms) {
-            var companies = await _businessManager.GetCompanies();
-            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            //TODO: Сделать отображение атрибута Display 
-            ViewBag.CustomerFields = typeof(CustomerViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
-                .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
-
-            if(forms.Files.Count > 0) {
-                var file = forms.Files[0];
-                var extension = Path.GetExtension(file.FileName);
-
-                try {
-                    //if(extension.Equals(".json")) {
-                    //    using(var reader = new StreamReader(file.OpenReadStream())) {
-                    //        try {
-                    //            var result = await reader.ReadToEndAsync();
-
-                    //            var dtoList = JsonConvert.DeserializeObject<List<CustomerDto>>(result);
-                    //            var customers = _mapper.Map<List<CustomerViewModel>>(dtoList);
-
-                    //            var resultHtml = _viewRenderService.RenderToStringAsync("_CustomerBulkCreatePartial", customers).Result;
-
-                    //            return Json(new { html = resultHtml });
-
-                    //        } catch(Exception e) {
-                    //            _logger.LogError(e, e.Message);
-                    //        }
-                    //    }
-                    //} else 
-                    if(extension.Equals(".csv")) {
-                        using(var reader = new StreamReader(file.OpenReadStream())) {
-                            using(TextFieldParser csvParser = new TextFieldParser(reader)) {
-                                csvParser.CommentTokens = new string[] { "#" };
-                                csvParser.SetDelimiters(new string[] { "," });
-                                csvParser.HasFieldsEnclosedInQuotes = true;
-
-                                var model = new CustomerBulkViewModel() {
-                                    HeadRow = csvParser.ReadFields().ToList(),
-                                    Rows = new List<CustomerRowViewModel[]>()
-                                };
-
-                                while(!csvParser.EndOfData) {
-                                    string[] fields = csvParser.ReadFields();
-                                    var rows = new List<CustomerRowViewModel>();
-                                    for(int i = 0; i < fields.Count(); i++) {
-                                        rows.Add(new CustomerRowViewModel() {
-                                            Index = i,
-                                            Name = model.HeadRow[i],
-                                            Value = fields[i]
-                                        });
-                                    }
-                                    model.Rows.Add(rows.ToArray());
-                                }
-
-                                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
-                                _memoryCache.Set("_CustomerUpload", model, cacheEntryOptions);
-
-                                var resultHtml = _viewRenderService.RenderToStringAsync("_CustomerBulkCreatePartial", model, ViewData).Result;
-                                return Json(new { html = resultHtml });
-                            }
-                        }
-                    } else {
-                        throw new Exception("Unsupported file type: " + extension);
-                    }
-                } catch(Exception e) {
-                    _logger.LogError(e, e.Message);
-                    return BadRequest(e);
-                }
-            }
-            return Json(new { html = "" });
         }
 
         [HttpPost]
@@ -629,97 +558,7 @@ namespace Web.Controllers.Api {
             return pager;
         }
 
-        [HttpPost]
-        [Route("create")]
-        public async Task<ActionResult> CreateCustomers(CustomerBulkViewModel model) {
-            var customerList = new List<CustomerViewModel>();
 
-            try {
-                if(ModelState.IsValid) {
-                    //Получить данные из кэш
-                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows;
-
-                    var customerTypes = await _businessManager.GetCustomerTypes();
-                    var customerTags = await _businessManager.GetCustomerTags();
-
-                    for(var i = 0; i < model.Rows?.Count(); i++) {
-                        var row = model.Rows[i];
-                        var customer = new CustomerViewModel() {
-                            CompanyId = model.CompanyId,
-                        };
-
-                        for(var j = 0; j < row.Count(); j++) {
-                            var column = model.Columns[j];
-                            if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
-                                var property = customer.GetType().GetProperty(column.Name);
-
-                                if(property != null && property.CanWrite) {
-                                    /*if(property.PropertyType == typeof(long)) {
-                                        if(long.TryParse(row[j].Value, out long longValue)) {
-                                            property.SetValue(customer, longValue);
-                                        }
-                                    } else*/
-                                    if(property.PropertyType == typeof(double)) {
-                                        if(double.TryParse(row[j].Value, out double doubleVal)) {
-                                            property.SetValue(customer, doubleVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(decimal)) {
-                                        if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
-                                            property.SetValue(customer, decimalVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(int)) {
-                                        if(int.TryParse(row[j].Value, out int intVal)) {
-                                            property.SetValue(customer, intVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(bool)) {
-                                        if(bool.TryParse(row[j].Value, out bool boolVal)) {
-                                            property.SetValue(customer, boolVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(DateTime)) {
-                                        if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
-                                            property.SetValue(customer, dateVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(ICollection<long?>)) {
-                                        if(property.Name.Equals("TagsIds")) {
-                                            var tagsValues = row[j].Value.Split(',').Select(x => x.Trim()).ToList();
-                                            var tagsIds = customerTags.Where(x => tagsValues.Contains(x.Name)).Select(x => x?.Id).ToList();
-                                            if(tagsIds.Count() > 0)
-                                                property.SetValue(customer, tagsIds);
-                                        }
-                                    } else {
-                                        if(property.Name.Equals("TypeId")) {
-                                            var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
-                                            if(ctype != null) {
-                                                var propertyTypeId = customer.GetType().GetProperty("TypeId");
-                                                propertyTypeId.SetValue(customer, ctype.Id);
-                                            }
-                                        } else {
-                                            property.SetValue(customer, row[j].Value);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if(TryValidateModel(customer)) {
-                            customerList.Add(customer);
-                        }
-                    }
-                }
-
-                if(customerList.Count == 0) {
-                    throw new Exception("No records have been created! Please, fill the required fields!");
-                }
-
-                var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
-                var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-                return Ok(_mapper.Map<List<CustomerViewModel>>(result));
-
-            } catch(Exception e) {
-                return BadRequest(e.Message ?? e.StackTrace);
-            }
-        }
 
         [HttpPost]
         [Route("createcredits")]
@@ -791,6 +630,207 @@ namespace Web.Controllers.Api {
             } catch(Exception e) {
                 return BadRequest(e.Message ?? e.StackTrace);
             }
+        }
+
+        [HttpPost("UploadCustomers", Name = "UploadCustomers")]
+        public async Task<ActionResult> UploadCustomers([FromForm] IFormCollection forms) {
+            try {
+                if(forms.Files.Count == 0) {
+                    throw new Exception("No file uploaded!");
+                }
+
+                var file = forms.Files[0];
+                var extension = Path.GetExtension(file.FileName);
+
+                if(!extension.Equals(".csv")) {
+                    throw new Exception($"Unsupported file type: {extension}!");
+                }
+
+                using(var reader = new StreamReader(file.OpenReadStream())) {
+                    using(TextFieldParser csvParser = new TextFieldParser(reader)) {
+                        csvParser.CommentTokens = new string[] { "#" };
+                        csvParser.SetDelimiters(new string[] { "," });
+                        csvParser.HasFieldsEnclosedInQuotes = true;
+
+                        var model = new CustomerBulkViewModel() {
+                            HeadRow = csvParser.ReadFields().ToList(),
+                            Rows = new List<CustomerRowViewModel[]>()
+                        };
+
+                        while(!csvParser.EndOfData) {
+                            string[] fields = csvParser.ReadFields();
+                            var rows = new List<CustomerRowViewModel>();
+                            for(int i = 0; i < fields.Count(); i++) {
+                                rows.Add(new CustomerRowViewModel() {
+                                    Index = i,
+                                    Name = model.HeadRow[i],
+                                    Value = fields[i]
+                                }); ;
+                            }
+                            model.Rows.Add(rows.ToArray());
+                        }
+
+                        var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
+                        _memoryCache.Set("_CustomerUpload", model, cacheEntryOptions);
+
+                        var companies = (await _businessManager.GetCompanies()).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+                        var customerFields = typeof(CustomerViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
+                            .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
+                        var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                                    { "Companies", companies},
+                                    { "Fields", customerFields }
+                                };
+
+                        string html = _viewRenderService.RenderToStringAsync("_CustomerUploadPartial", model, viewDataDictionary).Result;
+                        return Ok(html);
+                    }
+                }
+
+            } catch(Exception er) {
+                return BadRequest(er.Message);
+            }
+        }
+
+        [HttpPost("CreateUploadedCustomers", Name = "CreateUploadedCustomers")]
+        public async Task<ActionResult> CreateUploadedCustomers(CustomerBulkViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    if(model.CheckedRecords == null || model.CheckedRecords.Length == 0)
+                        throw new Exception("No records selected!");
+
+                    //Получить данные из кэш
+                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                    model.Rows = cacheModel?.Rows;
+
+                    var customerTypes = await _businessManager.GetCustomerTypes();
+                    var customerTags = await _businessManager.GetCustomerTags();
+
+                    var customerList = new List<CustomerViewModel>();
+                    for(int i = 0; i < model.Rows.Count; i++) {
+                        if(!model.CheckedRecords.Contains(i))
+                            continue;
+
+                        var row = model.Rows[i];
+
+                        var customer = new CustomerViewModel() {
+                            CompanyId = model.CompanyId,
+                        };
+
+                        for(var j = 0; j < row.Count(); j++) {
+                            var column = model.Columns[j];
+                            if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
+                                var property = customer.GetType().GetProperty(column.Name);
+
+                                if(property != null && property.CanWrite) {
+                                    /*if(property.PropertyType == typeof(long)) {
+                                        if(long.TryParse(row[j].Value, out long longValue)) {
+                                            property.SetValue(customer, longValue);
+                                        }
+                                    } else*/
+                                    if(property.PropertyType == typeof(double)) {
+                                        if(double.TryParse(row[j].Value, out double doubleVal)) {
+                                            property.SetValue(customer, doubleVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(decimal)) {
+                                        if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
+                                            property.SetValue(customer, decimalVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(int)) {
+                                        if(int.TryParse(row[j].Value, out int intVal)) {
+                                            property.SetValue(customer, intVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(bool)) {
+                                        if(bool.TryParse(row[j].Value, out bool boolVal)) {
+                                            property.SetValue(customer, boolVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(DateTime)) {
+                                        if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                            property.SetValue(customer, dateVal);
+                                        }
+                                    } else if(property.PropertyType == typeof(ICollection<long?>)) {
+                                        if(property.Name.Equals("TagsIds")) {
+                                            var tagsValues = row[j].Value.Split(',').Select(x => x.Trim()).ToList();
+                                            var tagsIds = customerTags.Where(x => tagsValues.Contains(x.Name)).Select(x => x?.Id).ToList();
+                                            if(tagsIds.Count() > 0)
+                                                property.SetValue(customer, tagsIds);
+                                        }
+                                    } else {
+                                        if(property.Name.Equals("TypeId")) {
+                                            var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
+                                            if(ctype != null) {
+                                                var propertyTypeId = customer.GetType().GetProperty("TypeId");
+                                                propertyTypeId.SetValue(customer, ctype.Id);
+                                            }
+                                        } else {
+                                            property.SetValue(customer, row[j].Value);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if(TryValidateModel(customer)) {
+                            customerList.Add(customer);
+                        }
+                    }
+
+                    if(customerList.Count == 0) {
+                        throw new Exception("No records have been created! Please, fill the required fields!");
+                    }
+
+                    var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
+                    var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
+                    return Ok(_mapper.Map<List<CustomerViewModel>>(result));
+                }
+            } catch(Exception er) {
+                //_memoryCache.Remove("_CustomerUpload");
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
+            return Ok();
+        }
+
+        [HttpPost("CheckingUploadCustomersAccountNumber", Name = "CheckingUploadCustomersAccountNumber")]
+        public async Task<IActionResult> CheckingUploadCustomersAccountNumber(CustomerBulkViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                    }
+
+                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                    model.Rows = cacheModel?.Rows;
+
+                    if(model.Rows == null || model.Rows.Count == 0) {
+                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                    }
+
+                    var regex = new Regex(company.Settings.AccountNumberTemplate);
+
+                    var customers = new List<long>();
+                    for(int i = 0; i < model.Rows.Count; i++) {
+                        var row = model.Rows[i];
+
+                        var column = model.Columns.Find(x => x.Name.Equals("No"));
+                        if(column != null) {
+                            var isMatch = regex.IsMatch(row[column.Index].Value);
+
+                            if(!isMatch) {
+                                customers.Add(i);
+                            }
+                        }
+                    }
+
+                    if(customers.Count == 0) {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings" });
+                    } else {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match the \"Account Number\" in the company settings template" });
+                    }
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
+            return Ok();
         }
     }
 }
