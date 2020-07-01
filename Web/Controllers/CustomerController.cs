@@ -204,7 +204,7 @@ namespace Web.Controllers.Mvc {
                                 _memoryCache.Set("_CustomerCreditsUpload", model, cacheEntryOptions);
 
                                 var resultHtml = _viewRenderService.RenderToStringAsync("_CustomerCreditsBulkCreatePartial", model, ViewData).Result;
-                                return Json(new { html = resultHtml });
+                                return Json(resultHtml);
                             }
                         }
                     } else {
@@ -793,6 +793,10 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> CheckingUploadCustomersAccountNumber(CustomerBulkViewModel model) {
             try {
                 if(ModelState.IsValid) {
+                    var column = model.Columns.Find(x => x.Name.Equals("No"));
+                    if(column == null)
+                        throw new Exception("Please, select \"Account Number\" column");
+
                     var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
                         throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
@@ -811,13 +815,9 @@ namespace Web.Controllers.Api {
                     for(int i = 0; i < model.Rows.Count; i++) {
                         var row = model.Rows[i];
 
-                        var column = model.Columns.Find(x => x.Name.Equals("No"));
-                        if(column != null) {
-                            var isMatch = regex.IsMatch(row[column.Index].Value);
-
-                            if(!isMatch) {
-                                customers.Add(i);
-                            }
+                        var isMatch = regex.IsMatch(row[column.Index].Value);
+                        if(!isMatch) {
+                            customers.Add(i);
                         }
                     }
 
@@ -825,6 +825,51 @@ namespace Web.Controllers.Api {
                         return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings" });
                     } else {
                         return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match the \"Account Number\" in the company settings template" });
+                    }
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
+            return Ok();
+        }
+
+        [HttpPost("CheckingUploadCustomersBusinessName", Name = "CheckingUploadCustomersBusinessName")]
+        public async Task<IActionResult> CheckingUploadCustomersBusinessName(CustomerBulkViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var column = model.Columns.Find(x => x.Name.Equals("Name"));
+                    if(column == null)
+                        throw new Exception("Please, select \"Business Name\" column");
+
+                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                    }
+
+                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                    model.Rows = cacheModel?.Rows;
+
+                    if(model.Rows == null || model.Rows.Count == 0) {
+                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                    }
+
+                    var ccustomer = await _businessManager.GetCustomers(model.CompanyId ?? 0);
+
+                    var customers = new List<long>();
+                    for(int i = 0; i < model.Rows.Count; i++) {
+                        var row = model.Rows[i];
+                        var customerName = row[column.Index].Value;
+
+                        var customer = ccustomer.Where(x => x.Name.Equals(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                        if(customer != null) {
+                            customers.Add(i);
+                        }
+                    }
+
+                    if(customers.Count == 0) {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers are not in the Data Base of company {company.Name}" });
+                    } else {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers are already in Data Base of company {company.Name}" });
                     }
                 }
             } catch(Exception er) {

@@ -116,9 +116,9 @@ $.extend($.validator, {
         messages: {},
         groups: {},
         rules: {},
-        errorClass: "is-invalid",
+        errorClass: "invalid-feedback",
         validClass: "valid",
-        errorElement: "label",
+        errorElement: "small",
         focusInvalid: true,
         errorContainer: $([]),
         errorLabelContainer: $([]),
@@ -127,6 +127,13 @@ $.extend($.validator, {
         ignoreTitle: false,
         onfocusin: function (element, event) {
             this.lastActive = element;
+        },
+        errorPlacement: function (error, element) {
+            var parent = $(element).closest('.input-group');
+            if (parent != null && parent.length > 0) {
+                element = parent;
+            }
+            error.insertAfter(element);
         }
     }
 });
