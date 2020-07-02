@@ -55,6 +55,7 @@ namespace Web {
             CreateMap<CompanySettingsViewModel, CompanySettingsDto>().ReverseMap();
             CreateMap<CompanyExportSettingsViewModel, CompanyExportSettingsDto>().ReverseMap();
             CreateMap<CompanyExportSettingsFieldViewModel, CompanyExportSettingsFieldDto>().ReverseMap();
+            CreateMap<CompanyRestrictedWordViewModel, CompanyRestrictedWordDto>().ReverseMap();
             #endregion
 
             #region CUSTOMER
@@ -101,7 +102,7 @@ namespace Web {
             CreateMap<CustomerImportCreditsViewModel, CustomerImportCreditsDto>().ReverseMap();
             CreateMap<CustomerRecheckViewModel, CustomerRecheckDto>().ReverseMap();
 
-            CreateMap<CustomerSettingsRestrictedWordViewModel, CustomerSettingsRestrictedWordDto>().ReverseMap();
+            CreateMap<SettingsRestrictedWordViewModel, SettingsRestrictedWordDto>().ReverseMap();
             #endregion
 
             #region INVOICE

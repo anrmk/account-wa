@@ -28,6 +28,8 @@ namespace Core {
                 .ForMember(d => d.Fields, o => o.Ignore())
                 .ReverseMap();
             CreateMap<CompanyExportSettingsFieldDto, CompanyExportSettingsFieldEntity>().ReverseMap();
+            CreateMap<CompanyRestrictedWordDto, CompanyRestrictedWordEntity>().ReverseMap();
+            
             #endregion
 
             #region INVOICE
@@ -131,7 +133,7 @@ namespace Core {
                 .ReverseMap()
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""));
 
-            CreateMap<CustomerSettingsRestrictedWordDto, CustomerSettingsRestrictedWordEntity>().ReverseMap();
+            CreateMap<SettingsRestrictedWordDto, SettingsRestrictedWordEntity>().ReverseMap();
 
             #endregion
 

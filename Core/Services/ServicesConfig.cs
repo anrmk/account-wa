@@ -31,6 +31,7 @@ namespace Core.Services {
             services.AddTransient<ICompanySettingsManager, CompanySettingsManager>();
             services.AddTransient<ICompanyExportSettingsManager, CompanyExportSettingsManager>();
             services.AddTransient<ICompanyExportSettingsFieldManager, CompanyExportSettingsFieldManager>();
+            services.AddTransient<ICompanySettingsRestrictedWordManager, CompanySettingsRestrictedWordManager>();
 
             services.AddTransient<ICustomerManager, CustomerManager>();
             services.AddTransient<ICustomerActivityManager, CustomerActivityManager>();
@@ -43,7 +44,7 @@ namespace Core.Services {
             services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
             services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
             services.AddTransient<ICustomerSettingsManager, CustomerSettingsManager>();
-            services.AddTransient<ICustomerSettingsRestrictedWordManager, CustomerSettingsRestrictedWordManager>();
+            services.AddTransient<ISettingsRestrictedWordManager, SettingsRestrictedWordManager>();
 
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IInvoiceConstructorManager, InvoiceConstructorManager>();
@@ -57,11 +58,12 @@ namespace Core.Services {
             services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
             services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
 
-
             ///Business
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
-            services.AddTransient<ICustomerBusinessService, CustomerBusinessService>();
+            services.AddTransient<ICompanyBusinessManager, CompanyBusinessManager>();
+            services.AddTransient<ISettingsBusinessService, SettingsBusinessService>();
+
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();
         }
     }

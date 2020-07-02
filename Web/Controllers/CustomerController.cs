@@ -29,12 +29,12 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
-        private readonly ICustomerBusinessService _customerBusinessService;
+        private readonly ISettingsBusinessService _customerBusinessService;
         private readonly IViewRenderService _viewRenderService;
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, ICustomerBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, ISettingsBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
             _customerBusinessService = customerBusinessService;
             _viewRenderService = viewRenderService;
@@ -219,64 +219,6 @@ namespace Web.Controllers.Mvc {
             }
             return BadRequest("Something went wrong....");
         }
-
-
-        #region SETTINGS
-        [HttpGet]
-        public IActionResult Settings() {
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult CreateSettingsRestrictedWord() {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateSettingsRestrictedWord(CustomerSettingsRestrictedWordViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var item = await _customerBusinessService.CreateSettingsRestrictedWord(_mapper.Map<CustomerSettingsRestrictedWordDto>(model));
-                    if(item == null) {
-                        return BadRequest();
-                    }
-                    return RedirectToAction(nameof(Settings));
-                }
-
-            } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-            }
-            return View(model);
-        }
-
-        public async Task<IActionResult> EditSettingsRestrictedWord(long id) {
-            var item = await _customerBusinessService.GetSettingsRestrictedWord(id);
-            if(item == null) {
-                return NotFound();
-            }
-
-            var model = _mapper.Map<CustomerSettingsRestrictedWordViewModel>(item);
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditSettingsRestrictedWord(long id, CustomerSettingsRestrictedWordViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var item = await _customerBusinessService.UpdateSettingsRestrictedWord(id, _mapper.Map<CustomerSettingsRestrictedWordDto>(model));
-                    if(item == null) {
-                        return BadRequest();
-                    }
-                }
-            } catch(Exception er) {
-                BadRequest(er.Message);
-            }
-
-            return RedirectToAction(nameof(EditSettingsRestrictedWord), new { Id = id });
-        }
-        #endregion
 
 
         #region ACTIVITY
@@ -602,12 +544,12 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
-        private readonly ICustomerBusinessService _customerBusinessService;
+        private readonly ISettingsBusinessService _customerBusinessService;
 
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager,
-            ICustomerBusinessService customerBusinessService) {
+            ISettingsBusinessService customerBusinessService) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
@@ -961,8 +903,8 @@ namespace Web.Controllers.Api {
                         throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
                     }
 
-                    var words = await _customerBusinessService.GetSettingsRestrictedWords();
-                    var findingWords = new List<CustomerSettingsRestrictedWordDto>();
+                    var words = await _customerBusinessService.GetRestrictedWords();
+                    var findingWords = new List<SettingsRestrictedWordDto>();
                     var customers = new List<long>();
                     for(int i = 0; i < model.Rows.Count; i++) {
                         var row = model.Rows[i];
@@ -988,13 +930,6 @@ namespace Web.Controllers.Api {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
             return Ok();
-        }
-
-        [HttpGet("GetSettingsRestrictedWords", Name = "GetSettingsRestrictedWords")]
-        public async Task<Pager<CustomerSettingsRestrictedWordViewModel>> GetSettingsRestrictedWords([FromQuery] PagerFilterViewModel model) {
-            var result = await _customerBusinessService.GetSettingsRestrictedWordPage(_mapper.Map<PagerFilterDto>(model));
-            var pager = new Pager<CustomerSettingsRestrictedWordViewModel>(_mapper.Map<List<CustomerSettingsRestrictedWordViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
-            return pager;
         }
     }
 }

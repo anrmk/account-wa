@@ -1,5 +1,5 @@
 ﻿namespace Core.Data.Dto {
-    public class CustomerSettingsRestrictedWordDto {
+    public class SettingsRestrictedWordDto {
         public long Id { get; set; }
         public string Name { get; set; }
     }

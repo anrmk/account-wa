@@ -1,0 +1,36 @@
+﻿@model Web.ViewModels.SettingsRestrictedWordViewModel
+
+@{
+    ViewData["Title"] = "Create Customer Restricted Word";
+    var formId = Guid.NewGuid();
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Settings</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New restricted word</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-body">
+        <form id="@(formId)" asp-action="CreateSettingsRestrictedWord">
+            <fieldset>
+                <div class="form-row mb-3">
+                    <div class="col">
+                        <label asp-for="Name"></label>
+                        <input asp-for="Name" type="text" class="form-control" required>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label asp-for="CompanyIds"></label>
+                        <select asp-for="CompanyIds" asp-items="@ViewBag.Companies" class="form-control selectpicker" multiple></select>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary" form="@formId">Save</button>
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+    </div>
+</div>

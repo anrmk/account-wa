@@ -1,16 +1,15 @@
 ﻿@model Web.ViewModels.CustomerSettingsViewModel
 
 @{
-    ViewData["Title"] = "Customer Settings";
+    ViewData["Title"] = "Settings";
 
     var settingsRestrictedWordsUrl = Url.RouteUrl("GetSettingsRestrictedWords");
-    var settingsRestrictedWordEditUrl = Url.ActionLink(action: "EditSettingsRestrictedWord", controller: "Customer");
+    var settingsRestrictedWordEditUrl = Url.ActionLink(action: "EditSettingsRestrictedWord", controller: "Settings");
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Settings</li>
+        <li class="breadcrumb-item"><a asp-action="Index">Settings</a></li>
     </ol>
 </nav>
 
@@ -28,7 +27,7 @@
             <div class="tab-pane fade show active" id="restricted" role="tabpanel" aria-labelledby="restricted-tab">
                 <div id="toolbar" class="btn-toolbar" role="toolbar">
                     <div class="btn-group mr-1" role="group">
-                        <a asp-controller="Customer" asp-action="CreateSettingsRestrictedWord" class="btn btn-secondary" ><i class="fa fa-plus mr-1"></i> Create</a>
+                        <a asp-controller="Settings" asp-action="CreateSettingsRestrictedWord" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                     </div>
                 </div>
                 <table id="datatable" data-toggle="table" data-url="@(settingsRestrictedWordsUrl)"
@@ -54,7 +53,7 @@
         }
 
         $(document).ready(() => {
-            
+
         });
     </script>
 }
