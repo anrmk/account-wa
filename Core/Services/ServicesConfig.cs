@@ -42,28 +42,26 @@ namespace Core.Services {
             services.AddTransient<ICustomerTagLinkManager, CustomerTagLinkManager>();
             services.AddTransient<ICustomerTypeManager, CustomerTypeManager>();
             services.AddTransient<ICustomerRecheckManager, CustomerRecheckManager>();
+            services.AddTransient<ICustomerSettingsManager, CustomerSettingsManager>();
+            services.AddTransient<ICustomerSettingsRestrictedWordManager, CustomerSettingsRestrictedWordManager>();
 
             services.AddTransient<IInvoiceManager, InvoiceManager>();
             services.AddTransient<IInvoiceConstructorManager, InvoiceConstructorManager>();
             services.AddTransient<IInvoiceDraftManager, InvoiceDraftManager>();
+            services.AddTransient<IInvoiceConstructorSearchManager, InvoiceConstructorSearchManager>();
 
             services.AddTransient<IPaymentManager, PaymentManager>();
 
             services.AddTransient<IReportManager, ReportManager>();
-            services.AddTransient<IInvoiceConstructorSearchManager, InvoiceConstructorSearchManager>();
-            //services.AddTransient<IReportFieldManager, ReportFieldManager>();
-
             services.AddTransient<ISavedReportManager, SavedReportManager>();
             services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
             services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
-
-            ///NSI
-            //services.AddTransient<IReportPeriodManager, ReportPeriodManager>();
 
 
             ///Business
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
+            services.AddTransient<ICustomerBusinessService, CustomerBusinessService>();
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();
         }
     }

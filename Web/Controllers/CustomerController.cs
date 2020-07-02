@@ -29,12 +29,14 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICustomerBusinessService _customerBusinessService;
         private readonly IViewRenderService _viewRenderService;
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, ICustomerBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _customerBusinessService = customerBusinessService;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
         }
@@ -78,8 +80,8 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<ActionResult> Edit(long id) {
-            var item = await _businessManager.GetCustomer(id);
-            if(item == null) {
+            var customer = await _businessManager.GetCustomer(id);
+            if(customer == null) {
                 return NotFound();
             }
 
@@ -104,7 +106,7 @@ namespace Web.Controllers.Mvc {
             var custoremTags = await _businessManager.GetCustomerTags();
             ViewBag.Tags = custoremTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            return View(_mapper.Map<CustomerViewModel>(item));
+            return View(_mapper.Map<CustomerViewModel>(customer));
         }
 
         [HttpPost]
@@ -218,15 +220,74 @@ namespace Web.Controllers.Mvc {
             return BadRequest("Something went wrong....");
         }
 
-        #region ACTIVITY
-        [Route("{customerId}/activity")]
-        public async Task<ActionResult> CreateActivity(long customerId) {
-            var item = await _businessManager.GetCustomer(customerId);
 
+        #region SETTINGS
+        [HttpGet]
+        public IActionResult Settings() {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult CreateSettingsRestrictedWord() {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSettingsRestrictedWord(CustomerSettingsRestrictedWordViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _customerBusinessService.CreateSettingsRestrictedWord(_mapper.Map<CustomerSettingsRestrictedWordDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                    return RedirectToAction(nameof(Settings));
+                }
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+            }
+            return View(model);
+        }
+
+        public async Task<IActionResult> EditSettingsRestrictedWord(long id) {
+            var item = await _customerBusinessService.GetSettingsRestrictedWord(id);
             if(item == null) {
                 return NotFound();
             }
-            ViewBag.CustomerName = item.Name;
+
+            var model = _mapper.Map<CustomerSettingsRestrictedWordViewModel>(item);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSettingsRestrictedWord(long id, CustomerSettingsRestrictedWordViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var item = await _customerBusinessService.UpdateSettingsRestrictedWord(id, _mapper.Map<CustomerSettingsRestrictedWordDto>(model));
+                    if(item == null) {
+                        return BadRequest();
+                    }
+                }
+            } catch(Exception er) {
+                BadRequest(er.Message);
+            }
+
+            return RedirectToAction(nameof(EditSettingsRestrictedWord), new { Id = id });
+        }
+        #endregion
+
+
+        #region ACTIVITY
+        [Route("{customerId}/activity")]
+        public async Task<ActionResult> CreateActivity(long customerId) {
+            var customer = await _businessManager.GetCustomer(customerId);
+
+            if(customer == null) {
+                return NotFound();
+            }
+            ViewBag.CustomerName = customer.Name;
 
             var model = new CustomerActivityViewModel() {
                 CustomerId = customerId,
@@ -259,13 +320,13 @@ namespace Web.Controllers.Mvc {
         #region CreditLimit
         [Route("{customerId}/creditlimit")]
         public async Task<ActionResult> CreateCreditLimit(long customerId) {
-            var item = await _businessManager.GetCustomer(customerId);
+            var customer = await _businessManager.GetCustomer(customerId);
 
-            if(item == null) {
+            if(customer == null) {
                 return NotFound();
             }
 
-            ViewBag.CustomerName = item.Name;
+            ViewBag.CustomerName = customer.Name;
 
             var model = new CustomerCreditLimitViewModel() {
                 CustomerId = customerId,
@@ -351,13 +412,13 @@ namespace Web.Controllers.Mvc {
         #region CreditUtilized
         [Route("{customerId}/creditutilized")]
         public async Task<ActionResult> CreateCreditUtilized(long customerId) {
-            var item = await _businessManager.GetCustomer(customerId);
+            var customer = await _businessManager.GetCustomer(customerId);
 
-            if(item == null) {
+            if(customer == null) {
                 return NotFound();
             }
 
-            ViewBag.CustomerName = item.Name;
+            ViewBag.CustomerName = customer.Name;
 
             var model = new CustomerCreditUtilizedViewModel() {
                 CustomerId = customerId,
@@ -443,12 +504,12 @@ namespace Web.Controllers.Mvc {
         #region RECHECK
         [Route("{customerId}/recheck")]
         public async Task<ActionResult> CreateRecheck(long customerId) {
-            var item = await _businessManager.GetCustomer(customerId);
+            var customer = await _businessManager.GetCustomer(customerId);
 
-            if(item == null) {
+            if(customer == null) {
                 return NotFound();
             }
-            ViewBag.CustomerName = item.Name;
+            ViewBag.CustomerName = customer.Name;
 
             var model = new CustomerRecheckViewModel() {
                 CustomerId = customerId,
@@ -541,13 +602,17 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICustomerBusinessService _customerBusinessService;
+
         private readonly IMemoryCache _memoryCache;
 
-        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager) {
+        public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager,
+            ICustomerBusinessService customerBusinessService) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
             _businessManager = businessManager;
+            _customerBusinessService = customerBusinessService;
         }
 
         [HttpGet("GetCustomers", Name = "GetCustomers")]
@@ -557,8 +622,6 @@ namespace Web.Controllers.Api {
             pager.Filter = result.Filter;
             return pager;
         }
-
-
 
         [HttpPost]
         [Route("createcredits")]
@@ -876,6 +939,62 @@ namespace Web.Controllers.Api {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
             return Ok();
+        }
+
+        [HttpPost("CheckingUploadCustomersForRestrictedWords", Name = "CheckingUploadCustomersForRestrictedWords")]
+        public async Task<IActionResult> CheckingUploadCustomersForRestrictedWords(CustomerBulkViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var column = model.Columns.Find(x => x.Name.Equals("Name"));
+                    if(column == null)
+                        throw new Exception("Please, select \"Business Name\" column");
+
+                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                    }
+
+                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                    model.Rows = cacheModel?.Rows;
+
+                    if(model.Rows == null || model.Rows.Count == 0) {
+                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                    }
+
+                    var words = await _customerBusinessService.GetSettingsRestrictedWords();
+                    var findingWords = new List<CustomerSettingsRestrictedWordDto>();
+                    var customers = new List<long>();
+                    for(int i = 0; i < model.Rows.Count; i++) {
+                        var row = model.Rows[i];
+                        var customerName = row[column.Index].Value;
+
+                        var result = words.Find(x => customerName.Contains(x.Name));
+
+                        //var customer = words.Where(x => x.Name.Contains(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                        if(result != null) {
+                            customers.Add(i);
+                            if(!findingWords.Contains(result))
+                                findingWords.Add(result);
+                        }
+                    }
+
+                    if(customers.Count == 0) {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers has valid \"Business Name\" which do not match the restricted words" });
+                    } else {
+                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match \"Business Name\" of the restricted words. [{string.Join(',', findingWords.Select(x => x.Name))}]" });
+                    }
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
+            return Ok();
+        }
+
+        [HttpGet("GetSettingsRestrictedWords", Name = "GetSettingsRestrictedWords")]
+        public async Task<Pager<CustomerSettingsRestrictedWordViewModel>> GetSettingsRestrictedWords([FromQuery] PagerFilterViewModel model) {
+            var result = await _customerBusinessService.GetSettingsRestrictedWordPage(_mapper.Map<PagerFilterDto>(model));
+            var pager = new Pager<CustomerSettingsRestrictedWordViewModel>(_mapper.Map<List<CustomerSettingsRestrictedWordViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            return pager;
         }
     }
 }

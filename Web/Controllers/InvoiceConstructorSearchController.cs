@@ -159,7 +159,7 @@ namespace Web.Controllers.Api {
 
         [HttpGet("GetReportSearchCriteria", Name = "GetReportSearchCriteria")]
         public async Task<Pager<InvoiceConstructorSearchViewModel>> GetReportSearchCriteria([FromQuery] PagerFilterViewModel model) {
-            var result = await _businessManager.GetInvoiceConstructorSearchCriterias(_mapper.Map<PagerFilter>(model));
+            var result = await _businessManager.GetInvoiceConstructorSearchCriterias(_mapper.Map<PagerFilterDto>(model));
             var pager = new Pager<InvoiceConstructorSearchViewModel>(_mapper.Map<List<InvoiceConstructorSearchViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             pager.Filter = result.Filter;
             return pager;

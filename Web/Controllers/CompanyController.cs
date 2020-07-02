@@ -399,13 +399,6 @@ namespace Web.Controllers.Api {
             _businessManager = businessManager;
         }
 
-
-        [HttpGet]
-        [Route("all")]
-        public async Task<List<CompanyDto>> GetAll() {
-            return await _businessManager.GetCompanies();
-        }
-
         [HttpGet]
         //public async Task<Pager<CompanyListViewModel>> GetCompanies([FromQuery] PagerFilterViewModel model) {
         public async Task<Pager<CompanyListViewModel>> GetCompanies(string search, string sort, string order, int offset = 0, int limit = 10) {

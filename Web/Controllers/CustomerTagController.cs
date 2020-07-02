@@ -114,7 +114,7 @@ namespace Web.Controllers.Api {
 
         [HttpGet]
         public async Task<Pager<CustomerTagViewModel>> GetCustomerTags([FromQuery] PagerFilterViewModel model) {
-            var result = await _businessManager.GetCustomerTags(_mapper.Map<PagerFilter>(model));
+            var result = await _businessManager.GetCustomerTags(_mapper.Map<PagerFilterDto>(model));
             var pager = new Pager<CustomerTagViewModel>(_mapper.Map<List<CustomerTagViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
         }

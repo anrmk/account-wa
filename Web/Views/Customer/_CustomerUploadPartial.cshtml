@@ -6,6 +6,7 @@
     var createUploadedCustomersUrl = Url.RouteUrl("CreateUploadedCustomers");
     var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingUploadCustomersAccountNumber");
     var checkingCustomerBusinessNameUrl = Url.RouteUrl("CheckingUploadCustomersBusinessName");
+    var checkingCustomerRestrictedWordsUrl = Url.RouteUrl("CheckingUploadCustomersForRestrictedWords");
 }
 
 <form id="@formId" action="@(createUploadedCustomersUrl )" method="post">
@@ -22,6 +23,7 @@
                         <div class="dropdown-menu">
                             <a id="checkingCustomerAccountNumberBtn" class="dropdown-item" href="#">Checking customer Account Number</a>
                             <a id="checkingCustomerBusinessNameBtn" class="dropdown-item" href="#">Checking customer Business Name</a>
+                            <a id="checkingCustomerForRestrictedWordsBtn" class="dropdown-item" href="#">Checking for Restricted Words</a>
                         </div>
                     </div>
                 </div>
@@ -42,19 +44,19 @@
                         <th rowspan="2"></th>
                         <th rowspan="2"><input type="checkbox" id="checkboxToggleBtn" checked /></th>
                         @for(var i = 0; i < Model.HeadRow.Count(); i++) {
-                        <th>@Model.HeadRow[i]</th>
+                            <th>@Model.HeadRow[i]</th>
                         }
                     </tr>
                     <tr>
                         @for(var i = 0; i < Model.HeadRow.Count(); i++) {
                             var column = Model.HeadRow[i];
-                        <th>
-                            <input type="hidden" name="HeadRow[]" value="@column" />
-                            <input type="hidden" name="Columns[][Index]" value="@i" />
-                            <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
-                                <option value="" selected>Nothing selected</option>
-                            </select>
-                        </th>
+                            <th>
+                                <input type="hidden" name="HeadRow[]" value="@column" />
+                                <input type="hidden" name="Columns[][Index]" value="@i" />
+                                <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
+                                    <option value="" selected>Nothing selected</option>
+                                </select>
+                            </th>
                         }
                     </tr>
                     <tr></tr>
@@ -62,16 +64,16 @@
                 <tbody>
                     @for(var i = 0; i < Model.Rows.Count; i++) {
                         var rows = Model.Rows[i];
-                    <tr id="tr_@(i)" data-id="@(i)">
-                        <td>@(i + 1)</td>
-                        <td>
-                            <input type="checkbox" name="CheckedRecords[]" value="@(i)" checked />
-                        </td>
-                        @for(var j = 0; j < rows.Count(); j++) {
+                        <tr id="tr_@(i)" data-id="@(i)">
+                            <td>@(i + 1)</td>
+                            <td>
+                                <input type="checkbox" name="CheckedRecords[]" value="@(i)" checked />
+                            </td>
+                            @for(var j = 0; j < rows.Count(); j++) {
                                 var row = rows[j];
-                        <td>@row.Value</td>
+                                <td>@row.Value</td>
                             }
-                    </tr>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -121,6 +123,32 @@
 
                 var options = {
                     'url': '@(checkingCustomerBusinessNameUrl)',
+                    'type': 'post',
+                    'data': formData,
+                    'processData': false,
+                    'contentType': 'application/json; charset=utf-8'
+                };
+
+                $.ajax(options).done((data, status, jqXHR) => {
+                    if (status === 'success') {
+                        $('#checkingCustomerBusinessNameResult').text(data.message);
+                        if (Array.isArray(data.customers)) {
+                            var tbody = $form.find('table tbody')
+                            tbody.find('tr').removeClass('table-warning');
+                            data.customers.forEach(x => tbody.find(`tr[data-id=${x}]`).addClass('table-warning'));
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#checkingCustomerForRestrictedWordsBtn').on('click', (e) => {
+            e.preventDefault();
+            if ($form.valid()) {
+                var formData = JSON.stringify($form.serializeJSON());
+
+                var options = {
+                    'url': '@(checkingCustomerRestrictedWordsUrl)',
                     'type': 'post',
                     'data': formData,
                     'processData': false,

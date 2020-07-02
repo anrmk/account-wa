@@ -101,6 +101,7 @@ namespace Web {
             CreateMap<CustomerImportCreditsViewModel, CustomerImportCreditsDto>().ReverseMap();
             CreateMap<CustomerRecheckViewModel, CustomerRecheckDto>().ReverseMap();
 
+            CreateMap<CustomerSettingsRestrictedWordViewModel, CustomerSettingsRestrictedWordDto>().ReverseMap();
             #endregion
 
             #region INVOICE
@@ -159,7 +160,7 @@ namespace Web {
 
             CreateMap<InvoiceConstructorSearchViewModel, InvoiceConstructorSearchDto>().ReverseMap();
 
-            CreateMap<PagerFilterViewModel, PagerFilter>().ReverseMap();
+            CreateMap<PagerFilterViewModel, PagerFilterDto>().ReverseMap();
         }
     }
 }

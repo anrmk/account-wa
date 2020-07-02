@@ -131,11 +131,8 @@ namespace Core {
                 .ReverseMap()
                 .ForMember(d => d.CustomerName, o => o.MapFrom(s => s.Customer != null ? s.Customer.Name : ""));
 
-            //CreateMap<CustomerDto, CustomerBulkEntity>()
-            //    .ForMember(d => d.TagLinks, o => o.Ignore())
-            //    .ReverseMap()
-            //    .ForMember(d => d.TagsId, o => o.MapFrom(s => s.TagLinks.Select(r => r.TagId)))
-            //    .ForMember(d => d.Tags, o => o.MapFrom(s => s.TagLinks.Select(r => new CustomerTagDto() { Id = r.Tag.Id, Name = r.Tag.Name})));
+            CreateMap<CustomerSettingsRestrictedWordDto, CustomerSettingsRestrictedWordEntity>().ReverseMap();
+
             #endregion
 
             #region PAYMENT

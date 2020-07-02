@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Core.Extension;
-
 namespace Core.Data.Dto {
-    public class InvoiceFilterDto: PagerFilter {
+    public class InvoiceFilterDto: PagerFilterDto {
         public long? CompanyId { get; set; }
         public long? CustomerId { get; set; }
         public long? TypeId { get; set; }

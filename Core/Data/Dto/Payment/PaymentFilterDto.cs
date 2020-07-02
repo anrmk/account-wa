@@ -1,9 +1,7 @@
 ﻿using System;
 
-using Core.Extension;
-
 namespace Core.Data.Dto {
-    public class PaymentFilterDto: PagerFilter {
+    public class PaymentFilterDto: PagerFilterDto {
         public long? CompanyId { get; set; }
 
         public DateTime? DateFrom { get; set; }

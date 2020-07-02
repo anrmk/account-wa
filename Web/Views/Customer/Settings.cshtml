@@ -1,0 +1,60 @@
+﻿@model Web.ViewModels.CustomerSettingsViewModel
+
+@{
+    ViewData["Title"] = "Customer Settings";
+
+    var settingsRestrictedWordsUrl = Url.RouteUrl("GetSettingsRestrictedWords");
+    var settingsRestrictedWordEditUrl = Url.ActionLink(action: "EditSettingsRestrictedWord", controller: "Customer");
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Customers</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Settings</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <ul id="companySettingsTab" class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" id="restricted-tab" href="#restricted">Restricted Words</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body">
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="restricted" role="tabpanel" aria-labelledby="restricted-tab">
+                <div id="toolbar" class="btn-toolbar" role="toolbar">
+                    <div class="btn-group mr-1" role="group">
+                        <a asp-controller="Customer" asp-action="CreateSettingsRestrictedWord" class="btn btn-secondary" ><i class="fa fa-plus mr-1"></i> Create</a>
+                    </div>
+                </div>
+                <table id="datatable" data-toggle="table" data-url="@(settingsRestrictedWordsUrl)"
+                       data-total-field="totalItems"
+                       data-data-field="items">
+                    <thead>
+                        <tr>
+                            <th data-field="name" data-sortable="true">Name</th>
+                            <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script type="text/javascript">
+        function actionFormatter(value, row) {
+            return `<a href='@(settingsRestrictedWordEditUrl)/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
+        }
+
+        $(document).ready(() => {
+            
+        });
+    </script>
+}

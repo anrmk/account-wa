@@ -19,12 +19,13 @@
 $.fn.initModalLink = function (target, callback = {}) {
     $(target).find('a[data-target=modal]').on('click', e => {
         e.preventDefault();
+        var link = $(e.target);
         var opt = {
-            'url': $(e.currentTarget).attr('href')
+            'url': link.attr('href')
         }
 
         $.ajax(opt).done((data, status, jqXHR) => {
-            $(data).dialog('Your action is required', callback);
+            $(data).dialog(link.attr('tile') || 'Your action is required', callback);
         })
     });
 };

@@ -18,7 +18,7 @@ namespace Core.Services.Business {
     public interface ICrudBusinessManager {
         #region COMPANY
         Task<CompanyDto> GetCompany(long id);
-        Task<CustomerDto> GetCustomer(string no, long companyId);
+        //Task<CustomerDto> GetCustomer(string no, long companyId);
         Task<List<CompanyDto>> GetCompanies();
         Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10);
         Task<CompanyDto> CreateCompany(CompanyDto dto);
@@ -94,7 +94,7 @@ namespace Core.Services.Business {
 
         //Tags
         Task<List<CustomerTagDto>> GetCustomerTags();
-        Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilter filter);
+        Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilterDto filter);
         Task<CustomerTagDto> GetCustomerTag(long id);
         Task<CustomerTagDto> CreateCustomerTag(CustomerTagDto dto);
         Task<CustomerTagDto> UpdateCustomerTag(long id, CustomerTagDto dto);
@@ -170,7 +170,7 @@ namespace Core.Services.Business {
         Task<InvoiceConstructorSearchDto> GetInvoiceConstructorSearchCriteria(long id);
         Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(long[] ids);
         Task<List<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias();
-        Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilter filter);
+        Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilterDto filter);
 
         Task<InvoiceConstructorSearchDto> CreateInvoiceConstructorSearchCriterias(InvoiceConstructorSearchDto dto);
         Task<InvoiceConstructorSearchDto> UpdateInvoiceConstructorSearchCriterias(long id, InvoiceConstructorSearchDto dto);
@@ -532,10 +532,10 @@ namespace Core.Services.Business {
             return _mapper.Map<CustomerDto>(result);
         }
 
-        public async Task<CustomerDto> GetCustomer(string no, long companyId) {
-            var result = await _customerManager.FindInclude(no, companyId);
-            return _mapper.Map<CustomerDto>(result);
-        }
+        //public async Task<CustomerDto> GetCustomer(string no, long companyId) {
+        //    var result = await _customerManager.FindInclude(no, companyId);
+        //    return _mapper.Map<CustomerDto>(result);
+        //}
 
         public async Task<Pager<CustomerDto>> GetCustomersPage(CustomerFilterDto filter) {
             Tuple<List<CustomerEntity>, int> tuple;
@@ -1093,7 +1093,7 @@ namespace Core.Services.Business {
             return _mapper.Map<List<CustomerTagDto>>(result);
         }
 
-        public async Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilter filter) {
+        public async Task<Pager<CustomerTagDto>> GetCustomerTags(PagerFilterDto filter) {
             Expression<Func<CustomerTagEntity, bool>> wherePredicate = x =>
                (true)
             && (string.IsNullOrEmpty(filter.Search)
@@ -1795,7 +1795,7 @@ namespace Core.Services.Business {
             return _mapper.Map<List<InvoiceConstructorSearchDto>>(result);
         }
 
-        public async Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilter filter) {
+        public async Task<Pager<InvoiceConstructorSearchDto>> GetInvoiceConstructorSearchCriterias(PagerFilterDto filter) {
             Expression<Func<InvoiceConstructorSearchEntity, bool>> wherePredicate = x =>
               (true)
                 && (string.IsNullOrEmpty(filter.Search)

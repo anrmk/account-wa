@@ -8,74 +8,80 @@
     var url = Context.Request.Path.ToString().ToLower();
 }
 
-    <div class="sidebar-sticky">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link @(url.Contains("/company") ? "active" : "")" asp-controller="Company" asp-action="Index">
-                    <i class="fas fa-building mr-3"></i> Companies
-                </a>
-            </li>
-            <li class="nav-item">
+<div class="sidebar-sticky">
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link @(url.Contains("/company") ? "active" : "")" asp-controller="Company" asp-action="Index">
+                <i class="fas fa-building mr-3"></i> Companies
+            </a>
+        </li>
+        <li class="nav-item">
+            <div class="d-flex justify-content-between align-items-center">
                 <a class="nav-link @(url.Equals("/customer") ? "active" : "")" asp-controller="Customer" asp-action="Index">
                     <i class="fas fa-user mr-3"></i> Customers
                 </a>
-                <ul class="list-unstyled ml-3">
-                    <li class="nav-item">
-                        <a class="nav-link @(url.Equals("/customertag") ? "active" : "")" asp-controller="CustomerTag" asp-action="Index">
-                            <i class="fas fa-dot-circle mr-3"></i>Tags
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link @(url.Equals("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
-                    <i class="fas fa-file-invoice mr-3"></i> Invoices
+                <a class="nav-link" asp-controller="Customer" asp-action="Settings">
+                    <i class="fas fa-cog"></i>
                 </a>
-                <ul class="list-unstyled ml-3">
-                    <li class="nav-item">
-                        <a class="nav-link @(url.Contains("/invoice/bulk") ? "active" : "")" asp-controller="Invoice" asp-action="Bulk">
-                            <i class="fas fa-dot-circle mr-3"></i> Bulk
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(url.Equals("/invoiceconstructor") ? "active" : "")" asp-controller="InvoiceConstructor" asp-action="Index">
-                            <i class="fas fa-hammer mr-3"></i> Constructor
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link  @(url.Equals("/invoiceconstructorsearch") ? "active" : "")" asp-controller="InvoiceConstructorSearch" asp-action="Index">
-                            <i class="fas fa-search mr-3"></i> Search Criteria
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @(url.Equals("/payment") ? "active" : "")" asp-controller="Payment" asp-action="Index">
-                    <i class="fas fa-coins mr-3"></i> Payments
-                </a>
-                <ul class="list-unstyled ml-3">
-                    <li class="nav-item">
-                        <a class="nav-link @(url.Contains("/payment/bulk") ? "active" : "")" asp-controller="Payment" asp-action="Bulk">
-                            <i class="fas fa-dot-circle mr-3"></i> Bulk
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        </ul>
+            </div>
+            
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Equals("/customertag") ? "active" : "")" asp-controller="CustomerTag" asp-action="Index">
+                        <i class="fas fa-dot-circle mr-3"></i>Tags
+                    </a>
+                </li>
+            </ul>
+        </li>
 
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-            <span><i class="fa fa-table mr-1"></i> Reports</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-            <li class="nav-item">
-                <a class="nav-link  @(url.Equals("/report") ? "active" : "")" asp-controller="Report" asp-action="Index">Aging Summary Report</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link  @(url.Equals("/report/saved") ? "active" : "")" asp-controller="Report" asp-action="Saved">Saved Reports</a>
-            </li>
-        </ul>
-        @*<hr />
+        <li class="nav-item">
+            <a class="nav-link @(url.Equals("/invoice") ? "active" : "")" asp-controller="Invoice" asp-action="Index">
+                <i class="fas fa-file-invoice mr-3"></i> Invoices
+            </a>
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Contains("/invoice/bulk") ? "active" : "")" asp-controller="Invoice" asp-action="Bulk">
+                        <i class="fas fa-dot-circle mr-3"></i> Bulk
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(url.Equals("/invoiceconstructor") ? "active" : "")" asp-controller="InvoiceConstructor" asp-action="Index">
+                        <i class="fas fa-hammer mr-3"></i> Constructor
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link  @(url.Equals("/invoiceconstructorsearch") ? "active" : "")" asp-controller="InvoiceConstructorSearch" asp-action="Index">
+                        <i class="fas fa-search mr-3"></i> Search Criteria
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(url.Equals("/payment") ? "active" : "")" asp-controller="Payment" asp-action="Index">
+                <i class="fas fa-coins mr-3"></i> Payments
+            </a>
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Contains("/payment/bulk") ? "active" : "")" asp-controller="Payment" asp-action="Bulk">
+                        <i class="fas fa-dot-circle mr-3"></i> Bulk
+                    </a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <span><i class="fa fa-table mr-1"></i> Reports</span>
+    </h6>
+    <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+            <a class="nav-link  @(url.Equals("/report") ? "active" : "")" asp-controller="Report" asp-action="Index">Aging Summary Report</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link  @(url.Equals("/report/saved") ? "active" : "")" asp-controller="Report" asp-action="Saved">Saved Reports</a>
+        </li>
+    </ul>
+    @*<hr />
          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
              <span><i class="fa fa-cogs mr-1"></i> Settings</span>
         </h6>
@@ -86,4 +92,4 @@
                  </a>
              </li>
          </ul>*@
-    </div>
+</div>

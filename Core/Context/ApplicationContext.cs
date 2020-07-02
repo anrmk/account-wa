@@ -28,18 +28,16 @@ namespace Core.Context {
         private readonly ClaimsPrincipal _principal;
 
         #region DbSet
-        #region NSI
-        //public DbSet<ReportFieldEntity> ReportFields { get; set; }
-        public DbSet<CustomerTypeEntity> CustomerTypes { get; set; }
-        //public DbSet<ReportPeriodEntity> ReportPeriods { get; set; }
-        #endregion
-
         public DbSet<CompanyEntity> Companies { get; set; }
         public DbSet<CompanyAddressEntity> CompanyAdresses { get; set; }
         public DbSet<CompanySummaryRangeEntity> CompanySummaryRanges { get; set; }
+        public DbSet<CompanySettingsEntity> CompanySettings { get; set; }
+        public DbSet<CompanyExportSettingsEntity> CompanyExportSettings { get; set; }
+        public DbSet<CompanyExportSettingsFieldEntity> CompanyExportFieldSettings { get; set; }
 
         public DbSet<CustomerEntity> Customers { get; set; }
         public DbSet<CustomerAddressEntity> CustomerAdresses { get; set; }
+        public DbSet<CustomerTypeEntity> CustomerTypes { get; set; }
         public DbSet<CustomerActivityEntity> CustomerActivities { get; set; }
         public DbSet<CustomerCreditLimitEntity> CustomersCreditLimit { get; set; }
         public DbSet<CustomerCreditUtilizedEntity> CustomersCreditUtilized { get; set; }
@@ -47,6 +45,8 @@ namespace Core.Context {
         public DbSet<CustomerTagEntity> CustomerTags { get; set; }
         public DbSet<CustomerTagLinkEntity> CustomerTagLinks { get; set; }
         public DbSet<CustomerRecheckEntity> Recheck { get; set; }
+        public DbSet<CustomerSettingsEntity> CustomerSettings { get; set; }
+        public DbSet<CustomerSettingsRestrictedWordEntity> CustomerRestrictedNameSettings { get; set; }
 
         public DbSet<InvoiceEntity> Invoices { get; set; }
         public DbSet<InvoiceConstructorEntity> InvoiceConstructors { get; set; }
@@ -58,7 +58,6 @@ namespace Core.Context {
         public DbSet<SavedReportFileEntity> SavedReportFiles { get; set; }
 
         public DbSet<InvoiceConstructorSearchEntity> ReportSearchCriterias { get; set; }
-
         #endregion
 
         public Database ApplicationDatabase { get; private set; }
