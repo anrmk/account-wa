@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace Core.Services.Business {
     public interface ISettingsBusinessService {
         Task<SettingsRestrictedWordDto> GetRestrictedWord(long id);
         Task<List<SettingsRestrictedWordDto>> GetRestrictedWords();
+        Task<List<SettingsRestrictedWordDto>> GetRestrictedWords(long companyId);
         Task<Pager<SettingsRestrictedWordDto>> GetRestrictedWordPage(PagerFilterDto filter);
         Task<SettingsRestrictedWordDto> CreateRestrictedWord(SettingsRestrictedWordDto dto);
         Task<SettingsRestrictedWordDto> UpdateRestrictedWord(long id, SettingsRestrictedWordDto dto);
@@ -32,6 +34,7 @@ namespace Core.Services.Business {
         private readonly ICustomerTypeManager _customerTypeManager;
         private readonly ICustomerRecheckManager _customerRecheckManager;
         private readonly ISettingsRestrictedWordManager _settingsRestrictedWordManager;
+        private readonly ICompanySettingsRestrictedWordManager _companySettingsRestrictedWordManager;
 
 
         public SettingsBusinessService(IMapper mapper,
@@ -44,7 +47,8 @@ namespace Core.Services.Business {
        ICustomerTagLinkManager customerTagLinkManager,
        ICustomerTypeManager customerTypeManager,
        ICustomerRecheckManager customerRecheckManager,
-       ISettingsRestrictedWordManager settingsRestrictedWordManager
+       ISettingsRestrictedWordManager settingsRestrictedWordManager,
+       ICompanySettingsRestrictedWordManager companySettingsRestrictedWordManager
             ) {
             _mapper = mapper;
 
@@ -59,6 +63,7 @@ namespace Core.Services.Business {
             _customerRecheckManager = customerRecheckManager;
 
             _settingsRestrictedWordManager = settingsRestrictedWordManager;
+            _companySettingsRestrictedWordManager = companySettingsRestrictedWordManager;
         }
 
         public async Task<SettingsRestrictedWordDto> GetRestrictedWord(long id) {
@@ -69,6 +74,18 @@ namespace Core.Services.Business {
         public async Task<List<SettingsRestrictedWordDto>> GetRestrictedWords() {
             var entities = await _settingsRestrictedWordManager.All();
             return _mapper.Map<List<SettingsRestrictedWordDto>>(entities);
+        }
+
+        public async Task<List<SettingsRestrictedWordDto>> GetRestrictedWords(long companyId) {
+            var entities = await _settingsRestrictedWordManager.All(); //Все
+
+            var companyRestrictedWords = await _companySettingsRestrictedWordManager.FindByCompanyId(companyId); // только у конкретной компании
+            var allLinked = await _companySettingsRestrictedWordManager.All(); // все имеющиеся 
+            var exclude = allLinked.Where(x => !companyRestrictedWords.Any(y => x.RestrictedWordId == y.RestrictedWordId)).GroupBy(x => x.RestrictedWordId).Select(x => x.Key).ToList();
+            
+            var result = entities.Where(x => !exclude.Contains(x.Id)).ToList();
+
+            return _mapper.Map<List<SettingsRestrictedWordDto>>(result);
         }
 
         public async Task<Pager<SettingsRestrictedWordDto>> GetRestrictedWordPage(PagerFilterDto filter) {

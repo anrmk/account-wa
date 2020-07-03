@@ -544,7 +544,7 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
-        private readonly ISettingsBusinessService _customerBusinessService;
+        private readonly ISettingsBusinessService _settingsBusinessManager;
 
         private readonly IMemoryCache _memoryCache;
 
@@ -554,7 +554,7 @@ namespace Web.Controllers.Api {
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
             _businessManager = businessManager;
-            _customerBusinessService = customerBusinessService;
+            _settingsBusinessManager = customerBusinessService;
         }
 
         [HttpGet("GetCustomers", Name = "GetCustomers")]
@@ -903,7 +903,7 @@ namespace Web.Controllers.Api {
                         throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
                     }
 
-                    var words = await _customerBusinessService.GetRestrictedWords();
+                    var words = await _settingsBusinessManager.GetRestrictedWords(model.CompanyId ?? 0);
                     var findingWords = new List<SettingsRestrictedWordDto>();
                     var customers = new List<long>();
                     for(int i = 0; i < model.Rows.Count; i++) {
