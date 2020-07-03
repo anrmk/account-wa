@@ -18,7 +18,7 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class SettingsController: BaseController<SettingsController> {
-        private readonly ICrudBusinessManager _crudBusinessManager;
+        private readonly ICrudBusinessManager _businessManager;
         private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ISettingsBusinessService _settingsBusinessService;
 
@@ -28,7 +28,7 @@ namespace Web.Controllers.Mvc {
           ISettingsBusinessService settingsBusinessManaer) : base(logger, mapper, context) {
             _companyBusinessManager = companyBusinessManager;
             _settingsBusinessService = settingsBusinessManaer;
-            _crudBusinessManager = crudBusinessManager;
+            _businessManager = crudBusinessManager;
         }
 
         public IActionResult Index() {
@@ -37,7 +37,7 @@ namespace Web.Controllers.Mvc {
 
         [HttpGet]
         public async Task<IActionResult> CreateSettingsRestrictedWord() {
-            var companies = await _crudBusinessManager.GetCompanies();
+            var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View();
@@ -72,7 +72,7 @@ namespace Web.Controllers.Mvc {
 
             var model = _mapper.Map<SettingsRestrictedWordViewModel>(item);
 
-            var companies = await _crudBusinessManager.GetCompanies();
+            var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var companyRestrictedWords = await _companyBusinessManager.GetRestrictedWord(id);

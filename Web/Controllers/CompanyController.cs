@@ -18,9 +18,11 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class CompanyController: BaseController<CompanyController> {
+        public ICompanyBusinessManager _companyBusinessManager;
         public ICrudBusinessManager _businessManager;
         public CompanyController(ILogger<CompanyController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            ICompanyBusinessManager companyBusinessManager, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
         }
 
@@ -31,7 +33,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Company/Details/5
         public async Task<ActionResult> Details(long id) {
-            var item = await _businessManager.GetCompany(id);
+            var item = await _companyBusinessManager.GetCompany(id);
 
             if(item == null) {
                 return NotFound();
@@ -75,7 +77,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Company/Edit/5
         public async Task<ActionResult> Edit(long id) {
-            var item = await _businessManager.GetCompany(id);
+            var item = await _companyBusinessManager.GetCompany(id);
             if(item == null) {
                 return NotFound();
             }
@@ -188,7 +190,7 @@ namespace Web.Controllers.Mvc {
         [HttpGet]
         [Route("{companyId}/summary")]
         public async Task<ActionResult> CreateSummary(long companyId) {
-            var item = await _businessManager.GetCompany(companyId);
+            var item = await _companyBusinessManager.GetCompany(companyId);
 
             if(item == null) {
                 return NotFound();
@@ -226,7 +228,7 @@ namespace Web.Controllers.Mvc {
             if(item == null) {
                 return NotFound();
             }
-            var company = await _businessManager.GetCompany(item.CompanyId);
+            var company = await _companyBusinessManager.GetCompany(item.CompanyId);
             if(company == null) {
                 return NotFound();
             }
@@ -278,7 +280,7 @@ namespace Web.Controllers.Mvc {
         #region EXPORT SETTINGS
         [Route("{id}/ExportSettings/Create")]
         public async Task<ActionResult> CreateExportSettings(long id) {
-            var item = await _businessManager.GetCompany(id);
+            var item = await _companyBusinessManager.GetCompany(id);
 
             if(item == null) {
                 return NotFound();
@@ -304,7 +306,7 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var company = await _businessManager.GetCompany(dto.CompanyId ?? 0);
+            var company = await _companyBusinessManager.GetCompany(dto.CompanyId ?? 0);
             ViewBag.CompanyName = company.Name;
 
             return View(_mapper.Map<CompanyExportSettingsViewModel>(dto));
@@ -330,7 +332,7 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
 
-            var company = await _businessManager.GetCompany(model.CompanyId);
+            var company = await _companyBusinessManager.GetCompany(model.CompanyId);
             ViewBag.CompanyName = company.Name;
 
             return View(model);
@@ -392,10 +394,13 @@ namespace Web.Controllers.Api {
     [ApiController]
     public class CompanyController: ControllerBase {
         private readonly IMapper _mapper;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public CompanyController(IMapper mapper, ICrudBusinessManager businessManager) {
+        public CompanyController(IMapper mapper, ICompanyBusinessManager companyBusinessManager, 
+            ICrudBusinessManager businessManager) {
             _mapper = mapper;
+            _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
         }
 
@@ -410,7 +415,7 @@ namespace Web.Controllers.Api {
         [HttpGet]
         [Route("{id}")]
         public async Task<CompanyViewModel> GetCompany(long id) {
-            var result = await _businessManager.GetCompany(id);
+            var result = await _companyBusinessManager.GetCompany(id);
             return _mapper.Map<CompanyViewModel>(result);
         }
 

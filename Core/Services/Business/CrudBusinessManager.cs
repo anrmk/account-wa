@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
         #region COMPANY
-        Task<CompanyDto> GetCompany(long id);
+        //Task<CompanyDto> GetCompany(long id);
         //Task<CustomerDto> GetCustomer(string no, long companyId);
         Task<List<CompanyDto>> GetCompanies();
         Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10);
@@ -249,10 +249,10 @@ namespace Core.Services.Business {
         }
 
         #region COMPANY
-        public async Task<CompanyDto> GetCompany(long id) {
-            var result = await _companyManager.FindInclude(id);
-            return _mapper.Map<CompanyDto>(result);
-        }
+        //public async Task<CompanyDto> GetCompany(long id) {
+        //    var result = await _companyManager.FindInclude(id);
+        //    return _mapper.Map<CompanyDto>(result);
+        //}
 
         public async Task<Pager<CompanyDto>> GetCompanyPage(string search, string sort, string order, int offset = 0, int limit = 10) {
             Expression<Func<CompanyEntity, bool>> wherePredicate = x =>

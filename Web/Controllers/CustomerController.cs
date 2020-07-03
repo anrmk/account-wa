@@ -544,15 +544,19 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
+
         private readonly ISettingsBusinessService _settingsBusinessManager;
 
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager,
             ISettingsBusinessService customerBusinessService) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
+            _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
             _settingsBusinessManager = customerBusinessService;
         }
@@ -678,11 +682,11 @@ namespace Web.Controllers.Api {
                         var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                         _memoryCache.Set("_CustomerUpload", model, cacheEntryOptions);
 
-                        var companies = (await _businessManager.GetCompanies()).Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+                        var companies = await _businessManager.GetCompanies();
                         var customerFields = typeof(CustomerViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
                             .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
                         var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                                    { "Companies", companies},
+                                    { "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
                                     { "Fields", customerFields }
                                 };
 
@@ -802,7 +806,7 @@ namespace Web.Controllers.Api {
                     if(column == null)
                         throw new Exception("Please, select \"Account Number\" column");
 
-                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
                         throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
                     }
@@ -846,7 +850,7 @@ namespace Web.Controllers.Api {
                     if(column == null)
                         throw new Exception("Please, select \"Business Name\" column");
 
-                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
                         throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
                     }
@@ -891,7 +895,7 @@ namespace Web.Controllers.Api {
                     if(column == null)
                         throw new Exception("Please, select \"Business Name\" column");
 
-                    var company = await _businessManager.GetCompany(model.CompanyId ?? 0);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
                         throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
                     }

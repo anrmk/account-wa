@@ -34,13 +34,16 @@ namespace Web.Controllers.Mvc {
 
         private readonly IMemoryCache _memoryCache;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly IReportManager _reportManager;
 
         public ReportController(IMemoryCache memoryCache, ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
-             ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager) : base(logger, mapper, context) {
+             ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager,
+             ICompanyBusinessManager companyBusinessManager) : base(logger, mapper, context) {
             _memoryCache = memoryCache;
             _businessManager = crudBusinessManager;
+            _companyBusinessManager = companyBusinessManager;
             _reportBusinessManager = businessManager;
             _reportManager = reportManager;
         }
@@ -83,7 +86,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<IActionResult> SavedDatails(long companyId) {
-            var company = await _businessManager.GetCompany(companyId);
+            var company = await _companyBusinessManager.GetCompany(companyId);
             if(company == null) {
                 return BadRequest();
             }
@@ -178,7 +181,7 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> ExportSettings([FromBody] ReportFilterViewModel model) {
             var companyId = model.CompanyId;
 
-            var company = await _businessManager.GetCompany(companyId);
+            var company = await _companyBusinessManager.GetCompany(companyId);
             if(company == null) {
                 return NotFound();
             }
@@ -195,7 +198,7 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> SavedReport([FromBody] ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
                     if(company == null) {
                         return NotFound();
                     }
@@ -336,16 +339,19 @@ namespace Web.Controllers.Api {
         private readonly IViewRenderService _viewRenderService;
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
 
         public ReportController(IMemoryCache memoryCache,
             IMapper mapper, IViewRenderService viewRenderService,
             ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager,
             IReportBusinessManager reportbusinessManager) {
             _memoryCache = memoryCache;
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _reportBusinessManager = reportbusinessManager;
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
         }
 
         [HttpPost("RunAgingReport", Name = "RunAgingReport")]
@@ -376,7 +382,7 @@ namespace Web.Controllers.Api {
                 return Ok(false);
             }
 
-            var company = await _businessManager.GetCompany(model.CompanyId);
+            var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
             if(company != null && company.Settings != null) {
                 var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
@@ -402,7 +408,7 @@ namespace Web.Controllers.Api {
         [HttpGet("CustomerCreditUtilizedSettingsView", Name = "CustomerCreditUtilizedSettingsView")]
         public async Task<IActionResult> CustomerCreditUtilizedSettingsView([FromQuery] ReportFilterViewModel model) {
             if(ModelState.IsValid) {
-                var company = await _businessManager.GetCompany(model.CompanyId);
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
                 var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(model.CompanyId, model.Date);
                 model.RoundType = creditUtilizedSettings == null ? company.Settings.RoundType : creditUtilizedSettings.RoundType;
@@ -445,7 +451,7 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> CreateCustomerCredits([FromBody] ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
                     if(company == null || company.Settings == null || !company.Settings.SaveCreditValues) {//возможно ли сохранение лимитов
                         throw new Exception("Please, check company settings!");
                     }
@@ -690,7 +696,7 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
@@ -848,7 +854,7 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> CheckingCustomerAccountNumber([FromBody] ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
                         throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
                     }

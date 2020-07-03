@@ -114,9 +114,12 @@ namespace Web.Controllers.Api {
     public class InvoiceConstructorController: BaseApiController<InvoiceConstructorController> {
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
 
-        public InvoiceConstructorController(ILogger<InvoiceConstructorController> logger, IMapper mapper, ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper) {
+
+        public InvoiceConstructorController(ILogger<InvoiceConstructorController> logger, IMapper mapper, ICompanyBusinessManager companyBusinessManager, ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
             _viewRenderService = viewRenderService;
         }
 
@@ -156,7 +159,7 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var company = await _businessManager.GetCompany(model.CompanyId);
+                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
                     var summaryRanges = await _businessManager.GetCompanyAllSummaryRange(model.CompanyId);
                     var constructorSearches = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
                     var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
