@@ -36,7 +36,7 @@ namespace Web.Extension {
         }
 
         public async Task<string> RenderToStringAsync(string viewName, object model, ViewDataDictionary viewDictionary) {
-            var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
+            //var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
             var actionContext = _actionContext.ActionContext;
 
             using(var sw = new StringWriter()) {

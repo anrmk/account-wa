@@ -1,4 +1,4 @@
-﻿@model Core.Data.Dto.AgingSummaryReport
+﻿@model Core.Data.Dto.AgingReportResultDto
 
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
@@ -76,7 +76,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(var column in Model.Columns) {
+                        @foreach(var column in Model.Cols) {
                             <tr>
                                 <td scope="col">
                                     @if(column.Name == "-31-0") {
@@ -104,7 +104,7 @@
                         <th>#</th>
                         <th scope="col">Account Number</th>
                         <th scope="col">Business Name</th>
-                        @foreach(var column in Model.Columns) {
+                        @foreach(var column in Model.Cols) {
                             if(!column.Name.Equals("Total Late")) {
                                 <th scope="col">
                                     @if(column.Name == "-31-0") {
@@ -118,13 +118,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for(var i = 0; i < Model.Data.Count(); i++) {
-                        var summary = Model.Data[i];
+                    @for(var i = 0; i < Model.Rows.Count(); i++) {
+                        var summary = Model.Rows[i];
                         <tr>
                             <td>@(i+1)</td>
                             <td scope="row">@summary.Customer.No</td>
                             <td scope="row">@summary.Customer.Name</td>
-                            @foreach(var column in Model.Columns) {
+                            @foreach(var column in Model.Cols) {
                                 @if(summary.Data.ContainsKey(column.Name) && !column.Name.Equals("Total Late")) {
                                     <td>@(summary.Data[column.Name] == 0 ? "" : Core.Extension.NumberExtensionMethods.ToCurrency(summary.Data[column.Name]))</td>
                                 }

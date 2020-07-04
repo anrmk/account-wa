@@ -52,8 +52,8 @@ namespace Web.Controllers.Mvc {
             var companies = await _businessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriterias();
-            ViewBag.SearchCriteria = searchCriteria.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            //var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriterias();
+            //ViewBag.SearchCriteria = searchCriteria.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new ReportFilterViewModel() {
                 Date = DateTime.Now.LastDayOfMonth()
@@ -83,6 +83,15 @@ namespace Web.Controllers.Mvc {
                 }));
 
             return View(savedReportList);
+        }
+
+        public async Task<IActionResult> CreditUtilized() {
+            var companies = await _businessManager.GetCompanies();
+            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
+            return View(new ReportFilterViewModel() {
+                Date = DateTime.Now.LastDayOfMonth()
+            });
         }
 
         public async Task<IActionResult> SavedDatails(long companyId) {
@@ -259,7 +268,7 @@ namespace Web.Controllers.Mvc {
                     csvWriter.NextRecord();
 
                     #region SORT BY ACCOUNT NUMBER/CUSTOMER BUSINESS NAME
-                    var sortedInvoices = result.Data;
+                    var sortedInvoices = result.Rows;
                     if(settings.Sort == 0) {
                         sortedInvoices = sortedInvoices.OrderBy(x => x.AccountNo).ToList();
                     } else {
@@ -267,16 +276,16 @@ namespace Web.Controllers.Mvc {
                     }
                     #endregion
 
-                    foreach(var summary in sortedInvoices) {
+                    foreach(var row in sortedInvoices) {
                         foreach(var field in fields) {
                             if(field.IsActive) {
-                                var value = ObjectExtension.GetPropValue(summary, field.Name);
+                                var value = ObjectExtension.GetPropValue(row, field.Name);
                                 //TODO: Здесь нужно сделать проверку на массив и взять его значение
 
                                 //if(value.GetType() == typeof(Array)) {
                                 //    Console.WriteLine("Array");
                                 //}
-                                var data = summary.Data.ContainsKey(field.Name) ? summary.Data[field.Name].ToString() : value;
+                                var data = row.Data.ContainsKey(field.Name) ? row.Data[field.Name].ToString() : value;
 
                                 csvWriter.WriteField(data == null || data.Equals("0") ? "" : data);
                             }
@@ -364,9 +373,9 @@ namespace Web.Controllers.Api {
                     return Ok(html);
                 }
             } catch(Exception er) {
-                Console.Write(er.Message);
+                BadRequest(er.Message ?? er.StackTrace);
             }
-            return null;
+            return Ok();
         }
 
         [HttpGet("GetSavedReport", Name = "GetSavedReport")]
@@ -416,7 +425,7 @@ namespace Web.Controllers.Api {
                 var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
                 var creditUtilizedList = new List<CustomerCreditUtilizedViewModel>();
 
-                foreach(var data in report.Data) {
+                foreach(var data in report.Rows) {
                     var customer = data.Customer;
 
                     var creditUtilizeds = await _businessManager.GetCustomerCreditUtilizeds(customer.Id);
@@ -489,7 +498,7 @@ namespace Web.Controllers.Api {
                     var updateCreditUtilized = 0;
                     var ignoreCreditUtilized = 0;
 
-                    foreach(var data in report.Data) {
+                    foreach(var data in report.Rows) {
                         var customer = data.Customer;
                         var value = data.Data["Total"]; //new height credit
 
@@ -504,13 +513,9 @@ namespace Web.Controllers.Api {
                                 .OrderByDescending(x => x.CreatedDate)
                                 .Where(x => x.CreatedDate <= date).FirstOrDefault();
 
-                        if(customer.No == "540061957") {
-                            Console.WriteLine("540061957");
-                        }
-
                         //  если в БД нет записей 
                         //  ИЛИ
-                        //  записть есть и даты не совпадают, а также значение меньше значения текущего отчета
+                        //  запись есть и даты не совпадают, а также значение меньше значения текущего отчета
                         //  создать запись
                         if(creditUtilized == null) {
                             await _businessManager.CreateCustomerCreditUtilized(new CustomerCreditUtilizedDto() {
@@ -587,7 +592,7 @@ namespace Web.Controllers.Api {
                     });
 
                     //Add Balance
-                    foreach(var column in report.Columns) {
+                    foreach(var column in report.Cols) {
                         fields.Add(new SavedReportFieldDto() {
                             Code = column.Name,
                             Name = column.Name,
@@ -664,7 +669,7 @@ namespace Web.Controllers.Api {
             csvWriter.NextRecord();
 
             #region SORT BY ACCOUNT NUMBER/CUSTOMER BUSINESS NAME
-            var sortedInvoices = result.Data;
+            var sortedInvoices = result.Rows;
             if(settings.Sort == 0) {
                 sortedInvoices = sortedInvoices.OrderBy(x => x.AccountNo).ToList();
             } else {
@@ -754,7 +759,7 @@ namespace Web.Controllers.Api {
 
                     #region BALANCE
                     var balanceField = saved.Fields.Where(x => x.Value.Contains('|')).Select(x => x.Name).ToList(); //Select only BALANCE fields
-                    var columns = balanceField.Count > report.Columns.Count ? balanceField : report.Columns.Select(x => x.Name).ToList();
+                    var columns = balanceField.Count > report.Cols.Count ? balanceField : report.Cols.Select(x => x.Name).ToList();
 
                     foreach(var field in columns) {
                         var savedValue = saved.Fields.Where(x => x.Name.Equals(field)).FirstOrDefault()?.Value ?? "0|0";
@@ -785,7 +790,7 @@ namespace Web.Controllers.Api {
                         var updateCreditUtilized = 0;
                         var ignoreCreditUtilized = 0;
 
-                        foreach(var data in report.Data) {
+                        foreach(var data in report.Rows) {
                             var customer = data.Customer;
                             var value = data.Data["Total"];//new height credit
 
@@ -863,7 +868,7 @@ namespace Web.Controllers.Api {
                     var regex = new Regex(company.Settings.AccountNumberTemplate);
 
                     var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    foreach(var data in result.Data) {
+                    foreach(var data in result.Rows) {
                         var customer = data.Customer;
                         var isMatch = regex.IsMatch(customer.No);
 
@@ -873,11 +878,11 @@ namespace Web.Controllers.Api {
                     }
 
                     if(customers.Count == 0) {
-                        return Ok($"{result.Data.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
+                        return Ok($"{result.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
                     }
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                             { "Company", _mapper.Map<CompanyViewModel>(company)},
-                            { "TotalCustomers", result.Data.Count }
+                            { "TotalCustomers", result.Rows.Count }
                         };
 
                     string html = _viewRenderService.RenderToStringAsync("_CheckingCustomerAccountNumberPartial", customers, viewDataDictionary).Result;
@@ -885,6 +890,20 @@ namespace Web.Controllers.Api {
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message);
+            }
+            return Ok();
+        }
+
+        [HttpPost("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
+        public async Task<IActionResult> GetCreditUtilizedReport([FromBody] ReportFilterViewModel model) {
+            try {
+                var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(model.CompanyId, model.Date);
+
+                string html = await _viewRenderService.RenderToStringAsync("_CreditUtilizedPartial", result);
+
+                return Ok(html);
+            } catch(Exception er) {
+                BadRequest(er.Message ?? er.StackTrace);
             }
             return Ok();
         }

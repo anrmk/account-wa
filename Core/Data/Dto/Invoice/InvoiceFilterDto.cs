@@ -8,7 +8,7 @@ namespace Core.Data.Dto {
         public long? TypeId { get; set; }
 
         public DateTime? Date { get; set; }
-        public int NumberOfPeriods { get; set; }
+        public int NumberOfPeriods { get; set; } = 30;
 
         //public int? From { get; set; }
         //public int? To { get; set; }

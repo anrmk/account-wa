@@ -12,10 +12,13 @@ using Core.Data.Enum;
 using Core.Extension;
 using Core.Services.Managers;
 
+using Microsoft.VisualBasic;
+
 namespace Core.Services.Business {
     public interface IReportBusinessManager {
-        Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
+        Task<AgingReportResultDto> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
         Task<ReportStatusDto> CheckingCustomerAccountNumber(long companyId, DateTime dateTo, int numberOfPeriods);
+        Task<ReportResultDto> GetCustomerCreditUtilizedReport(long companyId, DateTime dateTo);
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -39,7 +42,7 @@ namespace Core.Services.Business {
             _reportManager = reportManager;
         }
 
-        public async Task<AgingSummaryReport> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods, bool includeAllCustomers = true) {
+        public async Task<AgingReportResultDto> GetAgingReport(long companyId, DateTime dateTo, int daysPerPeriod, int numberOfPeriods, bool includeAllCustomers = true) {
             var company = await _companyManager.Find(companyId);
             if(company == null)
                 return null;
@@ -64,35 +67,35 @@ namespace Core.Services.Business {
             }
 
             #region CREATE HEADERS
-            var _col = new List<AgingSummaryPeriod>() { };
+            var _col = new List<AgingReportColsDto>() { };
 
             for(int i = -1; i < numberOfPeriods; i++) {
                 var from = (i < 0 ? -1 : 1) + i * daysPerPeriod;
                 var to = (i + 1) * daysPerPeriod;
 
-                _col.Add(new AgingSummaryPeriod() {
+                _col.Add(new AgingReportColsDto() {
                     From = from,
                     To = to,
                     Name = $"{from}-{to}"
                 });
             }
 
-            _col.Add(new AgingSummaryPeriod() {
+            _col.Add(new AgingReportColsDto() {
                 To = 10000,
                 From = 1 + numberOfPeriods * daysPerPeriod,
                 Name = $"{1 + numberOfPeriods * daysPerPeriod}+"
             });
 
-            _col.Add(new AgingSummaryPeriod() {
+            _col.Add(new AgingReportColsDto() {
                 Name = "Total Late"
             });
 
-            _col.Add(new AgingSummaryPeriod() {
+            _col.Add(new AgingReportColsDto() {
                 Name = "Total"
             });
             #endregion
 
-            var report = new Dictionary<long, AgingSummaryData>();
+            var report = new Dictionary<long, AgingReportRowDto>();
 
             foreach(var invoice in invoices) {
                 var recordKey = invoice.CustomerId ?? 0;
@@ -102,12 +105,11 @@ namespace Core.Services.Business {
 
                 if(diffPay > 0 || includeAllCustomers) {
                     if(!report.ContainsKey(recordKey)) {
-                        report.Add(recordKey, new AgingSummaryData() {
+                        report.Add(recordKey, new AgingReportRowDto() {
                             Customer = _mapper.Map<CustomerDto>(invoice.Customer),
                             CustomerName = invoice.Customer.Name,
                             AccountNo = invoice.Customer.No,
-                            Data = new Dictionary<string, decimal>(),
-                            InvoiceCount = new Dictionary<string, decimal>()
+                            Data = new Dictionary<string, decimal>()
                         });
                     }
 
@@ -141,24 +143,24 @@ namespace Core.Services.Business {
             }
 
             #region BALANCE
-            var balance = new Dictionary<string, AgingSummaryBalance>();
+            var balance = new Dictionary<string, AgingReportBalanceDto>();
             foreach(var c in _col) {
                 if(c.Name.Equals("Total")) {
-                    balance.Add("Total", new AgingSummaryBalance {
+                    balance.Add("Total", new AgingReportBalanceDto {
                         Count = balance.Values.Sum(x => x.Count),
                         Sum = report.Values.Sum(x => x.Data["Total"])
                     });
                 } else if(c.Name.Equals("Total Late")) {
 
                 } else {
-                    balance.Add(c.Name, new AgingSummaryBalance {
+                    balance.Add(c.Name, new AgingReportBalanceDto {
                         Count = report.Values.Count(x => x.Data[c.Name] != 0),
                         Sum = report.Values.Sum(x => x.Data[c.Name])
                     });
                 }
             }
 
-            balance.Add("Total Late", new AgingSummaryBalance {
+            balance.Add("Total Late", new AgingReportBalanceDto {
                 Count = balance["Total"].Count - balance["-31-0"].Count,
                 Sum = balance["Total"].Sum - balance["-31-0"].Sum
             });
@@ -184,16 +186,15 @@ namespace Core.Services.Business {
             var customerTypes = customers.GroupBy(x => x.Type == null ? "No types" : x.Type.Name).ToDictionary(x => x.Key, x => x.Count());
             #endregion
 
-            return new AgingSummaryReport() {
+            return new AgingReportResultDto() {
                 CompanyId = companyId,
                 CompanyName = company.Name,
                 Date = dateTo,
-                DaysPerPeriod = daysPerPeriod,
                 NumberOfPeriods = numberOfPeriods,
 
-                Columns = _col,
+                Cols = _col,
                 //REPORT
-                Data = report.Select(x => x.Value).ToList(),
+                Rows = report.Select(x => x.Value).ToList(),
                 //BALANCE
                 Balance = balance,
                 //CUSTOMERS
@@ -217,7 +218,7 @@ namespace Core.Services.Business {
                 var regex = new Regex(company.Settings.AccountNumberTemplate);
 
                 var result = await GetAgingReport(companyId, dateTo, 30, numberOfPeriods, false);
-                foreach(var data in result.Data) {
+                foreach(var data in result.Rows) {
                     var customer = data.Customer;
                     var isMatch = regex.IsMatch(customer.No);
 
@@ -227,13 +228,46 @@ namespace Core.Services.Business {
                 }
 
                 if(customers.Count == 0) {
-                    return new ReportStatusDto(ReportCheckStatus.Success, $"{result.Data.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
+                    return new ReportStatusDto(ReportCheckStatus.Success, $"{result.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings");
                 } else {
-                    return new ReportStatusDto(ReportCheckStatus.Warning, $"{customers.Count} out of {result.Data.Count} customers do not match the \"Account Number\" in the company settings template");
+                    return new ReportStatusDto(ReportCheckStatus.Warning, $"{customers.Count} out of {result.Rows.Count} customers do not match the \"Account Number\" in the company settings template");
                 }
             } catch(Exception ex) {
                 return new ReportStatusDto(ReportCheckStatus.Danger, ex.Message);
             }
+        }
+
+        public async Task<ReportResultDto> GetCustomerCreditUtilizedReport(long companyId, DateTime dateTo) {
+            var company = await _companyManager.FindInclude(companyId);
+            if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+            }
+
+            var dateFrom = dateTo.FirstDayOfMonth();
+
+            var customers = await _customerManager.FindByCompanyId(companyId);
+            foreach(var customer in customers) {
+                
+            }
+            var columns = customers.Select(x => x.CreditUtilizeds.Where(y => y.CreatedDate >= dateFrom && y.CreatedDate <= dateTo).Select(x => x.CreatedDate));
+
+            var result = new ReportResultDto() {
+                Date = dateTo,
+                CompanyId = companyId
+            };
+
+            #region COLS
+            var cols = new List<ReportColsDto>();
+            cols.Add(new ReportColsDto() { Name = "Account Number" });
+            cols.Add(new ReportColsDto() { Name = "Business Name" });
+
+            #endregion
+
+
+
+            return new ReportResultDto() {
+                
+            };
         }
     }
 }
