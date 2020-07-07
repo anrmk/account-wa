@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using Core.Data.Enum;
 
 namespace Web.ViewModels {
-    public class ReportFilterViewModel {
+    public class ReportFilterViewModel: PagerFilterViewModel {
         [Required]
         [Display(Name = "Company")]
         public long CompanyId { get; set; }
@@ -14,6 +14,8 @@ namespace Web.ViewModels {
         [Display(Name = "Period")]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.Now;
+
+        public DateTime? DateFrom { get; set; }
 
         [Required]
         [Display(Name = "Number of periods")]

@@ -894,18 +894,30 @@ namespace Web.Controllers.Api {
             return Ok();
         }
 
-        [HttpPost("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
-        public async Task<IActionResult> GetCreditUtilizedReport([FromBody] ReportFilterViewModel model) {
-            try {
-                var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(model.CompanyId, model.Date);
+        //[HttpPost("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
+        //public async Task<IActionResult> GetCreditUtilizedReport([FromBody] ReportFilterViewModel model) {
+        //    try {
+        //        var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(model.CompanyId, model.Date);
+        //        string html = await _viewRenderService.RenderToStringAsync("_CreditUtilizedPartial", result);
+        //        return Ok(result);
+        //    } catch(Exception er) {
+        //        BadRequest(er.Message ?? er.StackTrace);
+        //    }
+        //    return Ok();
+        //}
 
-                string html = await _viewRenderService.RenderToStringAsync("_CreditUtilizedPartial", result);
+        [HttpGet("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
+        public async Task<List<CreditUtilizedReportViewModel>> GetCustomers([FromQuery] ReportFilterViewModel model) {
+            var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(_mapper.Map<ReportFilterDto>(model));
+            var list = result.Rows.Select(x => new CreditUtilizedReportViewModel() {
+                Id = x.Id,
+                AccountNumber = x.Data["Account Number"],
+                Name = x.Data["Business Name"],
+                Value = x.Data.ContainsKey("Value") ? x.Data["Value"] : "",
+                CreateDate = x.Data.ContainsKey("Date") ? x.Data["Date"] : ""
+            }).ToList();
 
-                return Ok(html);
-            } catch(Exception er) {
-                BadRequest(er.Message ?? er.StackTrace);
-            }
-            return Ok();
+            return list;
         }
     }
 }

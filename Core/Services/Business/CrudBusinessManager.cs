@@ -83,6 +83,7 @@ namespace Core.Services.Business {
         Task<CustomerCreditUtilizedDto> CreateCustomerCreditUtilized(CustomerCreditUtilizedDto dto);
         Task<CustomerCreditUtilizedDto> UpdateCustomerCreditUtilized(long id, CustomerCreditUtilizedDto dto);
         Task<bool> DeleteCustomerCreditUtilized(long id);
+        Task<bool> DeleteCustomerCreditUtilized(long[] id);
 
         //Credit Utilized Settings
         Task<CustomerCreditUtilizedSettingsDto> GetCustomerCreditUtilizedSettings(long id);
@@ -1030,11 +1031,15 @@ namespace Core.Services.Business {
         }
 
         public async Task<bool> DeleteCustomerCreditUtilized(long id) {
-            var entity = await _customerCreditUtilizedManager.FindInclude(id);
-            if(entity == null) {
+            return await DeleteCustomerCreditUtilized(new long[] { id });
+        }
+
+        public async Task<bool> DeleteCustomerCreditUtilized(long[] ids) {
+            var entities = await _customerCreditUtilizedManager.Filter(x => ids.Contains(x.Id));
+            if(entities == null && entities.Count() == 0) {
                 return false;
             }
-            int result = await _customerCreditUtilizedManager.Delete(entity);
+            int result = await _customerCreditUtilizedManager.Delete(entities);
             return result != 0;
         }
         #endregion

@@ -3,13 +3,22 @@
 @{
     ViewData["Title"] = "Credit Utilized Report";
     var formId = Guid.NewGuid();
+    var tableId = Guid.NewGuid();
+    var listUrl = Url.RouteUrl("GetCreditUtilizedReport");
+    var deleteUrl = Url.Action("DeleteCreditUtilizeds", "Customer");
+}
+
+@section Toolbar  {
+    <div class="btn-toolbar" role="toolbar">
+        <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    </div>
 }
 
 <div class="row">
     <div class="col-lg-3 col-md-12 mb-3">
         <div class="card">
             <div class="card-body">
-                <form id="@formId" asp-route="GetCreditUtilizedReport">
+                <form id="@formId">
                     <fieldset>
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
@@ -19,8 +28,11 @@
                         </div>
 
                         <div class="form-group">
-                            <label asp-for="Date"></label>
-                            <input type="date" asp-for="Date" class="form-control" required />
+                            <label asp-for="Date">Date From/To</label>
+                            <div class="input-group">
+                                <input type="date" asp-for="DateFrom" class="form-control" />
+                                <input type="date" asp-for="Date" class="form-control" required />
+                            </div>
                             <span asp-validation-for="Date" class="text-danger"></span>
                         </div>
                     </fieldset>
@@ -35,7 +47,26 @@
     <div class="col-lg-9 col-md-12">
         <div class="card">
             <div class="card-body">
-                <div id="content"></div>
+                <div id="toolbar" role="toolbar">
+                    
+                </div>
+                <div class="table-responsive">
+                    <table id="@(tableId)" data-toggle="table" data-url="@listUrl"
+                           data-src=""
+                           data-query-params="queryParams"
+                           data-select-item-name="CreditUtilizeds[]"
+                           data-pagination="false">
+                        <thead>
+                            <tr>
+                                <th data-checkbox="true"></th>
+                                <th data-field="accountNumber">Account Number</th>
+                                <th data-field="name">Business Name</th>
+                                <th data-field="createDate">Date</th>
+                                <th data-field="value">Value</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -43,16 +74,58 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function queryParams(params) {
+            var filterForm = $('#@formId').serializeJSON();
+            return $.extend({}, params, filterForm);
+        }
+
         $(document).ready(e => {
-            var $form = $('#@formId');
-            $form.on('submit', e => {
+            var $table = $('#@tableId');
+
+            var $form = $('#@formId').on('submit', (e) => {
                 e.preventDefault();
-                $form.ajaxSubmit({}, (target, data, status) => {
-                    if (status === 'success') {
-                        $('#content').html(data)
-                    }
-                });
+                $table.bootstrapTable('refresh');
             });
+
+            $table.on('load-success.bs.table', function (e, data, jqXHR) {
+                statPanel();
+            });
+
+            $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+                statPanel();
+            });
+
+            $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+                if (!confirm('Are you sure want to delete this?')) { return false; }
+
+                var selections = $table.bootstrapTable('getSelections');
+                var ids = selections.map(x => x.id);
+
+                if (ids.length > 0) {
+                    var options = {
+                        'type': 'post',
+                        'url': '@(deleteUrl)',
+                        'data': { ids: ids }
+                    };
+
+                    $.when($.ajax(options)).then((data, status) => {
+                        if (status === 'success') {
+                            $table.bootstrapTable('refresh');
+                        }
+                    });
+                }
+            });
+
+            function statPanel() {
+                var options = $table.bootstrapTable('getOptions');
+                var selections = $table.bootstrapTable('getSelections');
+
+                if (!selections.length) {
+                    $bulkDeleteBtn.hide();
+                } else {
+                    $bulkDeleteBtn.show();
+                }
+            }
         });
     </script>
 }

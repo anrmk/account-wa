@@ -220,7 +220,6 @@ namespace Web.Controllers.Mvc {
             return BadRequest("Something went wrong....");
         }
 
-
         #region ACTIVITY
         [Route("{customerId}/activity")]
         public async Task<ActionResult> CreateActivity(long customerId) {
@@ -440,6 +439,16 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
                 return BadRequest(er);
             }
+        }
+
+        [HttpPost("DeleteCreditUtilizeds", Name = "DeleteCreditUtilizeds")]
+        public async Task<ActionResult> DeleteCreditUtilizeds(long[] ids) {
+            if(ids.Length > 0) {
+                var result = await _businessManager.DeleteCustomerCreditUtilized(ids);
+                return Ok(result);
+            }
+
+            return Ok(false);
         }
         #endregion
 

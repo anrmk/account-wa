@@ -205,7 +205,7 @@
             if (!params.search) {
                 params.search = $('div.search input').val();
             }
-            var filterForm = $('#filterForm').serializeJSON({ parseNumbers: true });
+            var filterForm = $('#filterForm').serializeJSON();
 
             return $.extend({}, params, filterForm);
         }
