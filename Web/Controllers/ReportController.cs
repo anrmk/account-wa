@@ -907,17 +907,11 @@ namespace Web.Controllers.Api {
         //}
 
         [HttpGet("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
-        public async Task<List<CreditUtilizedReportViewModel>> GetCustomers([FromQuery] ReportFilterViewModel model) {
+        public async Task<Pager<CustomerCreditUtilizedViewModel>> GetCustomers([FromQuery] ReportFilterViewModel model) {
             var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(_mapper.Map<ReportFilterDto>(model));
-            var list = result.Rows.Select(x => new CreditUtilizedReportViewModel() {
-                Id = x.Id,
-                AccountNumber = x.Data["Account Number"],
-                Name = x.Data["Business Name"],
-                Value = x.Data.ContainsKey("Value") ? x.Data["Value"] : "",
-                CreateDate = x.Data.ContainsKey("Date") ? x.Data["Date"] : ""
-            }).ToList();
-
-            return list;
+            var pager = new Pager<CustomerCreditUtilizedViewModel>(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            pager.Filter = result.Filter;
+            return pager;
         }
     }
 }

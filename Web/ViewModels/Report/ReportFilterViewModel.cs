@@ -15,7 +15,7 @@ namespace Web.ViewModels {
         [DataType(DataType.Date)]
         public DateTime Date { get; set; } = DateTime.Now;
 
-        public DateTime? DateFrom { get; set; }
+        public DateTime? FilterDate { get; set; }
 
         [Required]
         [Display(Name = "Number of periods")]

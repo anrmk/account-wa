@@ -6,6 +6,7 @@ namespace Core.Data.Dto {
     public class CreditReportResultDto: ReportResultDto {
         public new List<CreditReportRowDto> Rows { get; set; }
         public DateTime DateFrom { get; set; }
+        public Dictionary<string, List<string>> Filter { get; set; }
     }
 
     public class CreditReportRowDto {

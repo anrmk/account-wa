@@ -20,6 +20,8 @@
             <div class="card-body">
                 <form id="@formId">
                     <fieldset>
+                        <input asp-for="FilterDate" type="hidden" />
+
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
                             <label asp-for="CompanyId"></label>
@@ -28,11 +30,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label asp-for="Date">Date From/To</label>
-                            <div class="input-group">
-                                <input type="date" asp-for="DateFrom" class="form-control" />
-                                <input type="date" asp-for="Date" class="form-control" required />
-                            </div>
+                            <label asp-for="Date"></label>
+                            <input type="date" asp-for="Date" class="form-control" required />
                             <span asp-validation-for="Date" class="text-danger"></span>
                         </div>
                     </fieldset>
@@ -47,22 +46,20 @@
     <div class="col-lg-9 col-md-12">
         <div class="card">
             <div class="card-body">
-                <div id="toolbar" role="toolbar">
-                    
-                </div>
+                <div id="toolbar" role="toolbar"></div>
                 <div class="table-responsive">
                     <table id="@(tableId)" data-toggle="table" data-url="@listUrl"
-                           data-src=""
                            data-query-params="queryParams"
-                           data-select-item-name="CreditUtilizeds[]"
-                           data-pagination="false">
+                           data-total-field="totalItems"
+                           data-data-field="items"
+                           data-select-item-name="CreditUtilizeds[]">
                         <thead>
                             <tr>
                                 <th data-checkbox="true"></th>
-                                <th data-field="accountNumber">Account Number</th>
-                                <th data-field="name">Business Name</th>
-                                <th data-field="createDate">Date</th>
-                                <th data-field="value">Value</th>
+                                <th data-field="customerNo">Account Number</th>
+                                <th data-field="customerName">Business Name</th>
+                                <th data-field="createdDate" data-formatter="$.fn.bootstrapTable.formatDate">Date</th>
+                                <th data-field="value" data-formatter="$.fn.bootstrapTable.formatCurrency">Value</th>
                             </tr>
                         </thead>
                     </table>
@@ -80,14 +77,34 @@
         }
 
         $(document).ready(e => {
+            var key = $.fn.guid();
             var $table = $('#@tableId');
 
-            var $form = $('#@formId').on('submit', (e) => {
+            var $toolbar = $('#toolbar').on('click', 'button', (e) => {
                 e.preventDefault();
+                $toolbar.find('button').removeClass('btn-primary');
+                var value = $(e.target).addClass('btn-primary').data('value');
+                filterForm.find('input[name=FilterDate]').val(value);
+
+                $table.bootstrapTable('refresh');
+            });
+
+            var filterForm = $('#@formId').on('submit', (e) => {
+                key = $.fn.guid();
+
+                e.preventDefault();
+                $toolbar.find('button').removeClass('btn-primary');
+                filterForm.find('input[name=FilterDate]').val(null);
                 $table.bootstrapTable('refresh');
             });
 
             $table.on('load-success.bs.table', function (e, data, jqXHR) {
+                //var key = filterForm.find('input[name=Date]').val();
+                if (data != null && $toolbar.attr('data-key') !== key) {
+                    var buttons = data.filter['CreatedDate'] !== undefined ? data.filter['CreatedDate'].map(x => $(`<button class='btn btn-secondary btn-sm mr-1' data-value='${x}'>${x}</>`)) : '';
+                    var btnGroup = $(`<div id='filterGroup' role='group'>`).append(buttons);
+                    $toolbar.attr('data-key', key).html(btnGroup);
+                }
                 statPanel();
             });
 
@@ -95,7 +112,7 @@
                 statPanel();
             });
 
-            $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+            $('#bulkDeleteBtn').on('click', (e) => {
                 if (!confirm('Are you sure want to delete this?')) { return false; }
 
                 var selections = $table.bootstrapTable('getSelections');
@@ -116,9 +133,10 @@
                 }
             });
 
-            function statPanel() {
+            function statPanel(data) {
                 var options = $table.bootstrapTable('getOptions');
                 var selections = $table.bootstrapTable('getSelections');
+                var $bulkDeleteBtn = $('#bulkDeleteBtn');
 
                 if (!selections.length) {
                     $bulkDeleteBtn.hide();

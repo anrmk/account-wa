@@ -18,7 +18,7 @@ namespace Core.Services.Business {
     public interface IReportBusinessManager {
         Task<AgingReportResultDto> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
         Task<ReportStatusDto> CheckingCustomerAccountNumber(long companyId, DateTime dateTo, int numberOfPeriods);
-        Task<CreditReportResultDto> GetCustomerCreditUtilizedReport(ReportFilterDto filter);
+        Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedReport(ReportFilterDto filter);
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -237,73 +237,43 @@ namespace Core.Services.Business {
             }
         }
 
-        public async Task<CreditReportResultDto> GetCustomerCreditUtilizedReport(ReportFilterDto filter) {
-            var company = await _companyManager.FindInclude(filter.CompanyId);
-            if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
-                throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
-            }
-
-            //   var dateFrom = dateTo.FirstDayOfMonth();
-
+        public async Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedReport(ReportFilterDto filter) {
             var customers = await _customerManager.FindByCompanyId(filter.CompanyId);
-            customers = customers.Where(x => (true) && (string.IsNullOrEmpty(filter.Search) || x.Name.ToLower().Contains(filter.Search.ToLower()) || x.No.ToLower().Contains(filter.Search.ToLower()))).ToList();
+            customers = customers.Where(x => (true)
+                        && (string.IsNullOrEmpty(filter.Search) || x.Name.ToLower().Contains(filter.Search.ToLower()) || x.No.ToLower().Contains(filter.Search.ToLower()))
+                        ).ToList();
 
-            //var dates = customers
-            //    .SelectMany(x => x.CreditUtilizeds.OrderBy(y => y.CreatedDate).Take(1), (customer, credits) => new { Customer = customer, Credits = credits })
-            //    .Where(cc => (dto.DateFrom.HasValue && cc.Credits.CreatedDate >= dto.DateFrom) && cc.Credits.CreatedDate <= dto.Date)
-            //    .GroupBy(cc => cc.Credits.CreatedDate)
-            //    .Select(customerAndCredits => customerAndCredits.Key)
-            //    .OrderBy(x => x.Ticks)
-            //    .ToList();
+            var dates = customers
+                .SelectMany(x => x.CreditUtilizeds, (customer, credits) => new { Customer = customer, Credits = credits })
+                .Where(cc => cc.Credits.CreatedDate <= filter.Date)
+                .OrderBy(x => x.Credits.CreatedDate)
+                .GroupBy(cc => new { cc.Credits.CreatedDate.Month, cc.Credits.CreatedDate.Year })
+                .Select(customerAndCredits => $"{customerAndCredits.Key.Month}/{customerAndCredits.Key.Year}")
+                .ToList();
 
-            //var columns = credits.GroupBy(x => x.Select(y => y.CreatedDate)).ToList();
+            var list = new List<CustomerCreditUtilizedDto>();
 
-            var result = new CreditReportResultDto() {
-                Date = filter.Date,
-              //  DateFrom = dates.OrderBy(x => x.Ticks).FirstOrDefault(),
-                CompanyId = filter.CompanyId,
-                Rows = new List<CreditReportRowDto>(),
-            };
-
-            #region COLS
-            var cols = new List<ReportColsDto>();
-            cols.Add(new ReportColsDto() { Name = "Account Number" });
-            cols.Add(new ReportColsDto() { Name = "Business Name" });
-            cols.Add(new ReportColsDto() { Name = "Date" });
-            cols.Add(new ReportColsDto() { Name = "Value" });
-            result.Cols = cols;
-            #endregion
-
-            #region ROWS
             foreach(var customer in customers) {
-                var rowData = new Dictionary<string, string>();
-                rowData.Add("Account Number", customer.No);
-                rowData.Add("Business Name", customer.Name);
-
                 var credit = customer.CreditUtilizeds
+                    .Where(x => (true)
+                        && (!filter.FilterDate.HasValue || (x.CreatedDate.ToString("MM/yyyy") == filter.FilterDate?.ToString("MM/yyyy")))
+                        && x.CreatedDate <= filter.Date
+                        )
                     .OrderByDescending(x => x.CreatedDate)
-                    .Take(1)
-                    .Where(x => (true) 
-                        && (!filter.DateFrom.HasValue || x.CreatedDate >= filter.DateFrom) 
-                        && (x.CreatedDate <= filter.Date)
-
-                        ).FirstOrDefault();
+                    .FirstOrDefault();
 
                 if(credit != null) {
-                    var key = credit.CreatedDate.ToString("MM/dd/yyyy");
-                    rowData.Add("Date", key);
-                    rowData.Add("Value", credit.Value?.ToCurrency());
+                    list.Add(_mapper.Map<CustomerCreditUtilizedDto>(credit));
                 }
-
-                var row = new CreditReportRowDto() {
-                    Id = credit != null ? credit.Id : 0,
-                    Data = rowData
-                };
-                result.Rows.Add(row);
             }
-            #endregion
 
-            return result;
+            var count = list.Count;
+            if(count == 0)
+                return new Pager<CustomerCreditUtilizedDto>(new List<CustomerCreditUtilizedDto>(), 0, filter.Offset, filter.Limit);
+
+            var pager = new Pager<CustomerCreditUtilizedDto>(list.Skip(filter.Offset).Take(filter.Limit), count, filter.Offset, filter.Limit);
+            pager.Filter.Add("CreatedDate", dates);
+            return pager;
         }
     }
 }
