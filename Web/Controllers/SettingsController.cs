@@ -53,7 +53,9 @@ namespace Web.Controllers.Mvc {
                         return BadRequest();
                     }
 
-                    var restrictedWords = await _companyBusinessManager.UpdateRestrictedWords(item.Id, model.CompanyIds.ToArray());
+                    if(model.CompanyIds != null && model.CompanyIds.Count > 0) {
+                        var restrictedWords = await _companyBusinessManager.UpdateRestrictedWords(item.Id, model.CompanyIds.ToArray());
+                    }
 
                     return RedirectToAction(nameof(Index));
                 }
@@ -99,6 +101,22 @@ namespace Web.Controllers.Mvc {
 
             return RedirectToAction(nameof(Index), new { Id = id });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> DeleteSettingsRestrictedWord(long id) {
+            try {
+                var item = await _settingsBusinessService.DeleteRestrictedWord(new long[] { id});
+                if(item == false) {
+                    return NotFound();
+                }
+                return RedirectToAction(nameof(Index));
+
+            } catch(Exception er) {
+                _logger.LogError(er, er.Message);
+                return BadRequest(er);
+            }
+        }
     }
 }
 
@@ -120,6 +138,16 @@ namespace Web.Controllers.Api {
             var result = await _settingsBusinessService.GetRestrictedWordPage(_mapper.Map<PagerFilterDto>(model));
             var pager = new Pager<SettingsRestrictedWordViewModel>(_mapper.Map<List<SettingsRestrictedWordViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
+        }
+
+        [HttpGet("DeleteSettingsRestrictedWord", Name = "DeleteSettingsRestrictedWord")]
+        public async Task<ActionResult> DeleteSettingsRestrictedWord([FromQuery] long[] id) {
+            if(id.Length > 0) {
+                var result = await _settingsBusinessService.DeleteRestrictedWord(id);
+                if(result)
+                    return Ok(id);
+            }
+            return BadRequest("No items selected");
         }
     }
 }

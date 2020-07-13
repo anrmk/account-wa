@@ -75,7 +75,7 @@
             <thead>
                 <tr>
                     <th data-checkbox="true"></th>
-                    <th data-field="no" data-sortable="true">Invoice</th>
+                    <th data-field="no" data-sortable="true" class="collapsing">Invoice</th>
                     <th data-field="customerName" data-formatter="nameFormatter">Customer</th>
                     <th data-field="customerCreatedDate" data-formatter="$.fn.bootstrapTable.formatDate">Customer<br />Created Date</th>
                     <th data-field="customerType">Type</th>
@@ -86,7 +86,7 @@
                     <th data-field="amount" data-sortable="true" data-sort-name="subtotal">Amount</th>
                     <th data-field="status">Status</th>
                     <th data-field="createdDate" class="text-nowrap text-right" data-formatter="$.fn.bootstrapTable.formatDateTime" data-sorter="$.fn.bootstrapTable.sortDate" data-sortable="true">Record Date</th>
-                    <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
+                    <th data-formatter="actionFormatter" class="text-right table-active collapsing">Actions</th>
                 </tr>
             </thead>
         </table>

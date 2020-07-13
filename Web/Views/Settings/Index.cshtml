@@ -2,9 +2,17 @@
 
 @{
     ViewData["Title"] = "Settings";
+    var tableId = Guid.NewGuid();
 
     var settingsRestrictedWordsUrl = Url.RouteUrl("GetSettingsRestrictedWords");
     var settingsRestrictedWordEditUrl = Url.ActionLink(action: "EditSettingsRestrictedWord", controller: "Settings");
+    var settingsRestrictedWordDeleteUrl = Url.RouteUrl("DeleteSettingsRestrictedWord");
+}
+
+@section Toolbar  {
+    <div class="btn-toolbar" role="toolbar">
+        <button id="deleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    </div>
 }
 
 <nav aria-label="breadcrumb">
@@ -30,13 +38,14 @@
                         <a asp-controller="Settings" asp-action="CreateSettingsRestrictedWord" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
                     </div>
                 </div>
-                <table id="datatable" data-toggle="table" data-url="@(settingsRestrictedWordsUrl)"
+                <table id="@tableId" data-toggle="table" data-url="@(settingsRestrictedWordsUrl)"
                        data-total-field="totalItems"
                        data-data-field="items">
                     <thead>
                         <tr>
+                            <th data-checkbox="true"></th>
                             <th data-field="name" data-sortable="true">Name</th>
-                            <th data-formatter="actionFormatter" class="text-nowrap text-right table-active" data-width="10" data-width-unit="%">Actions</th>
+                            <th data-formatter="actionFormatter" class="text-right table-active collapsing">Actions</th>
                         </tr>
                     </thead>
                 </table>
@@ -53,7 +62,52 @@
         }
 
         $(document).ready(() => {
+            var $table = $('#@(tableId)');
+            var $deleteBtn = $('#deleteBtn');
 
+            $table.on('load-success.bs.table', function (e, data, jqXHR) {
+                var selections = $table.bootstrapTable('getSelections');
+
+                if (!selections.length) {
+                    $deleteBtn.hide();
+                } else {
+                    $deleteBtn.show();
+                }
+            });
+
+            $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+                var selections = $table.bootstrapTable('getSelections');
+
+                if (!selections.length) {
+                    $deleteBtn.hide();
+                } else {
+                    $deleteBtn.show();
+                }
+            });
+
+            $bulkDeleteBtn.click(_ => {
+                if (!confirm('Are you sure want to delete this?')) { return false; }
+
+                var options = $table.bootstrapTable('getOptions');
+                var selections = $table.bootstrapTable('getSelections');
+                var ids = selections.map(x => x.id);
+
+                if (ids.length > 0) {
+                    var options = {
+                        'url': '@(settingsRestrictedWordDeleteUrl)',
+                        'traditional': true,
+                        'contentType': 'application/json; charset=utf-8',
+                        'data': { id: ids },
+                        'complete': (jqXHR, status) => {
+                            if (status === "success") {
+                                $table.bootstrapTable('refresh');
+                            }
+                        }
+                    };
+
+                    $.ajax(options);
+                }
+            });
         });
     </script>
 }

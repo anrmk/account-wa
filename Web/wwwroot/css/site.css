@@ -27,6 +27,11 @@ a {
   border-color: #1861ac;
 }
 
+table td.collapsing, table th.collapsing {
+  width: 1px;
+  white-space: nowrap;
+}
+
 /* Form SignIn and Register
 -------------------------------------------------- */
 .form-signin {

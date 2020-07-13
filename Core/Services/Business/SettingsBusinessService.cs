@@ -19,7 +19,7 @@ namespace Core.Services.Business {
         Task<Pager<SettingsRestrictedWordDto>> GetRestrictedWordPage(PagerFilterDto filter);
         Task<SettingsRestrictedWordDto> CreateRestrictedWord(SettingsRestrictedWordDto dto);
         Task<SettingsRestrictedWordDto> UpdateRestrictedWord(long id, SettingsRestrictedWordDto dto);
-        Task<bool> DeleteRestrictedWord(long id);
+        Task<bool> DeleteRestrictedWord(long[] ids);
     }
 
     public class SettingsBusinessService: BaseBusinessManager, ISettingsBusinessService {
@@ -122,12 +122,18 @@ namespace Core.Services.Business {
             return _mapper.Map<SettingsRestrictedWordDto>(entity);
         }
 
-        public async Task<bool> DeleteRestrictedWord(long id) {
-            var entity = await _settingsRestrictedWordManager.Find(id);
-            if(entity == null) {
+        public async Task<bool> DeleteRestrictedWord(long[] ids) {
+            var entities = await _settingsRestrictedWordManager.FindByIds(ids);
+            if(entities == null || entities.Count == 0) {
                 return false;
             }
-            int result = await _settingsRestrictedWordManager.Delete(entity);
+
+            var companyRestrictedWords = await _companySettingsRestrictedWordManager.FindByWordIds(entities.Select(x => x.Id).ToArray());
+            if(companyRestrictedWords != null && companyRestrictedWords.Count > 0) {
+                await _companySettingsRestrictedWordManager.Delete(companyRestrictedWords);
+            }
+
+            int result = await _settingsRestrictedWordManager.Delete(entities);
             return result != 0;
         }
     }
