@@ -9,6 +9,9 @@ namespace Core.Data.Dto {
 
         public decimal? Value { get; set; }
 
+        public decimal? NewValue { get; set; }
+        public bool IsNew { get; set; }
+
         public bool IsIgnored { get; set; }
 
         public DateTime CreatedDate { get; set; }

@@ -19,6 +19,7 @@ namespace Core.Services.Business {
         Task<AgingReportResultDto> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
         Task<ReportStatusDto> CheckingCustomerAccountNumber(long companyId, DateTime dateTo, int numberOfPeriods);
         Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedReport(ReportFilterDto filter);
+        Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedComparedReport(ReportFilterDto filter);
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -27,10 +28,12 @@ namespace Core.Services.Business {
         private readonly ICustomerManager _customerManager;
         private readonly ICustomerActivityManager _customerActivityManager;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
 
         public ReportBusinessManager(IMapper mapper, ICompanyManager companyManager,
             ICustomerManager customerManager,
             ICustomerActivityManager customerActivityManager,
+            ICustomerCreditUtilizedManager customerCreditUtilizedManager,
             ICrudBusinessManager businessManager,
             IReportManager reportManager
             ) {
@@ -38,6 +41,7 @@ namespace Core.Services.Business {
             _companyManager = companyManager;
             _customerManager = customerManager;
             _customerActivityManager = customerActivityManager;
+            _customerCreditUtilizedManager = customerCreditUtilizedManager;
             _businessManager = businessManager;
             _reportManager = reportManager;
         }
@@ -237,42 +241,81 @@ namespace Core.Services.Business {
             }
         }
 
+        /// <summary>
+        /// Display Credit Utilized Report by Company and Month with the options to delete record
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         public async Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedReport(ReportFilterDto filter) {
             var customers = await _customerManager.FindByCompanyId(filter.CompanyId);
             customers = customers.Where(x => (true)
                         && (string.IsNullOrEmpty(filter.Search) || x.Name.ToLower().Contains(filter.Search.ToLower()) || x.No.ToLower().Contains(filter.Search.ToLower()))
                         ).ToList();
 
-            var dates = customers
-                .SelectMany(x => x.CreditUtilizeds, (customer, credits) => new { Customer = customer, Credits = credits })
-                .Where(cc => cc.Credits.CreatedDate <= filter.Date)
-                .OrderBy(x => x.Credits.CreatedDate)
-                .GroupBy(cc => new { cc.Credits.CreatedDate.Month, cc.Credits.CreatedDate.Year })
-                .Select(customerAndCredits => $"{customerAndCredits.Key.Month}/{customerAndCredits.Key.Year}")
-                .ToList();
+            var credits = await _customerCreditUtilizedManager.FindByCompanyIdAndDate(filter.CompanyId, filter.Date);
+            credits = credits.GroupBy(x => x.Customer, x => x, (customer, credits) => new { Customer = customer, Credit = credits.OrderByDescending(x => x.CreatedDate).FirstOrDefault() })
+                .Where(x => x.Credit != null)
+                .Select(x => x.Credit).ToList();
 
-            var list = new List<CustomerCreditUtilizedDto>();
+            var dates = credits.GroupBy(x => x.CreatedDate).Select(x => x.Key)
+                 .Select(x => $"{x.Month}/{x.Year}")
+                 .ToList();
 
-            foreach(var customer in customers) {
-                var credit = customer.CreditUtilizeds
-                    .Where(x => (true)
-                        && (!filter.FilterDate.HasValue || (x.CreatedDate.ToString("MM/yyyy") == filter.FilterDate?.ToString("MM/yyyy")))
-                        && x.CreatedDate <= filter.Date
-                        )
-                    .OrderByDescending(x => x.CreatedDate)
-                    .FirstOrDefault();
+            if(filter.FilterDate.HasValue)
+                credits = credits.Where(x => x.CreatedDate.ToString("MM/yyyy") == filter.FilterDate.Value.ToString("MM/yyyy")).ToList();
 
-                if(credit != null) {
-                    list.Add(_mapper.Map<CustomerCreditUtilizedDto>(credit));
-                }
-            }
+            var result = _mapper.Map<List<CustomerCreditUtilizedDto>>(credits);
 
-            var count = list.Count;
+            var count = result.Count;
             if(count == 0)
                 return new Pager<CustomerCreditUtilizedDto>(new List<CustomerCreditUtilizedDto>(), 0, filter.Offset, filter.Limit);
 
-            var pager = new Pager<CustomerCreditUtilizedDto>(list.Skip(filter.Offset).Take(filter.Limit), count, filter.Offset, filter.Limit);
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+            var pager = new Pager<CustomerCreditUtilizedDto>(result.Skip(filter.Offset).Take(filter.Limit), count, page, filter.Limit);
             pager.Filter.Add("CreatedDate", dates);
+            return pager;
+        }
+
+        public async Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedComparedReport(ReportFilterDto filter) {
+            var company = await _companyManager.FindInclude(filter.CompanyId);
+            var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(filter.CompanyId, filter.Date);
+            if(creditUtilizedSettings == null) {
+                creditUtilizedSettings = new CustomerCreditUtilizedSettingsDto() {
+                    RoundType = company.Settings.RoundType,
+                    CompanyId = company.Id
+                };
+            }
+            var creditUtilizedList = new List<CustomerCreditUtilizedDto>();
+            var report = await GetAgingReport(filter.CompanyId, filter.Date, 30, 4, false);
+            foreach(var data in report.Rows) {
+                var customer = data.Customer;
+                var value = data.Data["Total"];//new height credit
+
+                if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                    value = Math.Ceiling(value);
+                } else if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                    value = Math.Floor(value);
+                }
+
+                var creditUtilized = customer.CreditUtilizeds.FirstOrDefault();
+                creditUtilized.Customer = customer;
+                creditUtilized.NewValue = value;
+
+                if(creditUtilized == null || (creditUtilized.CreatedDate != filter.Date && creditUtilized.Value < value)) {
+                    creditUtilized.IsNew = true;
+                    creditUtilizedList.Add(creditUtilized);
+                } else if(creditUtilized.Value < value) {
+                    creditUtilizedList.Add(creditUtilized);
+                }
+            }
+            var count = creditUtilizedList.Count();
+
+            if(count == 0)
+                return new Pager<CustomerCreditUtilizedDto>(new List<CustomerCreditUtilizedDto>(), 0, filter.Offset, filter.Limit);
+
+            var page = (filter.Offset + filter.Limit) / filter.Limit;
+            var pager = new Pager<CustomerCreditUtilizedDto>(creditUtilizedList, count, page, filter.Limit);
+
             return pager;
         }
     }

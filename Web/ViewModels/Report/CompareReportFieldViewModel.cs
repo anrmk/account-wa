@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
     public class CompareReportViewModel {
+        public long CompanyId { get; set; }
         public DateTime Date { get; set; }
+        public int NumberOfPeriods { get; set; }
 
         [Display(Name = "Customers")]
         public ICollection<CompareReportFieldViewModel> Customers { get; set; }

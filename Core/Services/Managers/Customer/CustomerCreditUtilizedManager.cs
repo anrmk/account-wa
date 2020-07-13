@@ -14,6 +14,7 @@ namespace Core.Services.Managers {
         Task<List<CustomerCreditUtilizedEntity>> FindAllByCustomerId(long customerId);
         Task<CustomerCreditUtilizedEntity> FindInclude(long id);
         Task<CustomerCreditUtilizedEntity> FindByCustomerIdAndDate(long customerId, DateTime date);
+        Task<List<CustomerCreditUtilizedEntity>> FindByCompanyIdAndDate(long companyId, DateTime date);
     }
 
     public class CustomerCreditUtilizedManager: AsyncEntityManager<CustomerCreditUtilizedEntity>, ICustomerCreditUtilizedManager {
@@ -33,6 +34,13 @@ namespace Core.Services.Managers {
             return await DbSet
                 .Include(x => x.Customer)
                 .Where(x => x.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<CustomerCreditUtilizedEntity>> FindByCompanyIdAndDate(long companyId, DateTime date) {
+            return await DbSet
+              .Include(x => x.Customer)
+              .Where(x => x.Customer.CompanyId == companyId && x.CreatedDate <= date)
+              .ToListAsync();
         }
     }
 }

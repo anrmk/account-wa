@@ -715,7 +715,9 @@ namespace Web.Controllers.Api {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
 
                     var compareReport = new CompareReportViewModel() {
+                        CompanyId = model.CompanyId,
                         Date = model.Date,
+                        NumberOfPeriods = model.NumberOfPeriods,
                         Balance = new List<CompareReportFieldViewModel>(),
                         Customers = new List<CompareReportFieldViewModel>(),
                         CustomerTypes = new List<CompareReportFieldViewModel>(),
@@ -894,20 +896,16 @@ namespace Web.Controllers.Api {
             return Ok();
         }
 
-        //[HttpPost("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
-        //public async Task<IActionResult> GetCreditUtilizedReport([FromBody] ReportFilterViewModel model) {
-        //    try {
-        //        var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(model.CompanyId, model.Date);
-        //        string html = await _viewRenderService.RenderToStringAsync("_CreditUtilizedPartial", result);
-        //        return Ok(result);
-        //    } catch(Exception er) {
-        //        BadRequest(er.Message ?? er.StackTrace);
-        //    }
-        //    return Ok();
-        //}
+        [HttpGet("GetCustomerCreditUtilizedComparedReport", Name = "GetCustomerCreditUtilizedComparedReport")]
+        public async Task<Pager<CustomerCreditUtilizedViewModel>> GetCustomerCreditUtilizedComparedReport([FromQuery] ReportFilterViewModel model) {
+            var result = await _reportBusinessManager.GetCustomerCreditUtilizedComparedReport(_mapper.Map<ReportFilterDto>(model));
+            var pager = new Pager<CustomerCreditUtilizedViewModel>(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
+            pager.Filter = result.Filter;
+            return pager;
+        }
 
-        [HttpGet("GetCreditUtilizedReport", Name = "GetCreditUtilizedReport")]
-        public async Task<Pager<CustomerCreditUtilizedViewModel>> GetCustomers([FromQuery] ReportFilterViewModel model) {
+        [HttpGet("GetCustomerCreditUtilizedReport", Name = "GetCustomerCreditUtilizedReport")]
+        public async Task<Pager<CustomerCreditUtilizedViewModel>> GetCustomerCreditUtilizedReport([FromQuery] ReportFilterViewModel model) {
             var result = await _reportBusinessManager.GetCustomerCreditUtilizedReport(_mapper.Map<ReportFilterDto>(model));
             var pager = new Pager<CustomerCreditUtilizedViewModel>(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             pager.Filter = result.Filter;
