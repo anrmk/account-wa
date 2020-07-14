@@ -260,7 +260,7 @@ namespace Core.Services.Business {
                    (true)
                    && (x.No.Contains(search) || x.Name.Contains(search));
 
-            var sortby = sort ?? "Name";
+            var sortby = sort ?? "No";
 
             string[] include = new string[] { "Address" };
 

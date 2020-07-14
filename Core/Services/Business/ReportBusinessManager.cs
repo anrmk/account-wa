@@ -278,6 +278,9 @@ namespace Core.Services.Business {
 
         public async Task<Pager<CustomerCreditUtilizedDto>> GetCustomerCreditUtilizedComparedReport(ReportFilterDto filter) {
             var company = await _companyManager.FindInclude(filter.CompanyId);
+            if(company.Settings == null || !company.Settings.SaveCreditValues)
+                return new Pager<CustomerCreditUtilizedDto>(new List<CustomerCreditUtilizedDto>(), 0, filter.Offset, filter.Limit);
+
             var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettings(filter.CompanyId, filter.Date);
             if(creditUtilizedSettings == null) {
                 creditUtilizedSettings = new CustomerCreditUtilizedSettingsDto() {
@@ -285,26 +288,33 @@ namespace Core.Services.Business {
                     CompanyId = company.Id
                 };
             }
+
             var creditUtilizedList = new List<CustomerCreditUtilizedDto>();
             var report = await GetAgingReport(filter.CompanyId, filter.Date, 30, 4, false);
             foreach(var data in report.Rows) {
                 var customer = data.Customer;
                 var value = data.Data["Total"];//new height credit
 
-                if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundUp) {
+                if(creditUtilizedSettings.RoundType == RoundType.RoundUp) {
                     value = Math.Ceiling(value);
-                } else if(creditUtilizedSettings.RoundType == Core.Data.Enum.RoundType.RoundDown) {
+                } else if(creditUtilizedSettings.RoundType == RoundType.RoundDown) {
                     value = Math.Floor(value);
                 }
 
                 var creditUtilized = customer.CreditUtilizeds.FirstOrDefault();
-                creditUtilized.Customer = customer;
-                creditUtilized.NewValue = value;
 
                 if(creditUtilized == null || (creditUtilized.CreatedDate != filter.Date && creditUtilized.Value < value)) {
+                    if(creditUtilized == null) {
+                        creditUtilized = new CustomerCreditUtilizedDto();
+                    }
+
+                    creditUtilized.Customer = customer;
                     creditUtilized.IsNew = true;
+                    creditUtilized.NewValue = value;
                     creditUtilizedList.Add(creditUtilized);
                 } else if(creditUtilized.Value < value) {
+                    creditUtilized.Customer = customer;
+                    creditUtilized.NewValue = value;
                     creditUtilizedList.Add(creditUtilized);
                 }
             }

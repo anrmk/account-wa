@@ -30,7 +30,7 @@ namespace Core.Services.Managers {
                         "CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms, CUS.[CustomerType_Id] AS CustomerTypeId, CUST.[Name] AS CustomerTypeName, CUS.[CreatedDate] AS CustomerCreatedDate, " +
                         "CACT.[Id] AS ActivityId, CACT.[CreatedDate] AS ActivityDate, CACT.[IsActive] AS ActivityStatus, " +
                         "CLIM.[Id] AS CreditLimitId, CLIM.[Value] AS CreditLimit, CLIM.[CreatedDate] AS CreditLimitDate, " +
-                        "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, " +
+                        "CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, CUTIL.[IsIgnored] AS CreditUtilizedIsIgnored, " +
                         "ADDR.[Id] as CustomerAddressId, ADDR.[Address] as CustomerAddress, ADDR.[Address2] as CustomerAddress2, ADDR.[City] as CustomerCity, ADDR.[State] as CustomerState, ADDR.[ZipCode] as CustomerZipCode, ADDR.[Country] as CustomerCountry, " +
                         "COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, " +
                         "DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate " +
@@ -153,6 +153,7 @@ namespace Core.Services.Managers {
                                             Id = (long)reader["CreditUtilizedId"],
                                             CustomerId = customer.Id,
                                             CreatedDate = (DateTime)reader["CreditUtilizedDate"],
+                                            IsIgnored = (bool)reader["CreditUtilizedIsIgnored"],
                                             Value = reader["CreditUtilized"] != DBNull.Value ? (decimal)reader["CreditUtilized"] : 0
                                         };
 

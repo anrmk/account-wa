@@ -5,16 +5,20 @@
     var creditUtilizedSettings = (Web.ViewModels.CustomerCreditUtilizedSettingsViewModel)ViewData["CreditUtilizedSettings"];
     var tableId = Guid.NewGuid();
     var formId = Guid.NewGuid();
+
     var listUrl = Url.RouteUrl("GetCustomerCreditUtilizedComparedReport");
+    var creditUtilizedChangeStatusUrl = Url.RouteUrl("CreditUtilizedChangeStatus");
 }
 
 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
     <li class="nav-item" role="presentation">
         <a class="nav-link active" id="pills-general-tab" data-toggle="pill" href="#pills-general" role="tab" aria-controls="pills-general" aria-selected="true">General</a>
     </li>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link @(creditUtilizedSettings == null || !companySettings.SaveCreditValues ? "disabled" : "")" id="pills-creditutilized-tab" data-toggle="pill" href="#pills-creditutilized" role="tab" aria-controls="pills-creditutilized" aria-selected="false">Credit Utilized</a>
-    </li>
+    @if(creditUtilizedSettings != null && companySettings.SaveCreditValues) {
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="pills-creditutilized-tab" data-toggle="pill" href="#pills-creditutilized" role="tab" aria-controls="pills-creditutilized" aria-selected="false">Credit Utilized</a>
+        </li>
+    }
 </ul>
 <div class="tab-content">
     <div class="tab-pane fade show active" id="pills-general" role="tabpanel" aria-labelledby="pills-general-tab">
@@ -130,127 +134,62 @@
             </div>
         </div>
     </div>
-    <div class="tab-pane fade" id="pills-creditutilized" role="tabpanel" aria-labelledby="pills-creditutilized-tab">
-        <h6>
-            <label asp-for="CreditUtilized" class="d-block mb-0">Credit Utilized (@Model.Date.ToString("MM/dd/yyyy"))</label>
-            @if(creditUtilizedSettings != null) {
-                <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}": $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
-            }
-        </h6>
-        <form id="@formId">
-            <input asp-for="CompanyId" type="hidden" />
-            <input asp-for="NumberOfPeriods" type="hidden" />
-            <input asp-for="Date" type="hidden" value="@Model.Date.ToString("yyyy-MM-dd")" />
-        </form>
-        <div id="toolbar" role="toolbar"></div>
-        <div class="table-responsive">
-            <table id="@tableId" data-toggle="table" data-url="@listUrl" class="table table-sm"
-                   data-query-params="queryParams"
-                   data-total-field="totalItems"
-                   data-data-field="items"
-                   data-select-item-name="CreditUtilizeds[]">
-                <thead>
-                    <tr>
-                        <th data-checkbox="true" rowspan="2"></th>
-                        <th data-field="customerNo" rowspan="2">Account Number</th>
-                        <th data-field="customerName" rowspan="2">Business Name</th>
-                        <th colspan="2">Credits for create</th>
-                        <th colspan="2">Credits for update</th>
-                        <th colspan="2">Credits ignored</th>
-                    </tr>
-                    <tr>
-                        <th data-field="value" data-formatter="creditCreateOldFormatter">Old</th>
-                        <th data-field="newValue" data-formatter="creditCreateNewFormatter">New</th>
-                        <th data-field="value" data-formatter="creditUpdateOldFormatter">Old</th>
-                        <th data-field="newValue" data-formatter="creditUpdateNewFormatter">New</th>
-                        <th data-field="value" data-formatter="creditIgnoredOldFormatter">Old</th>
-                        <th data-field="newValue" data-formatter="creditIgnoredNewFormatter">New</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm">
-                <thead>
-                    <tr>
-                        <th rowspan="2">#</th>
-                        <th rowspan="2">Account Number</th>
-                        <th rowspan="2">Business Name</th>
-                        <th colspan="2">Credits for create</th>
-                        <th colspan="2">Credits for update</th>
-                        <th colspan="2">Credits ignored</th>
-                    </tr>
-                    <tr>
-                        <th width="120px">Old</th>
-                        <th width="120px">New</th>
-                        <th width="120px">Old</th>
-                        <th width="120px">New</th>
-                        <th width="120px">Old</th>
-                        <th width="120px">New</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for(var i = 0; i < Model.CreditUtilizedList.Count(); i++) {
-                        var item = Model.CreditUtilizedList.ElementAt(i);
+    @if(creditUtilizedSettings != null && companySettings.SaveCreditValues) {
+        <div class="tab-pane fade" id="pills-creditutilized" role="tabpanel" aria-labelledby="pills-creditutilized-tab">
+            <h6>
+                <label asp-for="CreditUtilized" class="d-block mb-0">Credit Utilized (@Model.Date.ToString("MM/dd/yyyy"))</label>
+                @if(creditUtilizedSettings != null) {
+                    <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}" : $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
+                }
+            </h6>
+            <form id="@formId">
+                <input asp-for="CompanyId" type="hidden" />
+                <input asp-for="NumberOfPeriods" type="hidden" />
+                <input asp-for="Date" type="hidden" value="@Model.Date.ToString("yyyy-MM-dd")" />
+            </form>
+            <div id="toolbar" role="toolbar">
+                <div class="btn-group">
+                    <button id="makeRecognizedBtn" class="btn btn-secondary">Make recognized</button>
+                    <button id="makeIgnoredBtn" class="btn btn-secondary btn-warning">Make ignored</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="@tableId" data-toggle="table" data-url="@listUrl" class="table table-sm table-bordered"
+                       data-query-params="queryParams"
+                       data-total-field="totalItems"
+                       data-data-field="items"
+                       data-select-item-name="CreditUtilizeds[]">
+                    <thead>
                         <tr>
-                            <td>@(i + 1)</td>
-                            <td>@item.CustomerNo</td>
-                            <td>@item.CustomerName</td>
-                            @if(item.Status) {
-                                <td>
-                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
-                                    <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")&nbsp;</small>
-                                </td>
-                                <td>
-                                    <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
-                                    <small>&nbsp;</small>
-                                </td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                            } else {
-                                <td></td>
-                                <td></td>
-                                @if(!item.IsIgnored) {
-                                    <td>
-                                        <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
-                                        <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")</small>
-                                    </td>
-                                    <td>
-                                        <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
-                                        <small>&nbsp;</small>
-                                    </td>
-                                    <td></td>
-                                    <td></td>
-                                } else {
-                                    <td></td>
-                                    <td></td>
-                                    <td>
-                                        <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.OldValue)</span>
-                                        <small class="text-muted">@item.OldDate?.ToString("MM/dd/yyyy")</small>
-                                    </td>
-                                    <td>
-                                        <span class="d-block">@Core.Extension.NumberExtensionMethods.ToCurrency(item.NewValue)</span>
-                                        <small>&nbsp;</small>
-                                    </td>
-                                }
-                            }
+                            <th data-checkbox="true" rowspan="2"></th>
+                            <th data-field="customerNo" class="collapsing" rowspan="2">Account Number</th>
+                            <th data-field="customerName" rowspan="2">Business Name</th>
+                            <th colspan="2">Credits for create</th>
+                            <th colspan="2">Credits for update</th>
+                            <th colspan="2">Credits ignored</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                        <tr>
+                            <th data-field="value" class="collapsing" data-formatter="creditCreatedFormatter">Old</th>
+                            <th data-field="newValue" class="collapsing" data-formatter="creditCreatedFormatter">New</th>
+                            <th data-field="value" class="collapsing" data-formatter="creditUpdatedFormatter">Old</th>
+                            <th data-field="newValue" class="collapsing" data-formatter="creditUpdatedFormatter">New</th>
+                            <th data-field="value" class="collapsing" data-formatter="creditIgnoredFormatter">Old</th>
+                            <th data-field="newValue" class="collapsing" data-formatter="creditIgnoredFormatter">New</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
-    </div>
+    }
 </div>
+
 <script type="text/javascript">
     function queryParams(params) {
         var filterForm = $('#@formId').serializeJSON();
         return $.extend({}, params, filterForm);
     }
 
-    function creditCreateOldFormatter(value, row) {
+    function creditCreatedFormatter(value, row) {
         if (row['isNew']) {
             return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
         } else {
@@ -258,30 +197,71 @@
         }
     }
 
-    function creditCreateNewFormatter(value, row) {
-        if (row['isNew']) {
+    function creditUpdatedFormatter(value, row) {
+        if (!row['isNew'] && !row['isIgnored']) {
             return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
         } else {
-            return `<span></span>`;
+            return '<span></span>';
         }
     }
 
-    function creditUpdateOldFormatter(value, row) {
-        if (row['isNew']) {
-            return `<span></span>`;
-        }
-        if (row['isIgnored']) {
+    function creditIgnoredFormatter(value, row) {
+        if (!row['isNew'] && row['isIgnored']) {
             return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
+        } else {
+            return '<span></span>';
         }
     }
-
-    function creditUpdateNewFormatter(value, row) {
-
-    }
-
-    
 
     $(document).ready(e => {
         var $table = $('#@(tableId)').bootstrapTable();
+        var $makeIgnoredBtn = $('#makeIgnoredBtn');
+        var $makeRecognizedBtn = $('#makeRecognizedBtn');
+
+        $table.on('load-success.bs.table', function (e, data, jqXHR) {
+            toolbarStatus();
+        });
+
+        $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+            toolbarStatus();
+        });
+
+        $makeIgnoredBtn.on('click', e => creditUtilizedChangeStatusUrl(e, true));
+        $makeRecognizedBtn.on('click', e => creditUtilizedChangeStatusUrl(e, false));
+
+        function creditUtilizedChangeStatusUrl (e, isIgnored) {
+            e.preventDefault();
+
+            var selections = $table.bootstrapTable('getSelections');
+            var ids = selections.map(x => x.id);
+
+            if (ids.length > 0) {
+                var options = {
+                    'url': '@(creditUtilizedChangeStatusUrl)',
+                    'traditional': true,
+                    'contentType': 'application/json; charset=utf-8',
+                    'data': { 'id': ids, 'isIgnored': isIgnored },
+                    'complete': (jqXHR, status) => {
+                        if (status === "success") {
+                            $table.bootstrapTable('refresh');
+                        }
+                    }
+                };
+
+                $.ajax(options);
+            }
+        }
+        function toolbarStatus () {
+            var options = $table.bootstrapTable('getOptions');
+            var selections = $table.bootstrapTable('getSelections');
+
+            if (!selections.length) {
+                $makeIgnoredBtn.hide();
+                $makeRecognizedBtn.hide();
+            } else {
+                $makeIgnoredBtn.show();
+                $makeRecognizedBtn.show();
+            }
+        }
     });
 </script>

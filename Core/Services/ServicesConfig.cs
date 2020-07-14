@@ -62,6 +62,8 @@ namespace Core.Services {
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();
             services.AddTransient<ICompanyBusinessManager, CompanyBusinessManager>();
+            services.AddTransient<ICustomerBusinessManager, CustomerBusinessManager>();
+
             services.AddTransient<ISettingsBusinessService, SettingsBusinessService>();
 
             services.AddTransient<IReportBusinessManager, ReportBusinessManager>();

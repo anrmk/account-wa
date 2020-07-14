@@ -554,20 +554,23 @@ namespace Web.Controllers.Api {
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
         private readonly ICompanyBusinessManager _companyBusinessManager;
+        private readonly ICustomerBusinessManager _customerBusinessManager;
 
         private readonly ISettingsBusinessService _settingsBusinessManager;
 
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(IMapper mapper, IViewRenderService viewRenderService, IMemoryCache memoryCache, ICrudBusinessManager businessManager,
+            ICustomerBusinessManager customerBusinessManager,
             ICompanyBusinessManager companyBusinessManager,
-            ISettingsBusinessService customerBusinessService) {
+            ISettingsBusinessService settingsBusinessService) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
+            _customerBusinessManager = customerBusinessManager;
             _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
-            _settingsBusinessManager = customerBusinessService;
+            _settingsBusinessManager = settingsBusinessService;
         }
 
         [HttpGet("GetCustomers", Name = "GetCustomers")]
@@ -943,6 +946,15 @@ namespace Web.Controllers.Api {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
             return Ok();
+        }
+
+        [HttpGet("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
+        public async Task<ActionResult> ChangeStatusCustomerCreditUtilized([FromQuery] long[] id, [FromQuery] bool isIgnored) {
+            if(id.Length > 0) {
+                var result = await _customerBusinessManager.CreditUtilizedChangeStatus(id, isIgnored);
+                return Ok(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result));
+            }
+            return BadRequest("No items selected");
         }
     }
 }
