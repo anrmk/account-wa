@@ -57,6 +57,7 @@
             e.preventDefault();
             $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
                 if (status === 'success') {
+                    form.css('disabled', data.count == 0 ? "none" : "block");
                     form.find('input.count').val(data.count);
                     form.find('input[name=TotalAmount]').val(data.totalAmount);
                     form.find('input.totalAmount').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
