@@ -324,7 +324,7 @@ namespace Core.Services.Business {
                 return new Pager<CustomerCreditUtilizedDto>(new List<CustomerCreditUtilizedDto>(), 0, filter.Offset, filter.Limit);
 
             var page = (filter.Offset + filter.Limit) / filter.Limit;
-            var pager = new Pager<CustomerCreditUtilizedDto>(creditUtilizedList, count, page, filter.Limit);
+            var pager = new Pager<CustomerCreditUtilizedDto>(creditUtilizedList.Skip(filter.Offset).Take(filter.Limit), count, page, filter.Limit);
 
             return pager;
         }
