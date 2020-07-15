@@ -190,8 +190,9 @@
     }
 
     function creditCreatedFormatter(value, row) {
-        if (row['isNew']) {
-            return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
+        if (row['isNew'] && !row['isIgnored']) {
+            var date = value === row['value'] ? row['createdDate'] : row['newCreatedDate'];
+            return `<span class='d-block'>${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(date)}</small>`;
         } else {
             return `<span></span>`;
         }
@@ -199,15 +200,17 @@
 
     function creditUpdatedFormatter(value, row) {
         if (!row['isNew'] && !row['isIgnored']) {
-            return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
+            var date = value === row['value'] ? row['createdDate'] : row['newCreatedDate'];
+            return `<span class='d-block'>${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(date)}</small>`;
         } else {
             return '<span></span>';
         }
     }
 
     function creditIgnoredFormatter(value, row) {
-        if (!row['isNew'] && row['isIgnored']) {
-            return `<span class="d-block">${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(row['createdDate'])}</small>`;
+        if (row['isIgnored']) {
+            var date = value === row['value'] ? row['createdDate'] : row['newCreatedDate'];
+            return `<span class='d-block'>${$.fn.bootstrapTable.formatCurrency(value)}</span><small class='text-muted'>${$.fn.bootstrapTable.formatDate(date)}</small>`;
         } else {
             return '<span></span>';
         }

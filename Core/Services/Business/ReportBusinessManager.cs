@@ -305,16 +305,22 @@ namespace Core.Services.Business {
 
                 if(creditUtilized == null || (creditUtilized.CreatedDate != filter.Date && creditUtilized.Value < value)) {
                     if(creditUtilized == null) {
-                        creditUtilized = new CustomerCreditUtilizedDto();
+                        creditUtilized = new CustomerCreditUtilizedDto() {
+                            CreatedDate = DateTime.Now
+                        };
                     }
 
                     creditUtilized.Customer = customer;
                     creditUtilized.IsNew = true;
                     creditUtilized.NewValue = value;
+                    creditUtilized.NewCreatedDate = filter.Date;
+
                     creditUtilizedList.Add(creditUtilized);
                 } else if(creditUtilized.Value < value) {
                     creditUtilized.Customer = customer;
                     creditUtilized.NewValue = value;
+                    creditUtilized.NewCreatedDate = filter.Date;
+
                     creditUtilizedList.Add(creditUtilized);
                 }
             }
