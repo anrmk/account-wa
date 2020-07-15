@@ -37,11 +37,11 @@ $.fn.dialog = function (header, callback) {
         $('.modal .modal-body').empty().html(this),
 
         window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
-            var form = $('.modal .modal-content form');//.on('submit');
+            var form = $('.modal .modal-content form');
             var formId = form.attr('id');
 
             var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
-            if (form.length == 1 && formId != '00000000-0000-0000-0000-000000000000') {
+            if (form.length == 1 && form.attr('action') !== undefined && formId != '00000000-0000-0000-0000-000000000000') {
                 submitBtn.attr('form', formId).removeAttr('hidden');
             } else {
                 submitBtn.attr('hidden', 'hidden');
