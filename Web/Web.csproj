@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <Content Remove="Views\Report\_CreditUtilizedPartial.cshtml" />
-    <Content Remove="wwwroot\js\site.min.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +50,5 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="wwwroot\js\site.min.js" />
   </ItemGroup>
 </Project>

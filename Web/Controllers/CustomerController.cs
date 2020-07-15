@@ -948,13 +948,25 @@ namespace Web.Controllers.Api {
             return Ok();
         }
 
-        [HttpGet("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
-        public async Task<ActionResult> ChangeStatusCustomerCreditUtilized([FromQuery] long[] id, [FromQuery] bool isIgnored) {
-            if(id.Length > 0) {
-                var result = await _customerBusinessManager.CreditUtilizedChangeStatus(id, isIgnored);
+        [HttpPost("CreateOrUpdateCreditUtilized", Name = "CreateOrUpdateCreditUtilized")]
+        public async Task<IActionResult> CreateOrUpdateCreditUtilized(CustomerCreditUtilizedChangeStatusViewModel model) {
+            if(ModelState.IsValid) {
+                var result = await _customerBusinessManager.UpdateOrCreateCreditUtilized(_mapper.Map<List<CustomerCreditUtilizedDto>>(model.Credits));
                 return Ok(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result));
+            } else {
+                return BadRequest("No items selected");
             }
-            return BadRequest("No items selected");
         }
+
+        
+        //[HttpPost("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
+        //public async Task<IActionResult> CreditUtilizedChangeStatus(CustomerCreditUtilizedChangeStatusViewModel model) {
+        //    if(ModelState.IsValid) {
+        //        var result = await _customerBusinessManager.UpdateOrCreateCreditUtilized(_mapper.Map<List<CustomerCreditUtilizedDto>>(model.Credits));
+        //        return Ok(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result));
+        //    } else {
+        //        return BadRequest("No items selected");
+        //    }
+        //}
     }
 }

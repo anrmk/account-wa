@@ -1,5 +1,5 @@
 ﻿$(document).ready(() => {
-    $.fn.datepicker.defaults.format = "mm/dd/yyyy";
+    $.fn.datepicker.defaults.format = 'mm/dd/yyyy';
     window.modal = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
 
@@ -12,7 +12,7 @@
     $('form fieldset').enabled();
     $('div[role=toolbar]').find('a, button').enabled()
 }).ajaxError((e, jqxhr, settings, thrownError) => {
-    window.console.log("Error", jqxhr.responseText);
+    window.console.log('Error', jqxhr.responseText);
     alert(jqxhr.responseText);
 });
 
@@ -41,18 +41,18 @@ $.fn.dialog = function (header, callback) {
             var formId = form.attr('id');
 
             var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
-            if (form.length == 1 && form.attr('action') !== undefined && formId != '00000000-0000-0000-0000-000000000000') {
+            if (form.length == 1 && form.attr('action') !== undefined && formId !== '00000000-0000-0000-0000-000000000000') {
                 submitBtn.attr('form', formId).removeAttr('hidden');
             } else {
                 submitBtn.attr('hidden', 'hidden');
             }
-            callback("shown.bs.modal", e, this);
+            callback('shown.bs.modal', e, this);
         }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
             this.empty();
-            callback("hidden.bs.modal", e, this);
+            callback('hidden.bs.modal', e, this);
         })
     ).done((e) => {
-        callback("modal.on.load", e, this);
+        callback('modal.on.load', e, this);
     });
     return window.modal;
 };
@@ -76,13 +76,13 @@ $.fn.bootstrapTable.formatCurrency = function (value) {
 
 $.extend($.fn.bootstrapTable.defaults, {
     classes: 'table table-hover',
-    widthUnit : "%",
+    widthUnit: '%',
     sidePagination: 'server',
     toolbar: '#toolbar',
     showPaginationSwitch: false,
     silentSort: false,
     search: true,
-    idField: "id",
+    idField: 'id',
     pageSize: 10,
     pageList: [10, 100, 500, 'All'],
     clickToSelect: true,
@@ -117,14 +117,14 @@ $.extend($.validator, {
         messages: {},
         groups: {},
         rules: {},
-        errorClass: "invalid-feedback",
-        validClass: "valid",
-        errorElement: "small",
+        errorClass: 'invalid-feedback',
+        validClass: 'valid',
+        errorElement: 'small',
         focusInvalid: true,
         errorContainer: $([]),
         errorLabelContainer: $([]),
         onsubmit: true,
-        ignore: ":hidden",              // default for ignore in jquery.validate.js
+        ignore: ':hidden',              // default for ignore in jquery.validate.js
         ignoreTitle: false,
         onfocusin: function (element, event) {
             this.lastActive = element;

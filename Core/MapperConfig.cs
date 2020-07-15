@@ -29,7 +29,7 @@ namespace Core {
                 .ReverseMap();
             CreateMap<CompanyExportSettingsFieldDto, CompanyExportSettingsFieldEntity>().ReverseMap();
             CreateMap<CompanyRestrictedWordDto, CompanyRestrictedWordEntity>().ReverseMap();
-            
+
             #endregion
 
             #region INVOICE

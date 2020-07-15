@@ -1,5 +1,5 @@
 ﻿/*!
-* v1.0.1
+* v1.0.2
 * https://github.com/anrmk
 *
 * Copyright 2020 Aziz Nurmukhamedov
@@ -51,7 +51,6 @@ $.fn.ajaxSubmit = function (opt, callback) {
             'url': $form.attr('action'),
             'type': $form.attr('method'),
             'data': data,
-            //'processData': false,
             'traditional': true,
             'contentType': 'application/json; charset=utf-8'
         }, opt);
@@ -94,9 +93,9 @@ $.fn.enabled = function () {
 }
 
 $.fn.check = function () {
-    $(this).prop("checked", true);
+    $(this).prop('checked', true);
 }
 
 $.fn.uncheck = function () {
-    $(this).prop("checked", false);
+    $(this).prop('checked', false);
 }

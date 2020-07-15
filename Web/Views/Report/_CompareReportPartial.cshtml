@@ -7,7 +7,7 @@
     var formId = Guid.NewGuid();
 
     var listUrl = Url.RouteUrl("GetCustomerCreditUtilizedComparedReport");
-    var creditUtilizedChangeStatusUrl = Url.RouteUrl("CreditUtilizedChangeStatus");
+    var createOrUpdateCreditUtilizedUrl = Url.RouteUrl("CreateOrUpdateCreditUtilized");
 }
 
 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
@@ -218,6 +218,8 @@
 
     $(document).ready(e => {
         var $table = $('#@(tableId)').bootstrapTable();
+        var $form = $('#@(formId)');
+
         var $makeIgnoredBtn = $('#makeIgnoredBtn');
         var $makeRecognizedBtn = $('#makeRecognizedBtn');
 
@@ -229,21 +231,25 @@
             toolbarStatus();
         });
 
-        $makeIgnoredBtn.on('click', e => creditUtilizedChangeStatusUrl(e, true));
-        $makeRecognizedBtn.on('click', e => creditUtilizedChangeStatusUrl(e, false));
+        $makeIgnoredBtn.on('click', e => creditUtilizedChangeStatus(e, true));
+        $makeRecognizedBtn.on('click', e => creditUtilizedChangeStatus(e, false));
 
-        function creditUtilizedChangeStatusUrl (e, isIgnored) {
+        function creditUtilizedChangeStatus (e, isIgnored) {
             e.preventDefault();
 
             var selections = $table.bootstrapTable('getSelections');
-            var ids = selections.map(x => x.id);
+            selections.forEach(x => x.isIgnored = isIgnored)
+            
+            if (selections.length > 0) {
+                var data = {
+                    'credits': selections
+                };
 
-            if (ids.length > 0) {
                 var options = {
-                    'url': '@(creditUtilizedChangeStatusUrl)',
-                    'traditional': true,
+                    'url': '@(createOrUpdateCreditUtilizedUrl)',
+                    'type': 'post',
                     'contentType': 'application/json; charset=utf-8',
-                    'data': { 'id': ids, 'isIgnored': isIgnored },
+                    'data': JSON.stringify(data),
                     'complete': (jqXHR, status) => {
                         if (status === "success") {
                             $table.bootstrapTable('refresh');
@@ -254,6 +260,7 @@
                 $.ajax(options);
             }
         }
+
         function toolbarStatus () {
             var options = $table.bootstrapTable('getOptions');
             var selections = $table.bootstrapTable('getSelections');

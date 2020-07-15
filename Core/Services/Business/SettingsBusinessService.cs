@@ -82,7 +82,7 @@ namespace Core.Services.Business {
             var companyRestrictedWords = await _companySettingsRestrictedWordManager.FindByCompanyId(companyId); // только у конкретной компании
             var allLinked = await _companySettingsRestrictedWordManager.All(); // все имеющиеся 
             var exclude = allLinked.Where(x => !companyRestrictedWords.Any(y => x.RestrictedWordId == y.RestrictedWordId)).GroupBy(x => x.RestrictedWordId).Select(x => x.Key).ToList();
-            
+
             var result = entities.Where(x => !exclude.Contains(x.Id)).ToList();
 
             return _mapper.Map<List<SettingsRestrictedWordDto>>(result);

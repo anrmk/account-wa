@@ -12,8 +12,6 @@ using Core.Data.Enum;
 using Core.Extension;
 using Core.Services.Managers;
 
-using Microsoft.VisualBasic;
-
 namespace Core.Services.Business {
     public interface IReportBusinessManager {
         Task<AgingReportResultDto> GetAgingReport(long companyId, DateTime period, int daysPerPeriod, int numberOfPeriod, bool includeAllCustomers);
@@ -310,6 +308,7 @@ namespace Core.Services.Business {
                         };
                     }
 
+                    creditUtilized.CustomerId = customer.Id;
                     creditUtilized.Customer = customer;
                     creditUtilized.IsNew = true;
                     creditUtilized.NewValue = value;
@@ -317,6 +316,8 @@ namespace Core.Services.Business {
 
                     creditUtilizedList.Add(creditUtilized);
                 } else if(creditUtilized.Value < value) {
+
+                    creditUtilized.CustomerId = customer.Id;
                     creditUtilized.Customer = customer;
                     creditUtilized.NewValue = value;
                     creditUtilized.NewCreatedDate = filter.Date;

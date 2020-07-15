@@ -79,7 +79,7 @@ namespace Web.Controllers.Mvc {
 
             var companyRestrictedWords = await _companyBusinessManager.GetRestrictedWord(id);
             model.CompanyIds = companyRestrictedWords.Select(x => x.CompanyId).ToList();
-            
+
             return View(model);
         }
 
@@ -106,7 +106,7 @@ namespace Web.Controllers.Mvc {
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteSettingsRestrictedWord(long id) {
             try {
-                var item = await _settingsBusinessService.DeleteRestrictedWord(new long[] { id});
+                var item = await _settingsBusinessService.DeleteRestrictedWord(new long[] { id });
                 if(item == false) {
                     return NotFound();
                 }

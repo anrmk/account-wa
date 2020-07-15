@@ -397,7 +397,7 @@ namespace Web.Controllers.Api {
         private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public CompanyController(IMapper mapper, ICompanyBusinessManager companyBusinessManager, 
+        public CompanyController(IMapper mapper, ICompanyBusinessManager companyBusinessManager,
             ICrudBusinessManager businessManager) {
             _mapper = mapper;
             _companyBusinessManager = companyBusinessManager;

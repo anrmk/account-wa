@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using AutoMapper;
 
 using Core.Data.Dto;
+using Core.Data.Entities;
 using Core.Services.Managers;
 
 namespace Core.Services.Business {
     public interface ICustomerBusinessManager {
-        Task<List<CustomerCreditUtilizedDto>> CreditUtilizedChangeStatus(long[] ids, bool isIgnored);
+        Task<List<CustomerCreditUtilizedDto>> UpdateOrCreateCreditUtilized(List<CustomerCreditUtilizedDto> credits);
     }
 
     public class CustomerBusinessManager: BaseBusinessManager, ICustomerBusinessManager {
@@ -27,16 +26,20 @@ namespace Core.Services.Business {
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
         }
 
-        public async Task<List<CustomerCreditUtilizedDto>> CreditUtilizedChangeStatus(long[] ids, bool isIgnored) {
-            var entities = await _customerCreditUtilizedManager.FindInclude(ids);
-            if(entities == null || entities.Count == 0) {
-                return null;
-            }
+        public async Task<List<CustomerCreditUtilizedDto>> UpdateOrCreateCreditUtilized(List<CustomerCreditUtilizedDto> credits) {
+            var list = new List<CustomerCreditUtilizedDto>();
+            foreach(var credit in credits) {
+                var entity = _mapper.Map<CustomerCreditUtilizedEntity>(credit);
 
-            entities.ForEach(x => x.IsIgnored = isIgnored);
-            var result = await _customerCreditUtilizedManager.Update(entities.AsEnumerable());
-            var dtos = _mapper.Map<List<CustomerCreditUtilizedDto>>(result);
-            return dtos;
+                if(credit.Id == 0) {
+                    entity.CreatedDate = credit.NewCreatedDate;
+                    entity = await _customerCreditUtilizedManager.Create(entity);
+                } else
+                    entity = await _customerCreditUtilizedManager.Update(entity);
+
+                list.Add(_mapper.Map<CustomerCreditUtilizedDto>(entity));
+            }
+            return list;
         }
     }
 }

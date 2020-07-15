@@ -31,7 +31,7 @@ namespace Core.Services.Managers {
             return await DbSet.Where(x => x.CustomerId == customerId && x.CreatedDate == date).FirstOrDefaultAsync();
         }
 
-      
+
 
         public async Task<List<CustomerCreditUtilizedEntity>> FindByCompanyIdAndDate(long companyId, DateTime date) {
             return await DbSet

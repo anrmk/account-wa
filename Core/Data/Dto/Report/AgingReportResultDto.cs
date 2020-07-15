@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Core.Data.Dto {
     public class AgingReportResultDto: ReportResultDto {
