@@ -666,7 +666,10 @@ namespace Web.Controllers.Api {
 
                     var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
                     var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-                    return Ok(_mapper.Map<List<CustomerViewModel>>(result));
+
+                    return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers are created!" });
+
+                    //return Ok(_mapper.Map<List<CustomerViewModel>>(result));
                 }
             } catch(Exception er) {
                 //_memoryCache.Remove("_CustomerUpload");
@@ -803,7 +806,9 @@ namespace Web.Controllers.Api {
 
                 var customerDtoList = _mapper.Map<List<CustomerImportCreditsDto>>(creditsList);
                 var result = await _businessManager.CreateOrUpdateCustomerCredits(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-                return Ok(_mapper.Map<List<CustomerImportCreditsViewModel>>(result));
+
+                return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers credit utilized are created!" });
+               // return Ok(_mapper.Map<List<CustomerImportCreditsViewModel>>(result));
 
             } catch(Exception e) {
                 return BadRequest(e.Message ?? e.StackTrace);

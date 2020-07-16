@@ -73,10 +73,6 @@ namespace Web.ViewModels {
         [SpecialName()]
         public string CustomerNo { get; set; }
 
-        [Display(Name = "Business Name")]
-        [SpecialName()]
-        public string CustomerName { get; set; }
-
         [Required]
         [Display(Name = "Payment amount")]
         [SpecialName()]

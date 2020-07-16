@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Import Data";
+    var guid = Guid.NewGuid();
+}
+
+@section Toolbar {
+
+}
+<div class="card">
+    <div class="card-body">
+        <div class="input-group">
+            <select class="custom-select" id="@(guid)select" aria-label="Example select with button addon">
+                <option selected disabled>Choose...</option>
+                <option value="@Url.RouteUrl("UploadInvoices")">Upload invoices</option>
+                <option value="@Url.RouteUrl("UploadCustomers")">Upload customers</option>
+                <option value="@Url.RouteUrl("UploadCreditUtilized")">Upload cretid utilized</option>
+            </select>
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" id="uploadBtn"><i class="fa fa-upload mr-1"></i> Upload</button>
+            </div>
+        </div>
+
+        <input type="file" id="@(guid)file" style="display: none;" method="POST">
+
+        <div id="result"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(e => {
+            var $uploadFile = $('#@(guid)file');
+
+            var $select = $('#@(guid)select');
+
+            $('#uploadBtn').on('click', (e) => {
+                e.preventDefault();
+                var url = $select.val();
+                if (url !== null) {
+                    $uploadFile.attr('action', url).trigger('click');
+                }
+            });
+        });
+
+        function xUploadComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload CSV file');
+            }
+        }
+
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#result').text(jqXHR.responseJSON.message);
+                window.modal.modal('hide');
+            }
+        }
+    </script>
+}

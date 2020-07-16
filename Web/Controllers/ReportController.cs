@@ -368,8 +368,8 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    string html = _viewRenderService.RenderToStringAsync("_AgingReportPartial", result).Result;
-
+                    string html = await _viewRenderService.RenderToStringAsync("_AgingReportPartial", result);
+                    
                     return Ok(html);
                 }
             } catch(Exception er) {
@@ -450,7 +450,7 @@ namespace Web.Controllers.Api {
                         { "CreditUtilizedList", _mapper.Map<List<CustomerCreditUtilizedViewModel>>(creditUtilizedList) }
                     };
 
-                string html = _viewRenderService.RenderToStringAsync("_CreateCustomerCreditsPartial", model, viewDataDictionary).Result;
+                string html = await _viewRenderService.RenderToStringAsync("_CreateCustomerCreditsPartial", model, viewDataDictionary);
                 return Ok(html);
             }
             return BadRequest();
@@ -861,7 +861,7 @@ namespace Web.Controllers.Api {
                     }
                     #endregion
 
-                    string html = _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport, viewDataDictionary).Result;
+                    string html = await _viewRenderService.RenderToStringAsync("_CompareReportPartial", compareReport, viewDataDictionary);
                     return Ok(html);
                 }
             } catch(Exception er) {
@@ -901,7 +901,7 @@ namespace Web.Controllers.Api {
                             { "TotalCustomers", result.Rows.Count }
                         };
 
-                    string html = _viewRenderService.RenderToStringAsync("_CheckingCustomerAccountNumberPartial", customers, viewDataDictionary).Result;
+                    string html = await _viewRenderService.RenderToStringAsync("_CheckingCustomerAccountNumberPartial", customers, viewDataDictionary);
                     return Ok(html);
                 }
             } catch(Exception er) {

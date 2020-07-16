@@ -15,7 +15,7 @@ namespace Web.Controllers {
         // private readonly IStringLocalizer<IController> _localizer;
         protected readonly ILogger<IController> _logger;
         protected readonly IMapper _mapper;
-        protected readonly ApplicationContext _context;
+        //protected readonly ApplicationContext _context;
 
         public string CurrentLanguage => "en";
 
@@ -26,7 +26,7 @@ namespace Web.Controllers {
         public BaseController(ILogger<IController> logger, IMapper mapper, ApplicationContext context) {
             _logger = logger;
             _mapper = mapper;
-            _context = context;
+            //_context = context;
         }
 
         public override ViewResult View(string view, object model) {

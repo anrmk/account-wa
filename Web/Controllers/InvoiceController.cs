@@ -314,7 +314,7 @@ namespace Web.Controllers.Api {
                         }
                         model.Invoices = invoices;
 
-                        string html = _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", model).Result;
+                        string html = await _viewRenderService.RenderToStringAsync("_BulkInvoicePartial", model);
                         return Ok(html);
                     } else {
                         return BadRequest();
@@ -391,13 +391,18 @@ namespace Web.Controllers.Api {
                         var companyList = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
                         var customerFields = typeof(InvoiceImportViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
-                           .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
+                           .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? 
+                                "* " + x.Name
+                                : x.Name,
+                           Value = x.Name });
+                        
+                        
                         var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                                     { "Companies", companyList},
                                     { "Fields", customerFields }
                                 };
 
-                        string html = _viewRenderService.RenderToStringAsync("_InvoiceUploadPartial", model, viewDataDictionary).Result;
+                        string html = await _viewRenderService.RenderToStringAsync("_InvoiceUploadPartial", model, viewDataDictionary);
                         return Ok(html);
                     }
                 }
@@ -492,7 +497,7 @@ namespace Web.Controllers.Api {
                     throw new Exception("No records have been created! Please, fill the required fields!");
                 }
 
-                return Ok(invoiceList);
+                return Ok(new {Message = $"{invoiceList.Count}/{model.Rows?.Count} invoices are created!" });
 
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);
