@@ -1,14 +1,19 @@
-﻿@model Web.ViewModels.ImportCsvViewModel
+﻿@model Web.ViewModels.InvoiceImportCsvViewModel
 
 @{
     Layout = null;
     var formId = Guid.NewGuid();
 }
 
-<form id="@formId" asp-action="CreateUploadedCustomers" method="post">
+<form id="@formId" asp-action="CreateUploadInvoices" method="post">
     <fieldset>
         <div class="form-row mb-3">
-
+            <div class="col">
+                <label asp-for="CompanyId"></label>
+                <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
+                    <option value="" disabled selected>Select Company</option>
+                </select>
+            </div>
         </div>
 
         <div class="table-responsive">

@@ -20,7 +20,7 @@ namespace Web.ViewModels {
         [Display(Name = "Credit Utilized")]
         public ICollection<CompareCreditsFieldViewModel> CreditUtilized { get; set; }
 
-        public ICollection<CompareReportCreditUtilizedViewModel> CreditUtilizedList { get; set; }
+        //public ICollection<CompareReportCreditUtilizedViewModel> CreditUtilizedList { get; set; }
     }
 
     public class CompareReportFieldViewModel {

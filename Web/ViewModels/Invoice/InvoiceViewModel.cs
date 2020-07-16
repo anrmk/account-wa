@@ -32,16 +32,18 @@ namespace Web.ViewModels {
         [Display(Name = "Due date")]
         public DateTime DueDate { get; set; }
 
-        public List<PaymentViewModel> Payments { get; set; }
+        //public List<PaymentViewModel> Payments { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
-        public decimal PaymentAmount { get; set; }
+        //[DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
+        //public decimal PaymentAmount { get; set; }
 
-        [DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime? PaymentDate { get; set; }
+        //[DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
+        //public DateTime? PaymentDate { get; set; }
 
+        [Required]
         [Display(Name = "Business name")]
         public long? CustomerId { get; set; }
+
         public CustomerViewModel Customer { get; set; }
 
         [Display(Name = "Company")]
@@ -51,15 +53,9 @@ namespace Web.ViewModels {
 
     public class InvoiceImportViewModel {
         [Required]
-        [MaxLength(16)]
-        [Display(Name = "Account Number")]
-        [SpecialName()]
-        public string No { get; set; }
-
-        [Required]
         [Display(Name = "Amount")]
         [SpecialName()]
-        public decimal Amount { get; set; }
+        public decimal Subtotal { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
@@ -73,6 +69,15 @@ namespace Web.ViewModels {
         public DateTime DueDate { get; set; }
 
         [Required]
+        [Display(Name = "Customer No")]
+        [SpecialName()]
+        public string CustomerNo { get; set; }
+
+        [Display(Name = "Business Name")]
+        [SpecialName()]
+        public string CustomerName { get; set; }
+
+        [Required]
         [Display(Name = "Payment amount")]
         [SpecialName()]
         public decimal? PaymentAmount { get; set; }
@@ -80,6 +85,6 @@ namespace Web.ViewModels {
         [DataType(DataType.Date)]
         [Display(Name = "Payment date")]
         [SpecialName()]
-        public DateTime PaymentDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
     }
 }

@@ -10,6 +10,12 @@ using Core.Services.Managers;
 
 namespace Core.Services.Business {
     public interface ICustomerBusinessManager {
+        Task<CustomerDto> GetCustomer(long id);
+        Task<CustomerDto> GetCustomer(string no, long companyId);
+        Task<List<CustomerDto>> GetCustomers();
+        Task<List<CustomerDto>> GetCustomers(long companyId);
+
+
         Task<List<CustomerCreditUtilizedDto>> UpdateOrCreateCreditUtilized(List<CustomerCreditUtilizedDto> credits);
     }
 
@@ -24,6 +30,26 @@ namespace Core.Services.Business {
             _mapper = mapper;
             _customerManager = customerManager;
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
+        }
+
+        public async Task<CustomerDto> GetCustomer(long id) {
+            var result = await _customerManager.FindInclude(id);
+            return _mapper.Map<CustomerDto>(result);
+        }
+
+        public async Task<CustomerDto> GetCustomer(string no, long companyId) {
+            var result = await _customerManager.FindInclude(no, companyId);
+            return _mapper.Map<CustomerDto>(result);
+        }
+
+        public async Task<List<CustomerDto>> GetCustomers() {
+            var result = await _customerManager.AllInclude();
+            return _mapper.Map<List<CustomerDto>>(result);
+        }
+
+        public async Task<List<CustomerDto>> GetCustomers(long companyId) {
+            var result = await _customerManager.FindByCompanyId(companyId);
+            return _mapper.Map<List<CustomerDto>>(result);
         }
 
         public async Task<List<CustomerCreditUtilizedDto>> UpdateOrCreateCreditUtilized(List<CustomerCreditUtilizedDto> credits) {

@@ -17,14 +17,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
+
 using Web.Extension;
 using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class InvoiceController: BaseController<InvoiceController> {
-        public ICrudBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _businessManager;
 
         public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context,
             ICrudBusinessManager businessManager) : base(logger, mapper, context) {
@@ -226,10 +228,20 @@ namespace Web.Controllers.Api {
     public class InvoiceController: BaseApiController<InvoiceController> {
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
+        private readonly ICustomerBusinessManager _customerBusinessManager;
+        private readonly IMemoryCache _memoryCache;
 
-        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ICrudBusinessManager businessManager, IViewRenderService viewRenderService) : base(logger, mapper) {
+        public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, IMemoryCache memoryCache,
+            ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager,
+            ICustomerBusinessManager customerBusinessManager,
+            IViewRenderService viewRenderService) : base(logger, mapper) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
+            _customerBusinessManager = customerBusinessManager;
             _viewRenderService = viewRenderService;
+            _memoryCache = memoryCache;
         }
 
         [HttpGet]
@@ -354,7 +366,7 @@ namespace Web.Controllers.Api {
                         csvParser.SetDelimiters(new string[] { "," });
                         csvParser.HasFieldsEnclosedInQuotes = true;
 
-                        var model = new ImportCsvViewModel() {
+                        var model = new InvoiceImportCsvViewModel() {
                             HeadRow = csvParser.ReadFields().ToList(),
                             Rows = new List<ImportCsvRowViewModel[]>()
                         };
@@ -372,10 +384,16 @@ namespace Web.Controllers.Api {
                             model.Rows.Add(rows.ToArray());
                         }
 
+                        var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
+                        _memoryCache.Set("_InvoiceUploadCache", model, cacheEntryOptions);
+
+                        var companies = await _companyBusinessManager.GetCompanies();
+                        var companyList = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+
                         var customerFields = typeof(InvoiceImportViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
-                           .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " +  x.Name : x.Name, Value = x.Name });
+                           .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
                         var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                                    //{ "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
+                                    { "Companies", companyList},
                                     { "Fields", customerFields }
                                 };
 
@@ -386,7 +404,99 @@ namespace Web.Controllers.Api {
             } catch(Exception er) {
                 return BadRequest(er.Message);
             }
+        }
 
+        [HttpPost("CreateUploadInvoices", Name = "CreateUploadInvoices")]
+        public async Task<IActionResult> CreateUploadInvoices(InvoiceImportCsvViewModel model) {
+            try {
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+
+                var cacheModel = _memoryCache.Get<InvoiceImportCsvViewModel>("_InvoiceUploadCache");
+                model.Rows = cacheModel?.Rows;
+
+                var invoiceList = new List<InvoiceViewModel>();
+                for(var i = 0; i < model.Rows?.Count(); i++) {
+                    var row = model.Rows[i];
+                    var rnd = new Random();
+
+                    var invoiceModel = new InvoiceViewModel() {
+                        No = $"{DateTime.Now.ToString("mmyy")}_{rnd.Next(100000, 999999)}"
+                    };
+
+                    for(var j = 0; j < row.Count(); j++) {
+                        var column = model.Columns[j];
+                        if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
+                            if(column.Name == "CustomerNo") {
+                                var customer = await _customerBusinessManager.GetCustomer(row[j].Value, model.CompanyId);
+                                if(customer != null) {
+                                    var propertyCustomerId = invoiceModel.GetType().GetProperty("CustomerId");
+                                    propertyCustomerId.SetValue(invoiceModel, customer.Id);
+                                }
+                                continue;
+                            }
+
+                            var property = invoiceModel.GetType().GetProperty(column.Name);
+
+                            if(property != null && property.CanWrite) {
+                                if(property.PropertyType == typeof(double)) {
+                                    if(double.TryParse(row[j].Value, out double doubleVal)) {
+                                        property.SetValue(invoiceModel, doubleVal);
+                                    }
+                                } else if(property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?)) {
+                                    if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
+                                        property.SetValue(invoiceModel, decimalVal);
+                                    }
+                                } else if(property.PropertyType == typeof(int)) {
+                                    if(int.TryParse(row[j].Value, out int intVal)) {
+                                        property.SetValue(invoiceModel, intVal);
+                                    }
+                                } else if(property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?)) {
+                                    if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                        property.SetValue(invoiceModel, dateVal);
+                                    }
+                                } else {
+                                    property.SetValue(invoiceModel, row[j].Value);
+                                }
+                            }
+                        }
+                    }
+
+                    if(TryValidateModel(invoiceModel)) {
+                        var invoice = await _businessManager.CreateInvoice(_mapper.Map<InvoiceDto>(invoiceModel));
+                        if(invoice != null) {
+                            var paColumn = model.Columns.Where(x => x.Name == "PaymentAmount").FirstOrDefault();
+                            var pdColumn = model.Columns.Where(x => x.Name == "PaymentDate").FirstOrDefault();
+                            var paValue = row[paColumn.Index].Value;
+                            var pdValue = row[pdColumn.Index].Value;
+
+                            if(decimal.TryParse(paValue, out decimal paymentValue) && DateTime.TryParse(pdValue, out DateTime paymentDate)) {
+                                var paymentModel = new PaymentViewModel() {
+                                    No = $"{DateTime.Now.ToString("mmyy")}_{rnd.Next(100000, 999999)}",
+                                    Amount = paymentValue,
+                                    Date = paymentDate,
+                                    InvoiceId = invoice.Id
+                                };
+                                if(TryValidateModel(paymentModel)) {
+                                    var payment = await _businessManager.CreatePayment(_mapper.Map<PaymentDto>(paymentModel));
+                                }
+                            }
+
+                            invoiceList.Add(_mapper.Map<InvoiceViewModel>(invoice));
+                        }
+                    }
+                }
+
+                if(invoiceList.Count == 0) {
+                    throw new Exception("No records have been created! Please, fill the required fields!");
+                }
+
+                return Ok(invoiceList);
+
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
         }
     }
 }

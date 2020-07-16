@@ -613,11 +613,6 @@ namespace Web.Controllers.Api {
                                 var property = customer.GetType().GetProperty(column.Name);
 
                                 if(property != null && property.CanWrite) {
-                                    /*if(property.PropertyType == typeof(long)) {
-                                        if(long.TryParse(row[j].Value, out long longValue)) {
-                                            property.SetValue(customer, longValue);
-                                        }
-                                    } else*/
                                     if(property.PropertyType == typeof(double)) {
                                         if(double.TryParse(row[j].Value, out double doubleVal)) {
                                             property.SetValue(customer, doubleVal);

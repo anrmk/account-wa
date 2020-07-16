@@ -721,8 +721,8 @@ namespace Web.Controllers.Api {
                         Balance = new List<CompareReportFieldViewModel>(),
                         Customers = new List<CompareReportFieldViewModel>(),
                         CustomerTypes = new List<CompareReportFieldViewModel>(),
-                        CreditUtilized = new List<CompareCreditsFieldViewModel>(),
-                        CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
+                        CreditUtilized = new List<CompareCreditsFieldViewModel>()
+                      //  CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
                     };
 
                     #region CUSTOMERS
@@ -807,34 +807,48 @@ namespace Web.Controllers.Api {
                                         .OrderByDescending(x => x.CreatedDate)
                                         .Where(x => x.CreatedDate <= model.Date).FirstOrDefault();
 
-                            if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
+                            if(creditUtilized == null) {
                                 createCreditUtilized++;
-                                compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                    Id = customer.Id,
-                                    CustomerNo = customer.No,
-                                    CustomerName = customer.Name,
-                                    OldValue = creditUtilized?.Value ?? 0,
-                                    OldDate = creditUtilized?.CreatedDate,
-                                    NewValue = value,
-                                    Status = true
-                                });
                             } else if(creditUtilized.Value < value) {
                                 if(creditUtilized.IsIgnored) {
                                     ignoreCreditUtilized++;
+                                } else if(creditUtilized.CreatedDate != model.Date) {
+                                    createCreditUtilized++;
                                 } else {
                                     updateCreditUtilized++;
                                 }
-                                compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                    Id = customer.Id,
-                                    CustomerNo = customer.No,
-                                    CustomerName = customer.Name,
-                                    OldValue = creditUtilized?.Value ?? 0,
-                                    OldDate = creditUtilized?.CreatedDate,
-                                    IsIgnored = creditUtilized.IsIgnored,
-                                    NewValue = value,
-                                    Status = false
-                                });
                             }
+
+                            //if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
+                                
+                            //    if(creditUtilized == null)
+                            //        createCreditUtilized++;
+                                //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                                //    Id = customer.Id,
+                                //    CustomerNo = customer.No,
+                                //    CustomerName = customer.Name,
+                                //    OldValue = creditUtilized?.Value ?? 0,
+                                //    OldDate = creditUtilized?.CreatedDate,
+                                //    NewValue = value,
+                                //    Status = true
+                                //});
+                            //} else if(creditUtilized.Value < value) {
+                            //    if(creditUtilized.IsIgnored) {
+                            //        ignoreCreditUtilized++;
+                            //    } else {
+                            //        updateCreditUtilized++;
+                            //    }
+                                //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                                //    Id = customer.Id,
+                                //    CustomerNo = customer.No,
+                                //    CustomerName = customer.Name,
+                                //    OldValue = creditUtilized?.Value ?? 0,
+                                //    OldDate = creditUtilized?.CreatedDate,
+                                //    IsIgnored = creditUtilized.IsIgnored,
+                                //    NewValue = value,
+                                //    Status = false
+                                //});
+                            //}
                         }
 
                         compareReport.CreditUtilized.Add(new CompareCreditsFieldViewModel() {

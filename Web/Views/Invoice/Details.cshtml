@@ -86,12 +86,12 @@
                                     <td scope="row"><label asp-for="Amount"></label></td>
                                     <td>@Model.Amount</td>
                                 </tr>
-                                @if(Model.Payments != null && Model.Payments.Count > 0) {
+                                @*@if(Model.Payments != null && Model.Payments.Count > 0) {
                                     <tr>
                                         <td scope="row"><label asp-for="Payments"></label></td>
                                         <td>@Model.PaymentAmount</td>
                                     </tr>
-                                }
+                                }*@
                             </tbody>
                         </table>
                     </div>
@@ -101,7 +101,7 @@
     </div>
     <div class="col-4">
         <h4>Payments</h4>
-        <div class="list-group">
+        @*<div class="list-group">
             @foreach(var item in Model.Payments) {
                 <a asp-action="Details" asp-controller="Payment" asp-route-id="@item.Id" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
@@ -111,13 +111,13 @@
                     <div><strong>Amount:</strong> @item.Amount</div>
                 </a>
             }
-        </div>
+        </div>*@
 
-        @if(Model.PaymentAmount == Model.Amount) {
+        @*@if(Model.PaymentAmount == Model.Amount) {
         <div class="alert alert-success mt-3" role="alert">
             Paid! On @Model.PaymentDate?.ToString("MMM/dd/yyyy")
         </div>
-        }
+        }*@
     </div>
 </div>
 

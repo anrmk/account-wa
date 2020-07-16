@@ -11,6 +11,7 @@ using Core.Services.Managers;
 namespace Core.Services.Business {
     public interface ICompanyBusinessManager {
         Task<CompanyDto> GetCompany(long id);
+        Task<List<CompanyDto>> GetCompanies();
 
         Task<List<CompanyRestrictedWordDto>> GetRestrictedWord(long restrictedWordId);
         Task<CompanyRestrictedWordDto> CreateRestrictedWord(CompanyRestrictedWordDto dto);
@@ -38,6 +39,11 @@ namespace Core.Services.Business {
         public async Task<CompanyDto> GetCompany(long id) {
             var result = await _companyManager.FindInclude(id);
             return _mapper.Map<CompanyDto>(result);
+        }
+
+        public async Task<List<CompanyDto>> GetCompanies() {
+            var result = await _companyManager.AllInclude();
+            return _mapper.Map<List<CompanyDto>>(result.OrderBy(x => x.Name));
         }
 
         public async Task<List<CompanyRestrictedWordDto>> GetRestrictedWord(long restrictedWordId) {
