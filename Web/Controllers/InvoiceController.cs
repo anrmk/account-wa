@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,10 +12,13 @@ using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.VisualBasic.FileIO;
 using Web.Extension;
 using Web.ViewModels;
 
@@ -271,7 +276,7 @@ namespace Web.Controllers.Api {
 
         [HttpPost]
         [Route("bulk")]
-        public async Task<IActionResult> GenerateBulkInvoice(BulkInvoiceViewModel model) {
+        public async Task<IActionResult> GenerateBulkInvoice(InvoiceBulkViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var customers = await _businessManager.GetCustomers(model.Customers.ToArray());
@@ -311,7 +316,7 @@ namespace Web.Controllers.Api {
 
         [HttpPost]
         [Route("bulkcreate")]
-        public async Task<IActionResult> CreateBulkInvoices(BulkInvoiceViewModel model) {
+        public async Task<IActionResult> CreateBulkInvoices(InvoiceBulkViewModel model) {
             if(!ModelState.IsValid) {
                 return BadRequest(model);
             }
@@ -327,6 +332,61 @@ namespace Web.Controllers.Api {
             }
 
             return Ok("");
+        }
+
+        [HttpPost("UploadInvoices", Name = "UploadInvoices")]
+        public async Task<IActionResult> UploadInvoices([FromForm] IFormCollection forms) {
+            try {
+                if(forms.Files.Count == 0) {
+                    throw new Exception("No file uploaded!");
+                }
+
+                var file = forms.Files[0];
+                var extension = Path.GetExtension(file.FileName);
+
+                if(!extension.Equals(".csv")) {
+                    throw new Exception($"Unsupported file type: {extension}!");
+                }
+
+                using(var reader = new StreamReader(file.OpenReadStream())) {
+                    using(TextFieldParser csvParser = new TextFieldParser(reader)) {
+                        csvParser.CommentTokens = new string[] { "#" };
+                        csvParser.SetDelimiters(new string[] { "," });
+                        csvParser.HasFieldsEnclosedInQuotes = true;
+
+                        var model = new ImportCsvViewModel() {
+                            HeadRow = csvParser.ReadFields().ToList(),
+                            Rows = new List<ImportCsvRowViewModel[]>()
+                        };
+
+                        while(!csvParser.EndOfData) {
+                            string[] fields = csvParser.ReadFields();
+                            var rows = new List<ImportCsvRowViewModel>();
+                            for(int i = 0; i < fields.Count(); i++) {
+                                rows.Add(new ImportCsvRowViewModel() {
+                                    Index = i,
+                                    Name = model.HeadRow[i],
+                                    Value = fields[i]
+                                }); ;
+                            }
+                            model.Rows.Add(rows.ToArray());
+                        }
+
+                        var customerFields = typeof(InvoiceImportViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
+                           .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " +  x.Name : x.Name, Value = x.Name });
+                        var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                                    //{ "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
+                                    { "Fields", customerFields }
+                                };
+
+                        string html = _viewRenderService.RenderToStringAsync("_InvoiceUploadPartial", model, viewDataDictionary).Result;
+                        return Ok(html);
+                    }
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message);
+            }
+
         }
     }
 }

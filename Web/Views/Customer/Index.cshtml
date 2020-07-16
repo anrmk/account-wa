@@ -1,8 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Customers";
 
+    var tableId = Guid.NewGuid();
     var customersUrl = Url.RouteUrl("GetCustomers");
     var uploadCustomersUrl = Url.RouteUrl("UploadCustomers");
+    var uploadCreditUtilizedUrl = Url.RouteUrl("UploadCreditUtilized");
 }
 
 <div class="card">
@@ -19,17 +21,16 @@
                     <div class="dropdown-menu" aria-labelledby="uploadGroupBtn">
                         <label class="dropdown-item">
                             <input type="file" style="display: none;" action="@(uploadCustomersUrl)" method="POST">
-                            @*<input type="file" style="display: none;" asp-action="UploadCustomers" action="/customer/upload" method="POST">*@
                             Upload Customers
                         </label>
                         <label class="dropdown-item">
-                            <input type="file" style="display: none;" action="/customer/uploadcredits" method="POST">
+                            <input type="file" style="display: none;" action="@uploadCreditUtilizedUrl" method="POST">
                             Upload Credits
                         </label>
                     </div>
                 </div>
             </div>
-            <table id="datatable" data-toggle="table" data-url="@customersUrl"
+            <table id="@(tableId)" data-toggle="table" data-url="@customersUrl"
                    data-total-field="totalItems"
                    data-data-field="items">
                 <thead>
@@ -65,27 +66,17 @@
             return `<a href='/customer/edit/${row.id}' class='btn btn-secondary mr-1' >Edit</a>`;
         }
 
-        $(document).ready(() => {
-            $('input[type=file]').on('change', e => {
-                $(e.target).uploadFile((element, data, status, jqXHR) => {
-                    if (status === 'success') {
-                        $(data).dialog('Upload Customers CSV', (eventName, _, target) => {
-                            if (eventName === 'shown.bs.modal') {
-                                target.on('submit', e => {
-                                    e.preventDefault();
+        function xUploadComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload Customers CSV');
+            }
+        }
 
-                                    $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
-                                        if (status === 'success') {
-                                            $('#datatable').bootstrapTable('refresh');
-                                            window.modal.modal('hide');
-                                        }
-                                    });
-                                })
-                            }
-                        });
-                    }
-                });
-            });
-        });
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#@(tableId)').bootstrapTable('refresh');
+                window.modal.modal('hide');
+            }
+        }
     </script>
 }

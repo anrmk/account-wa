@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.CompilerServices;
 
 namespace Web.ViewModels {
     public class InvoiceViewModel {
@@ -46,5 +47,39 @@ namespace Web.ViewModels {
         [Display(Name = "Company")]
         public long? CompanyId { get; set; }
         public CompanyViewModel Company { get; set; }
+    }
+
+    public class InvoiceImportViewModel {
+        [Required]
+        [MaxLength(16)]
+        [Display(Name = "Account Number")]
+        [SpecialName()]
+        public string No { get; set; }
+
+        [Required]
+        [Display(Name = "Amount")]
+        [SpecialName()]
+        public decimal Amount { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [SpecialName()]
+        public DateTime Date { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
+        [Display(Name = "Due date")]
+        [SpecialName()]
+        public DateTime DueDate { get; set; }
+
+        [Required]
+        [Display(Name = "Payment amount")]
+        [SpecialName()]
+        public decimal? PaymentAmount { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Payment date")]
+        [SpecialName()]
+        public DateTime PaymentDate { get; set; }
     }
 }

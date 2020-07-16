@@ -2,6 +2,8 @@
     $.fn.datepicker.defaults.format = 'mm/dd/yyyy';
     window.modal = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
+    $('form[data-request=ajax]').xSubmit();
+    $('input[type=file]').xUpload();
 
     $.fn.initModalLink('body');
 
@@ -28,50 +30,6 @@ $.fn.initModalLink = function (target, callback = {}) {
             $(data).dialog(link.attr('tile') || 'Your action is required', callback);
         })
     });
-};
-
-$.fn.dialog = function (header, callback) {
-    callback = callback || function () { };
-    $.when(
-        $('.modal .modal-title').text(header),
-        $('.modal .modal-body').empty().html(this),
-
-        window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
-            var form = $('.modal .modal-content form');
-            var formId = form.attr('id');
-
-            var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
-            if (form.length == 1 && form.attr('action') !== undefined && formId !== '00000000-0000-0000-0000-000000000000') {
-                submitBtn.attr('form', formId).removeAttr('hidden');
-            } else {
-                submitBtn.attr('hidden', 'hidden');
-            }
-            callback('shown.bs.modal', e, this);
-        }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
-            this.empty();
-            callback('hidden.bs.modal', e, this);
-        })
-    ).done((e) => {
-        callback('modal.on.load', e, this);
-    });
-    return window.modal;
-};
-
-/**
- * Extension for bootstrapTable 
- * formatting Date
- */
-$.fn.bootstrapTable.formatDate = function (value, row, index) {
-    return value == null ? "" : new Date(value).toLocaleDateString();
-    //return value == null ? "" : moment(value, 'MM-DD-YYYY').format('MM-DD-YYYY');
-};
-
-$.fn.bootstrapTable.formatDateTime = function (value, row, index) {
-    return value == null ? "" : new Date(value).toLocaleString();
-};
-
-$.fn.bootstrapTable.formatCurrency = function (value) {
-    return value == null ? "" : "$" + value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
 };
 
 $.extend($.fn.bootstrapTable.defaults, {

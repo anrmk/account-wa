@@ -1,6 +1,8 @@
 ﻿@model Web.ViewModels.InvoiceFilterViewModel
 @{
     ViewData["Title"] = "Invoices";
+
+    var tableId = Guid.NewGuid();
 }
 
 @section Toolbar  {
@@ -44,6 +46,18 @@
                 <a asp-controller="Invoice" asp-action="Bulk" class="btn btn-secondary"><i class="fa fa-mail-bulk mr-1"></i> Bulk</a>
             </div>
 
+            <div class="btn-group mr-1" role="group">
+                <button id="uploadGroupBtn" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Uploads
+                </button>
+                <div class="dropdown-menu" aria-labelledby="uploadGroupBtn">
+                    <label class="dropdown-item">
+                        <input type="file" style="display: none;" action="@Url.RouteUrl("UploadInvoices")" method="POST">
+                        Upload Invoices
+                    </label>
+                </div>
+            </div>
+
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
                 <button id="filterBtn" class="btn btn-secondary">Filter</button>
             </div>
@@ -67,7 +81,7 @@
             </form>
         </div>
 
-        <table id="datatable" data-toggle="table" data-url="/api/invoice"
+        <table id="@(tableId)" data-toggle="table" data-url="/api/invoice"
                data-query-params="queryParams"
                data-total-field="totalItems"
                data-data-field="items"
@@ -97,7 +111,7 @@
 @section Scripts {
     <script type="text/javascript">
         $(document).ready(e => {
-            $table = $('#datatable');
+            $table = $('#@(tableId)');
 
             $filterBtn = $('#filterBtn').click(_ => {
                 var options = {
@@ -221,6 +235,19 @@
         function actionFormatter(value, row) {
             return `<a href='/invoice/edit/${row.id}' class='btn btn-secondary mr-1'>Edit</a>
                     <a href='/invoice/details/${row.id}' class='btn btn-secondary'>Detail</a>`
+        }
+
+        function xUploadComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload Customers CSV');
+            }
+        }
+
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#@(tableId)').bootstrapTable('refresh');
+                window.modal.modal('hide');
+            }
         }
     </script>
 }

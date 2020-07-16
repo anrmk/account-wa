@@ -3,13 +3,12 @@
 @{
     Layout = null;
     var formId = Guid.NewGuid();
-    var createUploadedCustomersUrl = Url.RouteUrl("CreateUploadedCustomers");
     var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingUploadCustomersAccountNumber");
     var checkingCustomerBusinessNameUrl = Url.RouteUrl("CheckingUploadCustomersBusinessName");
     var checkingCustomerRestrictedWordsUrl = Url.RouteUrl("CheckingUploadCustomersForRestrictedWords");
 }
 
-<form id="@formId" action="@(createUploadedCustomersUrl )" method="post">
+<form id="@formId" asp-route="CreateUploadedCustomers" method="post">
     <fieldset>
         <div class="form-row mb-3 align-items-end">
             <div class="col">

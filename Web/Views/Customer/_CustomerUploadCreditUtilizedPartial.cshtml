@@ -2,9 +2,10 @@
 
 @{
     Layout = null;
+    var formId = Guid.NewGuid();
 }
 
-<form id="customersPartialForm" action="/api/customer/createcredits" method="post">
+<form id="@formId" asp-route="CreateUploadedCreditUtilized" method="post">
     <fieldset>
         <div class="mb-3" role="toolbar">
             <div class="form-row align-items-end">
@@ -35,7 +36,7 @@
                             <th>
                                 <input type="hidden" name="HeadRow[]" value="@column" />
                                 <input type="hidden" name="Columns[][Index]" value="@i" />
-                                <select asp-items="@ViewBag.CustomerFields" class="form-control" name="Columns[][Name]">
+                                <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
                                     <option value="">Nothing selected</option>
                                 </select>
                             </th>

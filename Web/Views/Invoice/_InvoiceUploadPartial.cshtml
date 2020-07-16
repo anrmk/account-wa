@@ -1,0 +1,53 @@
+﻿@model Web.ViewModels.ImportCsvViewModel
+
+@{
+    Layout = null;
+    var formId = Guid.NewGuid();
+}
+
+<form id="@formId" asp-action="CreateUploadedCustomers" method="post">
+    <fieldset>
+        <div class="form-row mb-3">
+
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th class="collapsing">#</th>
+                        @for(var i = 0; i < Model.HeadRow.Count(); i++) {
+                            <th>@Model.HeadRow[i]</th>
+                        }
+                    </tr>
+                    <tr>
+                        <th></th>
+                        @for(var i = 0; i < Model.HeadRow.Count(); i++) {
+                            var column = Model.HeadRow[i];
+                            <th>
+                                <input type="hidden" name="HeadRow[]" value="@column" />
+                                <input type="hidden" name="Columns[][Index]" value="@i" />
+                                <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
+                                    <option value="">Nothing selected</option>
+                                </select>
+                            </th>
+                        }
+                    </tr>
+                    <tr></tr>
+                </thead>
+                <tbody>
+                    @for(var i = 0; i < Model.Rows.Count; i++) {
+                        var rows = Model.Rows[i];
+                        <tr id="tr_@(i)" data-id="@(i)">
+                            <td>@(i + 1)</td>
+                            @for(var j = 0; j < rows.Count(); j++) {
+                                var row = rows[j];
+                                <td>@row.Value</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </fieldset>
+</form>

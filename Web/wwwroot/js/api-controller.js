@@ -18,6 +18,7 @@ $.fn.getBulkInvoices = function (id, from, to) {
     });
 }
 
+
 $.fn.uploadFile = function (callback) {
     var formData = new FormData();
     $.each(this.prop('files'), function (key, value) {
@@ -30,7 +31,10 @@ $.fn.uploadFile = function (callback) {
         'data': formData,
         'cache': false,
         'contentType': false,
-        'processData': false
+        'processData': false,
+        'complete': (jqXHR, status) => {
+
+        }
     };
 
     $.ajax(options).done((data, status, jqXHR) => {
@@ -39,6 +43,66 @@ $.fn.uploadFile = function (callback) {
         callback(this, null, status, jqXHR);
     });
 }
+
+$.fn.xUpload = function (opt = {}) {
+    this.on('change', (e) => {
+        e.preventDefault();
+        var $target = $(e.currentTarget);
+        var formData = new FormData();
+        $.each($target.prop('files'), function (key, value) {
+            formData.append(key, value);
+        });
+
+        var options = {
+            'url': $target.attr('action'),
+            'type': $target.attr('method'),
+            'data': formData,
+            'cache': false,
+            'contentType': false,
+            'processData': false,
+            'complete': (jqXHR, status) => {
+                $target.trigger('xUploadComplete', [jqXHR, status]).val(null);
+            }
+        };
+        $.ajax(options);
+    }).on('xUploadComplete', (e, jqXHR, status) => {
+        e.preventDefault();
+        var func = $(e.currentTarget).attr('rel') || 'xUploadComplete';
+        if (typeof window[func] === 'function') {
+            window[func](e, jqXHR, status);
+        }
+    });
+};
+
+$.fn.xSubmit = function (opt = {}) {
+    this.on('submit', (e) => {
+        e.preventDefault();
+        var $form = $(e.currentTarget);
+        if ($form.valid()) {
+            var options = $.extend({
+                'url': $form.attr('action'),
+                'type': $form.attr('method'),
+                'data': JSON.stringify($form.serializeJSON()),
+                'contentType': 'application/json; charset=utf-8',
+                'complete': (jqXHR, status) => {
+                    $form.trigger('xSubmitComplete', [jqXHR, status]);
+                }
+            }, opt);
+            $.ajax(options);
+        }
+    }).on('xSubmitComplete', (e, jqXHR, status) => {
+        e.preventDefault();
+        var func = $(e.currentTarget).attr('rel') || 'xSubmitComplete';
+        if (func === 'dialog') {
+            if (status === 'success') {
+                $(`<div>${jqXHR.responseText}</div>`).dialog();
+            }
+        } else if (typeof window[func] === 'function') {
+            window[func](e, jqXHR, status);
+        }
+    });
+    return this;
+};
 
 //Submit form using jquery ajax
 $.fn.ajaxSubmit = function (opt, callback) {
@@ -66,6 +130,33 @@ $.fn.ajaxSubmit = function (opt, callback) {
         });
     }
 }
+
+$.fn.dialog = function (header, callback) {
+    callback = callback || function () { };
+    $.when(
+        $('.modal .modal-title').text(header),
+        $('.modal .modal-body').empty().html(this),
+
+        window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
+            var form = $('.modal .modal-content form').xSubmit();
+            var formId = form.attr('id');
+
+            var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
+            if (form.length == 1 && form.attr('action') !== undefined && formId !== '00000000-0000-0000-0000-000000000000') {
+                submitBtn.attr('form', formId).removeAttr('hidden');
+            } else {
+                submitBtn.attr('hidden', 'hidden');
+            }
+            callback('shown.bs.modal', e, this);
+        }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
+            this.empty();
+            callback('hidden.bs.modal', e, this);
+        })
+    ).done((e) => {
+        callback('modal.on.load', e, this);
+    });
+    return window.modal;
+};
 
 $.fn.guid = function () {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -99,3 +190,20 @@ $.fn.check = function () {
 $.fn.uncheck = function () {
     $(this).prop('checked', false);
 }
+
+/**
+ * Extension for bootstrapTable 
+ * formatting Date
+ */
+$.fn.bootstrapTable.formatDate = function (value, row, index) {
+    return value == null ? "" : new Date(value).toLocaleDateString();
+    //return value == null ? "" : moment(value, 'MM-DD-YYYY').format('MM-DD-YYYY');
+};
+
+$.fn.bootstrapTable.formatDateTime = function (value, row, index) {
+    return value == null ? "" : new Date(value).toLocaleString();
+};
+
+$.fn.bootstrapTable.formatCurrency = function (value) {
+    return value == null ? "" : "$" + value.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
+};

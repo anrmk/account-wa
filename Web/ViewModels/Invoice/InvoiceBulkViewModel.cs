@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Web.ViewModels {
-    public class BulkInvoiceViewModel {
+    public class InvoiceBulkViewModel {
         public string Header { get; set; }
 
         [Display(Name = "Date from")]
