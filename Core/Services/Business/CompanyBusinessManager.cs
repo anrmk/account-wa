@@ -135,7 +135,7 @@ namespace Core.Services.Business {
             }
             var newEntity = _mapper.Map(dto, entity);
             entity = await _companyManager.Update(newEntity);
-           
+
             return _mapper.Map<CompanyDto>(entity);
         }
 

@@ -369,7 +369,7 @@ namespace Web.Controllers.Api {
                 if(ModelState.IsValid) {
                     var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
                     string html = await _viewRenderService.RenderToStringAsync("_AgingReportPartial", result);
-                    
+
                     return Ok(html);
                 }
             } catch(Exception er) {
@@ -722,7 +722,7 @@ namespace Web.Controllers.Api {
                         Customers = new List<CompareReportFieldViewModel>(),
                         CustomerTypes = new List<CompareReportFieldViewModel>(),
                         CreditUtilized = new List<CompareCreditsFieldViewModel>()
-                      //  CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
+                        //  CreditUtilizedList = new List<CompareReportCreditUtilizedViewModel>()
                     };
 
                     #region CUSTOMERS
@@ -820,34 +820,34 @@ namespace Web.Controllers.Api {
                             }
 
                             //if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
-                                
+
                             //    if(creditUtilized == null)
                             //        createCreditUtilized++;
-                                //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                //    Id = customer.Id,
-                                //    CustomerNo = customer.No,
-                                //    CustomerName = customer.Name,
-                                //    OldValue = creditUtilized?.Value ?? 0,
-                                //    OldDate = creditUtilized?.CreatedDate,
-                                //    NewValue = value,
-                                //    Status = true
-                                //});
+                            //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                            //    Id = customer.Id,
+                            //    CustomerNo = customer.No,
+                            //    CustomerName = customer.Name,
+                            //    OldValue = creditUtilized?.Value ?? 0,
+                            //    OldDate = creditUtilized?.CreatedDate,
+                            //    NewValue = value,
+                            //    Status = true
+                            //});
                             //} else if(creditUtilized.Value < value) {
                             //    if(creditUtilized.IsIgnored) {
                             //        ignoreCreditUtilized++;
                             //    } else {
                             //        updateCreditUtilized++;
                             //    }
-                                //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                                //    Id = customer.Id,
-                                //    CustomerNo = customer.No,
-                                //    CustomerName = customer.Name,
-                                //    OldValue = creditUtilized?.Value ?? 0,
-                                //    OldDate = creditUtilized?.CreatedDate,
-                                //    IsIgnored = creditUtilized.IsIgnored,
-                                //    NewValue = value,
-                                //    Status = false
-                                //});
+                            //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
+                            //    Id = customer.Id,
+                            //    CustomerNo = customer.No,
+                            //    CustomerName = customer.Name,
+                            //    OldValue = creditUtilized?.Value ?? 0,
+                            //    OldDate = creditUtilized?.CreatedDate,
+                            //    IsIgnored = creditUtilized.IsIgnored,
+                            //    NewValue = value,
+                            //    Status = false
+                            //});
                             //}
                         }
 

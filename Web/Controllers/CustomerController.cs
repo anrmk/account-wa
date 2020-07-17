@@ -680,7 +680,7 @@ namespace Web.Controllers.Api {
             }
             return Ok();
         }
-        
+
         [HttpPost("UploadCreditUtilized", Name = "UploadCreditUtilized")]
         public async Task<IActionResult> UploadCreditUtilized([FromForm] IFormCollection forms) {
 
@@ -811,7 +811,7 @@ namespace Web.Controllers.Api {
                 var result = await _businessManager.CreateOrUpdateCustomerCredits(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
 
                 return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers credit utilized are created!" });
-               // return Ok(_mapper.Map<List<CustomerImportCreditsViewModel>>(result));
+                // return Ok(_mapper.Map<List<CustomerImportCreditsViewModel>>(result));
 
             } catch(Exception e) {
                 return BadRequest(e.Message ?? e.StackTrace);
@@ -933,14 +933,16 @@ namespace Web.Controllers.Api {
                     for(int i = 0; i < model.Rows.Count; i++) {
                         var row = model.Rows[i];
                         var customerName = row[column.Index].Value;
+                        foreach(var word in words) {
+                            var regex = new Regex(string.Format(@"\b{0}\b", word.Name), RegexOptions.IgnoreCase);
 
-                        var result = words.Find(x => customerName.Contains(x.Name));
+                            var isMatch = regex.IsMatch(customerName);
+                            if(isMatch) {
 
-                        //var customer = words.Where(x => x.Name.Contains(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                        if(result != null) {
-                            customers.Add(i);
-                            if(!findingWords.Contains(result))
-                                findingWords.Add(result);
+                                customers.Add(i);
+                                if(!findingWords.Contains(word))
+                                    findingWords.Add(word);
+                            }
                         }
                     }
 
@@ -966,7 +968,7 @@ namespace Web.Controllers.Api {
             }
         }
 
-        
+
         //[HttpPost("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
         //public async Task<IActionResult> CreditUtilizedChangeStatus(CustomerCreditUtilizedChangeStatusViewModel model) {
         //    if(ModelState.IsValid) {

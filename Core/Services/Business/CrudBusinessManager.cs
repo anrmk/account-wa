@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
-     
+
 
         #region CUSTOMER
         Task<CustomerDto> GetCustomer(long id);
@@ -223,7 +223,7 @@ namespace Core.Services.Business {
         //    return _mapper.Map<CompanyDto>(result);
         //}
 
-       
+
 
         //public async Task<List<CompanyDto>> GetCompanies() {
         //    var result = await _companyManager.AllInclude();
@@ -231,15 +231,15 @@ namespace Core.Services.Business {
         //    return map;
         //}
 
-        
 
-      
 
-        
 
-       
 
-    
+
+
+
+
+
 
         #endregion
 
