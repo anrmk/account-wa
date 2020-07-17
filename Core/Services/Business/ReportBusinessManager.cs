@@ -256,6 +256,7 @@ namespace Core.Services.Business {
                 .Select(x => x.Credit).ToList();
 
             var dates = credits.GroupBy(x => x.CreatedDate).Select(x => x.Key)
+                 .OrderBy(x => x)
                  .Select(x => $"{x.Month}/{x.Year}")
                  .ToList();
 
