@@ -18,8 +18,9 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class CompanyController: BaseController<CompanyController> {
-        public ICompanyBusinessManager _companyBusinessManager;
-        public ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
+        private readonly ICrudBusinessManager _businessManager;
+
         public CompanyController(ILogger<CompanyController> logger, IMapper mapper, ApplicationContext context,
             ICompanyBusinessManager companyBusinessManager, ICrudBusinessManager businessManager) : base(logger, mapper, context) {
             _companyBusinessManager = companyBusinessManager;
@@ -27,12 +28,12 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Company
-        public ActionResult Index() {
+        public IActionResult Index() {
             return View();
         }
 
         // GET: Company/Details/5
-        public async Task<ActionResult> Details(long id) {
+        public async Task<IActionResult> Details(long id) {
             var item = await _companyBusinessManager.GetCompany(id);
 
             if(item == null) {
@@ -45,7 +46,7 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Company/Create
-        public async Task<ActionResult> Create() {
+        public async Task<IActionResult> Create() {
             var customers = await _businessManager.GetUntiedCustomers(null);
             ViewBag.Customers = customers.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
@@ -55,10 +56,10 @@ namespace Web.Controllers.Mvc {
         // POST: Company/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(CompanyViewModel model) {
+        public async Task<IActionResult> Create(CompanyViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.CreateCompany(_mapper.Map<CompanyDto>(model));
+                    var item = await _companyBusinessManager.CreateCompany(_mapper.Map<CompanyDto>(model));
                     if(item == null) {
                         return BadRequest();
                     }
@@ -76,16 +77,16 @@ namespace Web.Controllers.Mvc {
         }
 
         // GET: Company/Edit/5
-        public async Task<ActionResult> Edit(long id) {
+        public async Task<IActionResult> Edit(long id) {
             var item = await _companyBusinessManager.GetCompany(id);
             if(item == null) {
                 return NotFound();
             }
 
-            var summary = await _businessManager.GetCompanyAllSummaryRange(item.Id);
+            var summary = await _companyBusinessManager.GetSummaryRanges(item.Id);
             ViewBag.Summary = summary;
 
-            var exportSetting = await _businessManager.GetCompanyAllExportSettings(item.Id);
+            var exportSetting = await _companyBusinessManager.GetAllExportSettings(item.Id);
             ViewBag.ExportSettings = exportSetting;
 
             var creditUtilizedSettings = await _businessManager.GetCustomerCreditUtilizedSettingsList(item.Id);
@@ -99,11 +100,11 @@ namespace Web.Controllers.Mvc {
         // POST: Company/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(long id, CompanyViewModel model) {
+        public async Task<IActionResult> Edit(long id, CompanyViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var dto = _mapper.Map<CompanyDto>(model);
-                    var item = await _businessManager.UpdateCompany(id, dto);
+                    var item = await _companyBusinessManager.UpdateCompany(id, dto);
                     if(item == null) {
                         return NotFound();
                     }
@@ -114,16 +115,16 @@ namespace Web.Controllers.Mvc {
             }
 
             //TODO: Change user interface on editing 
-            var address = await _businessManager.GetCompanyAddress(id);
+            var address = await _companyBusinessManager.GetAddress(id);
             ViewBag.Address = address;
 
-            var settings = await _businessManager.GetCompanySettings(id);
+            var settings = await _companyBusinessManager.GetSettings(id);
             ViewBag.Settings = settings;
 
-            var summary = await _businessManager.GetCompanyAllSummaryRange(id);
+            var summary = await _companyBusinessManager.GetSummaryRanges(id);
             ViewBag.Summary = summary;
 
-            var exportSetting = await _businessManager.GetCompanyAllExportSettings(id);
+            var exportSetting = await _companyBusinessManager.GetAllExportSettings(id);
             ViewBag.ExportSettings = exportSetting;
 
             return View(model);
@@ -132,9 +133,9 @@ namespace Web.Controllers.Mvc {
         // POST: Company/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Delete(long id) {
+        public async Task<IActionResult> Delete(long id) {
             try {
-                var item = await _businessManager.DeleteCompany(id);
+                var item = await _companyBusinessManager.DeleteCompany(id);
                 if(item == false) {
                     return NotFound();
                 }
@@ -153,7 +154,7 @@ namespace Web.Controllers.Mvc {
             try {
                 if(ModelState.IsValid) {
                     var dto = _mapper.Map<CompanyAddressDto>(model);
-                    var item = await _businessManager.UpdateCompanyAddress(companyId, dto);
+                    var item = await _companyBusinessManager.UpdateAddress(companyId, dto);
                     if(item == null) {
                         return BadRequest();
                     }
@@ -173,7 +174,7 @@ namespace Web.Controllers.Mvc {
             try {
                 if(ModelState.IsValid) {
                     var dto = _mapper.Map<CompanySettingsDto>(model);
-                    var item = await _businessManager.UpdateCompanySettings(companyId, dto);
+                    var item = await _companyBusinessManager.UpdateSettings(companyId, dto);
                     if(item == null) {
                         return BadRequest();
                     }
@@ -189,7 +190,7 @@ namespace Web.Controllers.Mvc {
         #region SUMMARY RANGE
         [HttpGet]
         [Route("{companyId}/summary")]
-        public async Task<ActionResult> CreateSummary(long companyId) {
+        public async Task<IActionResult> CreateSummary(long companyId) {
             var item = await _companyBusinessManager.GetCompany(companyId);
 
             if(item == null) {
@@ -206,10 +207,10 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("{companyId}/summary")]
-        public async Task<ActionResult> CreateSummary(CompanySummaryRangeViewModel model) {
+        public async Task<IActionResult> CreateSummary(CompanySummaryRangeViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.CreateCompanySummaryRange(_mapper.Map<CompanySummaryRangeDto>(model));
+                    var item = await _companyBusinessManager.CreateSummaryRange(_mapper.Map<CompanySummaryRangeDto>(model));
                     if(item == null) {
                         return BadRequest();
                     }
@@ -223,8 +224,8 @@ namespace Web.Controllers.Mvc {
             return View(model);
         }
 
-        public async Task<ActionResult> EditSummary(long id) {
-            var item = await _businessManager.GetCompanySummeryRange(id);
+        public async Task<IActionResult> EditSummary(long id) {
+            var item = await _companyBusinessManager.GetSummaryRange(id);
             if(item == null) {
                 return NotFound();
             }
@@ -240,11 +241,11 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> EditSummary(long id, CompanySummaryRangeViewModel model) {
+        public async Task<IActionResult> EditSummary(long id, CompanySummaryRangeViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var dto = _mapper.Map<CompanySummaryRangeDto>(model);
-                    var item = await _businessManager.UpdateCompanySummaryRange(id, dto);
+                    var item = await _companyBusinessManager.UpdateSummaryRange(id, dto);
                     if(item == null) {
                         return NotFound();
                     }
@@ -260,14 +261,14 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteSummary(long id) {
+        public async Task<IActionResult> DeleteSummary(long id) {
             try {
-                var item = await _businessManager.GetCompanySummeryRange(id);
+                var item = await _companyBusinessManager.GetSummaryRange(id);
                 if(item == null) {
                     return NotFound();
                 }
 
-                var result = await _businessManager.DeleteCompanySummaryRange(item.Id);
+                var result = await _companyBusinessManager.DeleteSummaryRange(item.Id);
                 return RedirectToAction(nameof(Edit), new { Id = item.CompanyId });
 
             } catch(Exception er) {
@@ -279,7 +280,7 @@ namespace Web.Controllers.Mvc {
 
         #region EXPORT SETTINGS
         [Route("{id}/ExportSettings/Create")]
-        public async Task<ActionResult> CreateExportSettings(long id) {
+        public async Task<IActionResult> CreateExportSettings(long id) {
             var item = await _companyBusinessManager.GetCompany(id);
 
             if(item == null) {
@@ -294,14 +295,14 @@ namespace Web.Controllers.Mvc {
                 IncludeAllCustomers = false
             };
 
-            dto = await _businessManager.CreateCompanyExportSettings(dto);
+            dto = await _companyBusinessManager.CreateExportSettings(dto);
 
             return RedirectToAction(nameof(EditExportSettings), new { Id = dto.Id });
         }
 
         [Route("ExportSettings/{id}")]
-        public async Task<ActionResult> EditExportSettings(long id) {
-            var dto = await _businessManager.GetCompanyExportSettings(id);
+        public async Task<IActionResult> EditExportSettings(long id) {
+            var dto = await _companyBusinessManager.GetExportSettings(id);
             if(dto == null) {
                 return NotFound();
             }
@@ -314,10 +315,10 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("ExportSettings/{id}")]
-        public async Task<ActionResult> EditExportSettings(long id, CompanyExportSettingsViewModel model) {
+        public async Task<IActionResult> EditExportSettings(long id, CompanyExportSettingsViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var item = await _businessManager.UpdateCompanyExportSettings(id, _mapper.Map<CompanyExportSettingsDto>(model));
+                    var item = await _companyBusinessManager.UpdateExportSettings(id, _mapper.Map<CompanyExportSettingsDto>(model));
                     if(item == null) {
                         return BadRequest();
                     }
@@ -340,20 +341,20 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [Route("ExportSettings/{id}/Delete")]
-        public async Task<ActionResult> DeleteExportSettings(long id) {
-            var item = await _businessManager.GetCompanyExportSettings(id);
+        public async Task<IActionResult> DeleteExportSettings(long id) {
+            var item = await _companyBusinessManager.GetExportSettings(id);
             if(item == null) {
                 return BadRequest();
             }
 
-            await _businessManager.DeleteCompanyExportSettings(id);
+            await _companyBusinessManager.DeleteExportSettings(id);
 
             return RedirectToAction(nameof(Edit), new { Id = item.CompanyId });
         }
 
         [Route("ExportSettingsField/{id}/Create")]
-        public async Task<ActionResult> CreateExportSettingsField(long id) {
-            var item = await _businessManager.GetCompanyExportSettings(id);
+        public async Task<IActionResult> CreateExportSettingsField(long id) {
+            var item = await _companyBusinessManager.GetExportSettings(id);
 
             if(item == null) {
                 return NotFound();
@@ -368,20 +369,20 @@ namespace Web.Controllers.Mvc {
                 Sort = item.Fields?.Count ?? 0
             };
 
-            dto = await _businessManager.CreateCompanyExportSettingsField(dto);
+            dto = await _companyBusinessManager.CreateExportSettingsField(dto);
 
             return View("_CompanyExportSettingsFieldPartial", _mapper.Map<CompanyExportSettingsFieldViewModel>(dto));
         }
 
         [HttpGet]
         [Route("ExportSettingsField/{id}/Delete")]
-        public async Task<ActionResult> DeleteExportSettingsField(long id) {
-            var item = await _businessManager.GetCompanyExportSettingsField(id);
+        public async Task<IActionResult> DeleteExportSettingsField(long id) {
+            var item = await _companyBusinessManager.GetExportSettingsField(id);
             if(item == null) {
                 return BadRequest();
             }
 
-            await _businessManager.DeleteCompanyExportSettingsField(id);
+            await _companyBusinessManager.DeleteExportSettingsField(id);
 
             return RedirectToAction(nameof(EditExportSettings), new { Id = item.ExportSettingsId });
         }
@@ -407,7 +408,7 @@ namespace Web.Controllers.Api {
         [HttpGet]
         //public async Task<Pager<CompanyListViewModel>> GetCompanies([FromQuery] PagerFilterViewModel model) {
         public async Task<Pager<CompanyListViewModel>> GetCompanies(string search, string sort, string order, int offset = 0, int limit = 10) {
-            var result = await _businessManager.GetCompanyPage(search ?? "", sort, order, offset, limit);
+            var result = await _companyBusinessManager.GetCompanyPage(search ?? "", sort, order, offset, limit);
             var pager = new Pager<CompanyListViewModel>(_mapper.Map<List<CompanyListViewModel>>(result.Items), result.TotalItems, result.CurrentPage, result.PageSize);
             return pager;
         }
@@ -422,7 +423,7 @@ namespace Web.Controllers.Api {
         [HttpGet]
         [Route("{id}/summaryrange")]
         public async Task<List<CompanySummaryRangeDto>> GetRangeByCompanyId(long id) {
-            var result = await _businessManager.GetCompanyAllSummaryRange(id);
+            var result = await _companyBusinessManager.GetSummaryRanges(id);
             return _mapper.Map<List<CompanySummaryRangeDto>>(result);
         }
     }

@@ -22,15 +22,18 @@ using Web.ViewModels;
 
 namespace Web.Controllers.Mvc {
     public class InvoiceConstructorController: BaseController<InvoiceConstructorController> {
-        public ICrudBusinessManager _businessManager;
+        private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
 
         public InvoiceConstructorController(ILogger<InvoiceConstructorController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
         }
 
         public async Task<IActionResult> Index() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
 
             var filters = await _businessManager.GetInvoiceConstructorSearchCriterias();
@@ -45,7 +48,7 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> View(long id) {
             var constructor = await _businessManager.GetConstructorInvoice(id);
 
-            var summaryRange = await _businessManager.GetCompanySummeryRange(constructor.SummaryRangeId);
+            var summaryRange = await _companyBusinessManager.GetSummaryRange(constructor.SummaryRangeId);
             ViewBag.SummaryRange = $"{summaryRange.From} - {summaryRange.To}";
 
             var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriteria(constructor.SearchCriteriaId);
@@ -160,12 +163,12 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var company = await _companyBusinessManager.GetCompany(model.CompanyId);
-                    var summaryRanges = await _businessManager.GetCompanyAllSummaryRange(model.CompanyId);
+                    var summary = await _companyBusinessManager.GetSummaryRanges(model.CompanyId);
                     var constructorSearches = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
                     var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
 
                     foreach(var constructorSearch in constructorSearches) {
-                        foreach(var summaryRange in summaryRanges) {
+                        foreach(var summaryRange in summary) {
                             var constructor = constructors.Where(x => x.SearchCriteriaId == constructorSearch.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
                             if(constructor == null) {
                                 var entity = await _businessManager.CreateConstructorInvoice(new InvoiceConstructorDto() {
@@ -196,7 +199,7 @@ namespace Web.Controllers.Api {
                     }
 
                     var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                        { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summaryRanges) },
+                        { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summary) },
                         { "SearchCriterias", _mapper.Map<List<InvoiceConstructorSearchViewModel>>(constructorSearches)},
                         { "CompanyName", company.Name },
                         { "Constructors", _mapper.Map<List<InvoiceConstructorViewModel>>(constructors) },

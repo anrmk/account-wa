@@ -49,7 +49,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<IActionResult> Index() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             //var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriterias();
@@ -72,7 +72,7 @@ namespace Web.Controllers.Mvc {
                 Count = x.Count
             }).ToList();
 
-            var comanies = await _businessManager.GetCompanies();
+            var comanies = await _companyBusinessManager.GetCompanies();
             comanies = comanies.Where(x => !savedReportList.Any(y => y.CompanyId == x.Id)).ToList();
 
             if(comanies.Count > 0)
@@ -86,7 +86,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<IActionResult> CreditUtilized() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new ReportFilterViewModel() {
@@ -196,7 +196,7 @@ namespace Web.Controllers.Mvc {
             }
 
             //var periods = await _nsiBusinessManager.GetReportPeriods();
-            var settings = await _businessManager.GetCompanyAllExportSettings(company.Id);
+            var settings = await _companyBusinessManager.GetAllExportSettings(company.Id);
             ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
 
             return View("_ExportSettingsPartial", model);
@@ -224,7 +224,7 @@ namespace Web.Controllers.Mvc {
                         NumberOfPeriods = model.NumberOfPeriods
                     };
 
-                    var settings = await _businessManager.GetCompanyAllExportSettings(model.CompanyId);
+                    var settings = await _companyBusinessManager.GetAllExportSettings(model.CompanyId);
                     ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
 
                     var checkingCustomerAccountNumber = await _reportBusinessManager.CheckingCustomerAccountNumber(model.CompanyId, model.Date, model.NumberOfPeriods);
@@ -243,7 +243,7 @@ namespace Web.Controllers.Mvc {
         public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var settings = await _businessManager.GetCompanyExportSettings(id);
+                    var settings = await _companyBusinessManager.GetExportSettings(id);
                     if(settings == null) {
                         return NotFound();
                     }
@@ -606,7 +606,7 @@ namespace Web.Controllers.Api {
 
                     if(model.ExportSettings != null) {
                         foreach(var settingId in model.ExportSettings) {
-                            var settings = await _businessManager.GetCompanyExportSettings(settingId);
+                            var settings = await _companyBusinessManager.GetExportSettings(settingId);
                             if(settings != null) {
                                 var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
                                 if(file != null) {

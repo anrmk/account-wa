@@ -20,10 +20,12 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class PaymentController: BaseController<PaymentController> {
         public ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
 
         public PaymentController(ILogger<PaymentController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            ICrudBusinessManager businessManager, ICompanyBusinessManager companyBusinessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
         }
 
         public IActionResult Index() {
@@ -57,7 +59,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Filter Partial
         public async Task<ActionResult> Filter([FromQuery] PaymentFilterViewModel model) {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View("_FilterPaymentPartial", model);
@@ -89,7 +91,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Payment/Bulk
         public async Task<ActionResult> Bulk() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var selectedCompany = companies.FirstOrDefault();

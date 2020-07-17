@@ -37,7 +37,7 @@ namespace Web.Controllers.Mvc {
 
         [HttpGet]
         public async Task<IActionResult> CreateSettingsRestrictedWord() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View();
@@ -74,7 +74,7 @@ namespace Web.Controllers.Mvc {
 
             var model = _mapper.Map<SettingsRestrictedWordViewModel>(item);
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var companyRestrictedWords = await _companyBusinessManager.GetRestrictedWord(id);

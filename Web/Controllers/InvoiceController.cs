@@ -27,15 +27,18 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class InvoiceController: BaseController<InvoiceController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
 
         public InvoiceController(ILogger<InvoiceController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
         }
 
         // GET: Invoice
         public async Task<ActionResult> Index() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(new InvoiceFilterViewModel());
@@ -43,7 +46,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Invoice using Aging filter
         public async Task<ActionResult> IndexFilter([FromQuery] InvoiceFilterViewModel model) {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View("Index", model);
@@ -51,7 +54,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Filter Partial
         public async Task<ActionResult> Filter([FromQuery] InvoiceFilterViewModel model) {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerTypes = await _businessManager.GetCustomerTypes();
@@ -80,7 +83,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Invoice/Create
         public async Task<ActionResult> Create() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             Random rd = new Random();
@@ -113,7 +116,7 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             if(model.CompanyId != null) {
@@ -126,7 +129,7 @@ namespace Web.Controllers.Mvc {
 
         // GET: Invoice/Bulk
         public async Task<ActionResult> Bulk() {
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var selectedCompany = companies.FirstOrDefault();
@@ -137,8 +140,8 @@ namespace Web.Controllers.Mvc {
                 DateTo = DateTime.Now.LastDayOfMonth()
             };
 
-            var summaryRange = await _businessManager.GetCompanyAllSummaryRange(selectedCompany?.Id ?? 0);
-            ViewBag.SummaryRange = summaryRange.Select(x => new SelectListItem() { Text = $"{x.From} - {x.To}", Value = x.Id.ToString() });
+            var summary = await _companyBusinessManager.GetSummaryRanges(selectedCompany?.Id ?? 0);
+            ViewBag.SummaryRange = summary.Select(x => new SelectListItem() { Text = $"{x.From} - {x.To}", Value = x.Id.ToString() });
 
             var customerTags = await _businessManager.GetCustomerTags();
             ViewBag.Tags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() });
@@ -160,7 +163,7 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customers = await _businessManager.GetCustomers(item.CompanyId ?? 0);
@@ -186,7 +189,7 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customers = await _businessManager.GetCustomers(model.CompanyId ?? 0);
@@ -292,7 +295,7 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var customers = await _businessManager.GetCustomers(model.Customers.ToArray());
-                    var subtotalRange = await _businessManager.GetCompanySummeryRange(model.SummaryRangeId ?? 0);
+                    var subtotalRange = await _companyBusinessManager.GetSummaryRange(model.SummaryRangeId ?? 0);
 
                     if(subtotalRange != null) {
                         model.Header = $"{subtotalRange.From}-{subtotalRange.To}";

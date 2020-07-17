@@ -29,13 +29,16 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
+
         private readonly ISettingsBusinessService _customerBusinessService;
         private readonly IViewRenderService _viewRenderService;
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, ISettingsBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager, ICompanyBusinessManager companyBusinessManager, ISettingsBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _companyBusinessManager = companyBusinessManager;
             _customerBusinessService = customerBusinessService;
             _viewRenderService = viewRenderService;
             _memoryCache = memoryCache;
@@ -52,7 +55,7 @@ namespace Web.Controllers.Mvc {
         public async Task<ActionResult> Create() {
             var item = new CustomerViewModel();
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerTypes = await _businessManager.GetCustomerTypes();
@@ -85,7 +88,7 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var activities = await _businessManager.GetCustomerAllActivity(id);
@@ -125,7 +128,7 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
             }
 
-            var companies = await _businessManager.GetCompanies();
+            var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var activities = await _businessManager.GetCustomerAllActivity(id);
@@ -564,7 +567,7 @@ namespace Web.Controllers.Api {
                         var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                         _memoryCache.Set("_CustomerUpload", model, cacheEntryOptions);
 
-                        var companies = await _businessManager.GetCompanies();
+                        var companies = await _companyBusinessManager.GetCompanies();
                         var customerFields = typeof(CustomerViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
                             .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
                         var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
@@ -724,7 +727,7 @@ namespace Web.Controllers.Api {
                         //var resultHtml = _viewRenderService.RenderToStringAsync("_CustomerCreditsBulkCreatePartial", model, ViewData).Result;
                         //return Json(resultHtml);
 
-                        var companies = await _businessManager.GetCompanies();
+                        var companies = await _companyBusinessManager.GetCompanies();
                         var customerFields = typeof(CustomerImportCreditsViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
                             .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
                         var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
