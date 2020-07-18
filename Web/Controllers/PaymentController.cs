@@ -106,31 +106,32 @@ namespace Web.Controllers.Mvc {
             return View(model);
         }
 
-        // GET: Payment/BulkPayment
-        public async Task<ActionResult> BulkPayment(List<long> ids) {
-            var invoices = await _businessManager.GetInvoices(ids.ToArray());
-            Random rd = new Random();
+        //[Obsolete]
+        //// GET: Payment/BulkPayment
+        //public async Task<ActionResult> BulkPayment(List<long> ids) {
+        //    var invoices = await _businessManager.GetInvoices(ids.ToArray());
+        //    Random rd = new Random();
 
-            var payments = invoices.Select(x => new PaymentViewModel() {
-                No = string.Format("PMNT_{0}", rd.NextLong(11111, 99999).ToString()),
-                Amount = x.Subtotal - x.Payments.TotalAmount(),
-                CustomerId = x.CustomerId,
-                Date = DateTime.Now,
-                InvoiceId = x.Id,
-                InvoiceNo = x.No,
-                InvoiceAmount = x.Subtotal * (1 + x.TaxRate / 100),
-            }).ToList();
+        //    var payments = invoices.Select(x => new PaymentViewModel() {
+        //        No = string.Format("PMNT_{0}", rd.NextLong(11111, 99999).ToString()),
+        //        Amount = x.Subtotal - x.Payments.TotalAmount(),
+        //        CustomerId = x.CustomerId,
+        //        Date = DateTime.Now,
+        //        InvoiceId = x.Id,
+        //        InvoiceNo = x.No,
+        //        InvoiceAmount = x.Subtotal * (1 + x.TaxRate / 100),
+        //    }).ToList();
 
-            var model = new BulkPaymentViewModel() {
-                DateFrom = DateTime.Now.FirstDayOfMonth(),
-                DateTo = DateTime.Now.LastDayOfMonth(),
-                CompanyId = 0,
-                Payments = payments,
-                Invoices = ids
-            };
+        //    var model = new BulkPaymentViewModel() {
+        //        DateFrom = DateTime.Now.FirstDayOfMonth(),
+        //        DateTo = DateTime.Now.LastDayOfMonth(),
+        //        CompanyId = 0,
+        //        Payments = payments,
+        //        Invoices = ids
+        //    };
 
-            return View("_PaymentsPartial", model);
-        }
+        //    return View("_PaymentsPartial", model);
+        //}
 
         // GET: Payment/Edit/5
         public async Task<ActionResult> Edit(long id) {
@@ -298,9 +299,38 @@ namespace Web.Controllers.Api {
             return Ok(result);
         }
 
-        [HttpPost]
-        [Route("create")]
-        public async Task<IActionResult> CreatePayments(BulkPaymentViewModel model) {
+        [HttpGet("CreatePaymentsView", Name = "CreatePaymentsView")]
+        public async Task<IActionResult> CreatePaymentsView([FromQuery] long[] id) {
+            if(id.Length > 0) {
+                var invoices = await _businessManager.GetInvoices(id);
+                Random rd = new Random();
+
+                var payments = invoices.Select(x => new PaymentViewModel() {
+                    No = string.Format("PMNT_{0}", rd.NextLong(11111, 99999).ToString()),
+                    Amount = x.Subtotal - x.Payments.TotalAmount(),
+                    CustomerId = x.CustomerId,
+                    Date = DateTime.Now,
+                    InvoiceId = x.Id,
+                    InvoiceNo = x.No,
+                    InvoiceAmount = x.Subtotal * (1 + x.TaxRate / 100),
+                }).ToList();
+
+                var model = new BulkPaymentViewModel() {
+                    DateFrom = DateTime.Now.FirstDayOfMonth(),
+                    DateTo = DateTime.Now.LastDayOfMonth(),
+                    CompanyId = 0,
+                    Payments = payments,
+                    Invoices = id.ToList()
+                };
+
+                string html = _viewRenderService.RenderToStringAsync("_PaymentsPartial", model).Result;
+                return Ok(html);
+            }
+            return BadRequest("No items selected");
+        }
+
+        [HttpPost("CreatePayments", Name="CreatePayments")]
+        public async Task<IActionResult> CreatePayments([FromBody] BulkPaymentViewModel model) {
             if(!ModelState.IsValid) {
                 return BadRequest(model);
             }

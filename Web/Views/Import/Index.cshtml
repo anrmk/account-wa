@@ -30,7 +30,6 @@
     <script type="text/javascript">
         $(document).ready(e => {
             var $uploadFile = $('#@(guid)file');
-
             var $select = $('#@(guid)select');
 
             $('#uploadBtn').on('click', (e) => {
@@ -51,7 +50,7 @@
         function xSubmitComplete(e, jqXHR, status) {
             if (status === 'success') {
                 $('#result').text(jqXHR.responseJSON.message);
-                window.modal.modal('hide');
+                window.dialog.modal('hide');
             }
         }
     </script>

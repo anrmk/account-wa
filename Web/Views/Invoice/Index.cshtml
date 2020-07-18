@@ -3,39 +3,44 @@
     ViewData["Title"] = "Invoices";
 
     var tableId = Guid.NewGuid();
+    var filterFormId = Guid.NewGuid();
+
+    var filterViewUrl = Url.RouteUrl("FilterView");
+
+    var createPaymentsViewUrl = Url.RouteUrl("CreatePaymentsView");
 }
 
 @section Toolbar  {
-<div class="btn-toolbar" role="toolbar">
-    <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-</div>
+    <div class="btn-toolbar" role="toolbar">
+        <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    </div>
 }
 
 @section SidebarContent {
-<div class="card">
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
-            <span>Total rows:</span>
-            <span><span id="totalRows">0</span></span>
-        </li>
-        <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
-            <span>Total amount:</span>
-            <span><span id="totalAmount">$0.00</span></span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Checked/unchecked:</span>
-            <span><span id="totalChecked">0</span></span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Total checked amount:</span>
-            <span><span id="totalCheckedAmount">$0.00</span></span>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Total unchecked amount:</span>
-            <span><span id="balanceAmount">$0.00</span></span>
-        </li>
-    </ul>
-</div>
+    <div class="card">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                <span>Total rows:</span>
+                <span><span id="totalRows">0</span></span>
+            </li>
+            <li class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center">
+                <span>Total amount:</span>
+                <span><span id="totalAmount">$0.00</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Checked/unchecked:</span>
+                <span><span id="totalChecked">0</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Total checked amount:</span>
+                <span><span id="totalCheckedAmount">$0.00</span></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>Total unchecked amount:</span>
+                <span><span id="balanceAmount">$0.00</span></span>
+            </li>
+        </ul>
+    </div>
 }
 
 <div class="card">
@@ -59,14 +64,15 @@
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
-                <button id="filterBtn" class="btn btn-secondary">Filter</button>
+                <a class="btn btn-secondary" asp-route="FilterView" data-target="modal">Filter</a>
+                @*<button id="filterBtn" class="btn btn-secondary">Filter</button>*@
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Payment active button group">
-                <button id="bulkPaymentBtn" class="btn btn-primary hide" disabled>Create payment</button>
+                <button id="createPaymentBtn" class="btn btn-primary hide" disabled>Create payment</button>
             </div>
 
-            <form id="filterForm">
+            <form id="@(filterFormId)">
                 <input type="hidden" asp-for="CompanyId" />
                 <input type="hidden" asp-for="Date" />
                 <input type="hidden" asp-for="NumberOfPeriods" />
@@ -85,7 +91,7 @@
                data-query-params="queryParams"
                data-total-field="totalItems"
                data-data-field="items"
-               data-select-item-name="Invoices[]" >
+               data-select-item-name="Invoices[]">
             <thead>
                 <tr>
                     <th data-checkbox="true"></th>
@@ -110,44 +116,85 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function xLinkBeforeSend(jqXHR, settings) {
+            var filterData = $('#@(filterFormId)').serializeJSON();
+            settings.data = $.extend(settings.data, filterData);
+        }
+
+        function xUploadComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload Customers CSV');
+            }
+        }
+
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#@(tableId)').bootstrapTable('refresh');
+                window.dialog.modal('hide');
+            }
+        }
+
+        function filterSubmit(e, jqXHR, status) {
+            if (status === 'success') {
+                var filterForm = $(e.currentTarget);
+                filterForm.find('fieldset').enabled();
+                var filterData = filterForm.serializeJSON();
+                filterForm.find('fieldset').disabled();
+
+                $('#@(filterFormId)').loadJSON(filterData);
+                $table.bootstrapTable('refresh');
+                window.dialog.modal('hide');
+            }
+        }
+
+        function queryParams(params) {
+            if (!params.search) {
+                params.search = $('div.search input').val();
+            }
+            var filterForm = $('#@(filterFormId)').serializeJSON();
+            return $.extend({}, params, filterForm);
+        }
+
         $(document).ready(e => {
             $table = $('#@(tableId)');
 
-            $filterBtn = $('#filterBtn').click(_ => {
+            @*$filterBtn = $('#filterBtn').click(_ => {
                 var options = {
-                    'url': '/invoice/filter',
+                    'url': '@(filterViewUrl)',
                     'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: false })
                 };
 
-                $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog('Filter', (action, e, content) => {
-                        switch (action) {
-                            case 'modal.on.load':
-                                $(content).on('submit', evt => {
-                                    evt.preventDefault();
-                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: false }));
-                                    $table.bootstrapTable('refresh');
-                                    window.modal.modal('hide');
-                                });
-                                break;
-                            case 'shown.bs.modal':
-                                break;
-                            case 'hidden.bs.modal':
-                                break;
-                        }
-                    });
-                });
-            });
+                $.ajax(options);
 
-            $bulkPaymentBtn = $('#bulkPaymentBtn').click(_ => {
+                //$.ajax(options).done((data, status, jqXHR) => {
+                //    $(data).dialog('Filter', (action, e, content) => {
+                //        switch (action) {
+                //            case 'modal.on.load':
+                //                $(content).on('submit', evt => {
+                //                    evt.preventDefault();
+                //                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: false }));
+                //                    $table.bootstrapTable('refresh');
+                //                    window.dialog.modal('hide');
+                //                });
+                //                break;
+                //            case 'shown.bs.modal':
+                //                break;
+                //            case 'hidden.bs.modal':
+                //                break;
+                //        }
+                //    });
+                //});
+            });*@
+
+            $createPaymentBtn = $('#createPaymentBtn').click(_ => {
                 var selections = $table.bootstrapTable('getSelections');
                 var ids = selections.map(x => x.id);
 
                 if (ids.length > 0) {
                     var options = {
-                        'type': 'post',
-                        'url': '/payment/bulkpayment',
-                        'data': { ids: ids }
+                        'url': '@(createPaymentsViewUrl)',
+                        'traditional': true,
+                        'data': { id: ids },
                     };
 
                     $.ajax(options).done((data, status, jqXHR) => {
@@ -195,10 +242,10 @@
             var selections = $table.bootstrapTable('getSelections');
 
             if (!selections.length) {
-                $bulkPaymentBtn.hide();
+                $createPaymentBtn.hide();
                 $bulkDeleteBtn.hide();
             } else {
-                $bulkPaymentBtn.show();
+                $createPaymentBtn.show();
                 $bulkDeleteBtn.show();
             }
 
@@ -215,15 +262,6 @@
             $('#balanceAmount').html(balanceAmountFormatted);
         }
 
-        function queryParams(params) {
-            if (!params.search) {
-                params.search = $('div.search input').val();
-            }
-            var filterForm = $('#filterForm').serializeJSON();
-
-            return $.extend({}, params, filterForm);
-        }
-
         function nameFormatter(value, row) {
             return `${value} <p class='text-muted'>${row.companyName}</p>`;
         }
@@ -237,17 +275,6 @@
                     <a href='/invoice/details/${row.id}' class='btn btn-secondary'>Detail</a>`
         }
 
-        function xUploadComplete(e, jqXHR, status) {
-            if (status === 'success') {
-                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload Customers CSV');
-            }
-        }
 
-        function xSubmitComplete(e, jqXHR, status) {
-            if (status === 'success') {
-                $('#@(tableId)').bootstrapTable('refresh');
-                window.modal.modal('hide');
-            }
-        }
     </script>
 }

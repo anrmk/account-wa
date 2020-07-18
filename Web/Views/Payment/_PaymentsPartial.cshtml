@@ -1,19 +1,20 @@
 ﻿@model Web.ViewModels.BulkPaymentViewModel
 @{
     Layout = null;
+    var formId = Guid.NewGuid();
 }
 
-<form id="paymentsPartialForm" action="/api/payment/create" method="post">
+<form id="@formId" asp-route="CreatePayments" method="post" data-request="ajax">
     <fieldset>
         <div class="mb-3" role="toolbar">
             <div class="form-row align-items-end">
                 <div class="col">
                     <label for="DateFrom">Date from</label>
-                    <input type="date" class="form-control" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" />
+                    <input type="date" class="form-control" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" required />
                 </div>
                 <div class="col">
                     <label for="DateTo">Date to</label>
-                    <input type="date" class="form-control" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
+                    <input type="date" class="form-control" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" required />
                 </div>
                 <div class="col-auto">
                     <button type="button" class="btn btn-primary" onclick="generateRandomDate()">Random</button>
@@ -27,7 +28,7 @@
         <input type="hidden" name="DateFrom" value="@Model.DateFrom.ToString("yyyy-MM-dd")" /> 
         <input type="hidden" name="DateTo" value="@Model.DateTo.ToString("yyyy-MM-dd")" />
 
-        <table class="table">
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
@@ -52,10 +53,10 @@
                         <td>@item.InvoiceNo</td>
                         <td>@item.InvoiceAmount</td>
                         <td>
-                            <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" />
+                            <input type="text" class="form-control" name="Payments[][Amount]" value="@item.Amount" required />
                         </td>
                         <td>
-                            <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" />
+                            <input type="date" class="form-control" name="Payments[][Date]" value="@item.Date.ToString("yyyy-MM-dd")" required />
                         </td>
                     </tr>
                 }
@@ -65,24 +66,12 @@
 </form>
 
 <script type="text/javascript">
-    $(document).ready(e => {
-        $('#paymentsPartialForm').on('submit', e => {
-            e.preventDefault();
-            var $target = $(e.target);
-            $target.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                if (status === 'success') {
-                    window.modal.modal('hide');
-                }
-            });
-        });
-
-    });
-
     function generateRandomDate() {
-        var from = $('#paymentsPartialForm input[name=DateFrom]').val();
-        var to = $('#paymentsPartialForm input[name=DateTo]').val();
+        var $form = $('#@(formId)');
+        var from = $form.find('input[name=DateFrom]').val();
+        var to = $form.find('input[name=DateTo]').val();
 
-        $('#paymentsPartialForm table input[type=date]').each((index, element) => {
+        $form.find('table tbody input[type=date]').each((index, element) => {
             var d = $.fn.randomDate(new Date(from), new Date(to));
             $(element).val(d.toISOString().slice(0, 10));
         });

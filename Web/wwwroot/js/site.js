@@ -1,11 +1,13 @@
 ﻿$(document).ready(() => {
     $.fn.datepicker.defaults.format = 'mm/dd/yyyy';
-    window.modal = $('#modalBackdrop');
+   // window.dialog = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
     $('form[data-request=ajax]').xSubmit();
+    $('a[data-target=modal]').xLink();
+
     $('input[type=file]').xUpload();
 
-    $.fn.initModalLink('body');
+  //  $.fn.initModalLink('body');
 
 }).ajaxStart(() => {
     $('form fieldset').disabled();
@@ -23,7 +25,15 @@ $.fn.initModalLink = function (target, callback = {}) {
         e.preventDefault();
         var link = $(e.target);
         var opt = {
-            'url': link.attr('href')
+            'url': link.attr('href'),
+            'beforeSend': function (xhr) {
+                xhr.overrideMimeType("text/plain; charset=x-user-defined");
+
+                var func = link.attr('beforesend') || 'xLinkBeforeSend';
+                if (typeof window[func] === 'function') {
+                    window[func](xhr);
+                }
+            }
         }
 
         $.ajax(opt).done((data, status, jqXHR) => {

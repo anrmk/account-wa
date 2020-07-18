@@ -79,6 +79,12 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function xSubmitComplete(jqXHR, status) {
+            if (status === 'success') {
+               
+            }
+        }
+
         function checkTheAbilityToSaveCredits(form) {
             var formData = form.serializeJSON();
 

@@ -7,7 +7,7 @@
     var formId = Guid.NewGuid();
 }
 
-<form id="@(formId)" asp-route="CreateCustomerCreditUtilized">
+<form id="@(formId)" asp-route="CreateCustomerCreditUtilized" data-request="ajax">
     <fieldset>
         <input asp-for="CompanyId" type="hidden" />
         <input asp-for="NumberOfPeriods" type="hidden" />

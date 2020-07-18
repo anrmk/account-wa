@@ -18,6 +18,39 @@ $.fn.getBulkInvoices = function (id, from, to) {
     });
 }
 
+$.fn.xLink = function (opt = {}) {
+    this.on('click', e => {
+        e.preventDefault();
+        var $link = $(e.currentTarget);
+
+        var options = $.extend({
+            'url': $link.attr('href'),
+            'beforeSend': function (jqXHR, settings) {
+                var func = $link.attr('beforesend') || 'xLinkBeforeSend';
+                if (typeof window[func] === 'function') {
+                    window[func](jqXHR, settings);
+                }
+            },
+            'complete': (jqXHR, status) => {
+                $link.trigger('xLinkComplete', [jqXHR, status]);
+            }
+        }, opt);
+
+        $.ajax(options);
+    }).on('xLinkComplete', (e, jqXHR, status) => {
+        e.preventDefault();
+        var $link = $(e.currentTarget);
+        var func = $link.attr('rel') || 'xLinkComplete';
+
+        if (status === 'success') {
+            $(`<div>${jqXHR.responseText}</div>`).dialog($link.attr('title') || 'Your action is required');
+        }
+        if (typeof window[func] === 'function') {
+            window[func](e, jqXHR, status);
+        }
+    });
+    return this;
+};
 
 $.fn.uploadFile = function (callback) {
     var formData = new FormData();
@@ -91,8 +124,8 @@ $.fn.xSubmit = function (opt = {}) {
             $.ajax(options);
         }
     }).on('xSubmitComplete', (e, jqXHR, status) => {
-        e.preventDefault();
-        var func = $(e.currentTarget).attr('rel') || 'xSubmitComplete';
+        var $form = $(e.currentTarget);
+        var func = $form.attr('rel') || 'xSubmitComplete';
         if (func === 'dialog') {
             if (status === 'success') {
                 $(`<div>${jqXHR.responseText}</div>`).dialog();
@@ -131,31 +164,50 @@ $.fn.ajaxSubmit = function (opt, callback) {
     }
 }
 
-$.fn.dialog = function (header, callback) {
+$.fn.dialog = function (opt = {}) {
+    var options = $.extend({
+        'title': '', 
+        'onShown': (e) => {
+
+        },
+        'onHidden': (e) => {
+
+        }
+    }, opt);
+
+
     callback = callback || function () { };
-    $.when(
+    //$.when(
         $('.modal .modal-title').text(header),
         $('.modal .modal-body').empty().html(this),
 
-        window.modal.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
-            var form = $('.modal .modal-content form').xSubmit();
+        window.dialog.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
+            var target = $(e.currentTarget);
+            var form = target.find('form[data-request=ajax]').xSubmit();
             var formId = form.attr('id');
 
-            var submitBtn = $('.modal .modal-footer #modalSubmitBtn');
+            var submitBtn = target.find('.modal-footer #modalSubmitBtn');
             if (form.length == 1 && form.attr('action') !== undefined && formId !== '00000000-0000-0000-0000-000000000000') {
                 submitBtn.attr('form', formId).removeAttr('hidden');
             } else {
                 submitBtn.attr('hidden', 'hidden');
             }
-            callback('shown.bs.modal', e, this);
+
+            if (typeof(window['xModalShown']) === 'function') {
+                window['xModalShown'](e);
+            }
+            //callback('shown.bs.modal', e, this);
         }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
             this.empty();
-            callback('hidden.bs.modal', e, this);
+            if (typeof(window['xModalHidden']) === 'function') {
+                window['xModalHidden'](e);
+            }
+           // callback('hidden.bs.modal', e, this);
         })
-    ).done((e) => {
-        callback('modal.on.load', e, this);
-    });
-    return window.modal;
+    //).done((e) => {
+    //    callback('modal.on.load', e, this);
+    //});
+    return window.dialog;
 };
 
 $.fn.guid = function () {

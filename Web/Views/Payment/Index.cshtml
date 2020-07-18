@@ -73,7 +73,7 @@
                                     evt.preventDefault();
                                     $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" }));
                                     $table.bootstrapTable('refresh');
-                                    window.modal.modal('hide');
+                                    window.dialog.modal('hide');
                                 });
                                 break;
                             case 'shown.bs.modal':

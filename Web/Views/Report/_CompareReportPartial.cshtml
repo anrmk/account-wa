@@ -142,7 +142,7 @@
                     <small class="text-muted">@(creditUtilizedSettings.Id != 0 ? $"Saved settings at {creditUtilizedSettings.Date.ToString("MM/dd/yyyy")}, {creditUtilizedSettings.RoundName}" : $"Used company default settings, {creditUtilizedSettings.RoundName}")</small>
                 }
             </h6>
-            <form id="@formId" >
+            <form id="@formId">
                 <input asp-for="CompanyId" type="hidden" />
                 <input asp-for="NumberOfPeriods" type="hidden" />
                 <input asp-for="Date" type="hidden" value="@Model.Date.ToString("yyyy-MM-dd")" />

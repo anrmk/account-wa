@@ -16,7 +16,7 @@
     <div class="col-lg-3 col-md-12">
         <div class="card">
             <div class="card-body">
-                <form id="@formId" asp-route="GenerateConstructor">
+                <form id="@formId" asp-route="GenerateConstructor" data-request="ajax" rel="filterOnSubmit">
                     <fieldset>
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
@@ -45,7 +45,7 @@
                 Apply filter to view generated invoices in database
             </div>
             <div class="card-footer">
-                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary" disabled >Save</button>
+                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary" disabled>Save</button>
             </div>
         </div>
     </div>
@@ -53,19 +53,32 @@
 
 @section Scripts {
     <script type="text/javascript">
-        updateDraftInvoices = function (e) {
-            e.preventDefault();
-            $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
-                if (status === 'success') {
-                    form.css('disabled', data.count == 0 ? "none" : "block");
-                    form.find('input.count').val(data.count);
-                    form.find('input[name=TotalAmount]').val(data.totalAmount);
-                    form.find('input.totalAmount').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
-                }
-            });
+        function filterOnSubmit(e, jqXHR, status) {
+            if (status === 'success') {
+                var $content = $('#constructorContent').html(jqXHR.responseText)
+                    .trigger('change');
+                $content.find('form[data-request=ajax]').xSubmit({});
+                $content.find('a[data-target=modal]').xLink();
+            }
         }
 
-        countTotal = function (e, content) {
+        function xSubmitComplete(e, jqXHR, status) {
+            var $form = $(e.currentTarget);
+            if (status === 'success') {
+                var data = jqXHR.responseJSON;
+                $form.css('disabled', data.count == 0 ? "none" : "block");
+                $form.find('input.count').val(data.count);
+                $form.find('input[name=TotalAmount]').val(data.totalAmount);
+                $form.find('input.totalAmount').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
+            }
+        }
+
+        function xModalHidden(e) {
+            $('#constructorContent').trigger('change');
+        }
+
+        function countTotal(e) {
+            var content = $(e.currentTarget);
             //Sem by column
             content.find('tbody tr:eq(0) td').each((index) => {
                 var colSum = 0;
@@ -90,7 +103,8 @@
         }
 
         $(document).ready(e => {
-            var $form = $(`#@(formId)`).on('submit', e => {
+
+            @*var $form = $(`#@(formId)`).on('submit', e => {
                 e.preventDefault();
 
                 $saveInvoiceDraftBtn.disabled();
@@ -108,13 +122,13 @@
                         $saveInvoiceDraftBtn.enabled();
                     }
                 })
+            });*@
+
+           $('#constructorContent').on('change', e => {
+                countTotal(e);
             });
 
-            var $content = $('#constructorContent').on('change', e => {
-                countTotal(e, $content);
-            });
-
-            var $saveInvoiceDraftBtn = $('#saveInvoiceDraftBtn').on('click', e => {
+            $('#saveInvoiceDraftBtn').on('click', e => {
                 e.preventDefault();
 
                 var ids = $('#constructorContent form').find('input[name=Id]:not([value=0])').map(function (index, element) {
@@ -129,7 +143,7 @@
 
                     $.when($.ajax(options)).then((data) => {
                         alert(data);
-                        $form.submit();
+                        $('#@(formId)').submit();
                     });
                 }
             });

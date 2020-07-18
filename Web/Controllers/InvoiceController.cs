@@ -52,17 +52,6 @@ namespace Web.Controllers.Mvc {
             return View("Index", model);
         }
 
-        // GET: Filter Partial
-        public async Task<ActionResult> Filter([FromQuery] InvoiceFilterViewModel model) {
-            var companies = await _companyBusinessManager.GetCompanies();
-            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            var customerTypes = await _businessManager.GetCustomerTypes();
-            ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            return View("_FilterInvoicePartial", model);
-        }
-
         // GET: Invoice/Details/5
         public async Task<ActionResult> Details(long id) {
             var item = await _businessManager.GetInvoice(id);
@@ -259,6 +248,20 @@ namespace Web.Controllers.Api {
             }
 
             return new Pager<InvoiceListViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
+        }
+
+        [HttpGet("FilterView", Name = "FilterView")]
+        public async Task<IActionResult> FilterView([FromQuery] InvoiceFilterViewModel model) {
+            var companies = await _companyBusinessManager.GetCompanies();
+            var customerTypes = await _businessManager.GetCustomerTypes();
+            
+            var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                            { "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
+                            { "CustomerTypes", customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList() }
+                        };
+
+            string html = await _viewRenderService.RenderToStringAsync("_FilterInvoicePartial", model, viewDataDictionary);
+            return Ok(html);
         }
 
         [HttpGet]

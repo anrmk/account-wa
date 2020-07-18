@@ -36,7 +36,7 @@
                                 var formId = Guid.NewGuid();
                                 var constructor = constructors.Where(x => x.SearchCriteriaId == criteria.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
                             }
-                            <form id="@(formId)" asp-route="UpdateDraftInvoices" asp-route-id="@(constructor.Id)" style="@(constructor.Count == 0 ? "display: none" :"")" >
+                            <form id="@(formId)" asp-route="UpdateDraftInvoices" asp-route-id="@(constructor.Id)" style="@(constructor.Count == 0 ? "display: none" :"")" data-request="ajax" >
                                 <input type="hidden" name="Id" value="@(constructor.Id)" />
                                 <input type="hidden" name="TotalAmount" value="@(constructor.TotalAmount)" />
 

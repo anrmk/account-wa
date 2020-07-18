@@ -73,7 +73,7 @@
                 }
 
                 $(e.target).ajaxSubmit({}, (target, data, status) => {
-                    status === 'success' ? window.modal.modal('hide') : alert(status);
+                    status === 'success' ? window.dialog.modal('hide') : alert(status);
                 });
             });
 
