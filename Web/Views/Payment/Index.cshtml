@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Payments";
+    var tableId = Guid.NewGuid();
 }
 
 @section Toolbar  {
@@ -19,6 +20,7 @@
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
+                @*<a class="btn btn-secondary" asp-route="FilterView" data-target="modal">Filter</a>*@
                 <button id="filterBtn" class="btn btn-secondary">Filter</button>
             </div>
 
@@ -32,7 +34,7 @@
             </form>
         </div>
 
-        <table id="datatable" data-toggle="table" data-url="/api/payment"
+        <table id="@(tableId)" data-toggle="table" data-url="/api/payment"
                data-query-params="queryParams"
                data-total-field="totalItems"
                data-data-field="items"
@@ -56,8 +58,15 @@
 
 @section Scripts {
     <script type="text/javascript">
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#@(tableId)').bootstrapTable('refresh');
+                window.dialog.modal('hide');
+            }
+        }
+
         $(document).ready(e => {
-            $table = $('#datatable');
+            $table = $('#@(tableId)');
 
             $filterBtn = $('#filterBtn').click(_ => {
                 var options = {

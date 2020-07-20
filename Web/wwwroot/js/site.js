@@ -37,7 +37,7 @@ $.fn.initModalLink = function (target, callback = {}) {
         }
 
         $.ajax(opt).done((data, status, jqXHR) => {
-            $(data).dialog(link.attr('tile') || 'Your action is required', callback);
+            $(data).dialog({ 'title': link.attr('tile') || 'Your action is required' });
         })
     });
 };

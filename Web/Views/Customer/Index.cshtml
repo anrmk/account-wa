@@ -68,7 +68,7 @@
 
         function xUploadComplete(e, jqXHR, status) {
             if (status === 'success') {
-                $(`<div>${jqXHR.responseText}</div>`).dialog('Upload Customers CSV');
+                $(`<div>${jqXHR.responseText}</div>`).dialog({ 'title': 'Upload Customers CSV' });
             }
         }
 
