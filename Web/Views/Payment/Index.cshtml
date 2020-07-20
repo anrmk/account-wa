@@ -3,12 +3,13 @@
 @{
     ViewData["Title"] = "Payments";
     var tableId = Guid.NewGuid();
+    var filterFormId = Guid.NewGuid();
 }
 
 @section Toolbar  {
-<div class="btn-toolbar" role="toolbar">
-    <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-</div>
+    <div class="btn-toolbar" role="toolbar">
+        <button id="bulkDeleteBtn" class="btn btn-danger"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+    </div>
 }
 
 <div class="card">
@@ -20,11 +21,11 @@
             </div>
 
             <div class="btn-group mr-1" role="group" aria-label="Filter active button group">
-                @*<a class="btn btn-secondary" asp-route="FilterView" data-target="modal">Filter</a>*@
-                <button id="filterBtn" class="btn btn-secondary">Filter</button>
+                <a class="btn btn-secondary" asp-route="PaymentFilterView" data-target="modal">Filter</a>
+                @*<button id="filterBtn" class="btn btn-secondary">Filter</button>*@
             </div>
 
-            <form id="filterForm">
+            <form id="@(filterFormId)">
                 <input type="hidden" asp-for="CompanyId" />
                 <input type="hidden" asp-for="DateFrom" />
                 <input type="hidden" asp-for="DateTo" />
@@ -58,107 +59,91 @@
 
 @section Scripts {
     <script type="text/javascript">
-        function xSubmitComplete(e, jqXHR, status) {
-            if (status === 'success') {
-                $('#@(tableId)').bootstrapTable('refresh');
-                window.dialog.modal('hide');
-            }
+    function xLinkBeforeSend(jqXHR, settings) {
+        var filterData = $('#@(filterFormId)').serializeJSON();
+        return filterData;
+    }
+
+    function xSubmitComplete(e, jqXHR, status) {
+        if (status === 'success') {
+            $('#@(tableId)').bootstrapTable('refresh');
+            window.dialog.modal('hide');
         }
+    }
 
-        $(document).ready(e => {
-            $table = $('#@(tableId)');
+    function filterSubmit(e, jqXHR, status) {
+        if (status === 'success') {
+            var filterForm = $(e.currentTarget);
+            filterForm.find('fieldset').enabled();
+            var filterData = filterForm.serializeJSON();
+            filterForm.find('fieldset').disabled();
 
-            $filterBtn = $('#filterBtn').click(_ => {
+            $('#@(filterFormId)').loadJSON(filterData);
+            $('#@(tableId)').bootstrapTable('refresh');
+            window.dialog.modal('hide');
+        }
+    }
+
+    function toolbarActivity() {
+        var selections = $table.bootstrapTable('getSelections');
+
+        if (!selections.length) {
+            $bulkDeleteBtn.hide();
+        } else {
+            $bulkDeleteBtn.show();
+        }
+    }
+
+    function queryParams(params) {
+        if (!params.search) {
+            params.search = $('div.search input').val();
+        }
+        var filterForm = $('#@(filterFormId)').serializeJSON();
+        return $.extend({}, params, filterForm);
+    }
+
+
+    function actionFormatter(value, row) {
+        return `<a href='/payment/edit/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
+    }
+
+    function invoiceFormatter(value, row) {
+        return `<a href='/invoice/details/${row.invoiceId}'>${value}</a> <p class='text-muted'>${row.companyName}</p>`
+    }
+
+    $(document).ready(e => {
+        $table = $('#@(tableId)');
+
+        $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
+            if (!confirm('Are you sure want to delete this?')) { return false; }
+
+            var selections = $table.bootstrapTable('getSelections');
+            var ids = selections.map(x => x.id);
+
+            if (ids.length > 0) {
                 var options = {
-                    'url': '/payment/filter',
-                    'data': $('#filterForm').serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" })
+                    'type': 'post',
+                    'url': '/payment/bulkdelete',
+                    'data': { ids: ids }
                 };
 
                 $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog('Filter', (action, e, content) => {
-                        switch (action) {
-                            case 'modal.on.load':
-                                $(content).on('submit', evt => {
-                                    evt.preventDefault();
-                                    $('#filterForm').loadJSON(content.serializeJSON({ parseNumbers: true, checkboxUncheckedValue: "false" }));
-                                    $table.bootstrapTable('refresh');
-                                    window.dialog.modal('hide');
-                                });
-                                break;
-                            case 'shown.bs.modal':
-                                break;
-                            case 'hidden.bs.modal':
-                                break;
-                        }
-                    });
+                    if (data == true) {
+                        $table.bootstrapTable('refresh');
+                    } else {
+                        alert("Can't delete payments!");
+                    }
                 });
-            });
-
-            $bulkDeleteBtn = $('#bulkDeleteBtn').click(_ => {
-                if (!confirm('Are you sure want to delete this?')) { return false; }
-
-                var selections = $table.bootstrapTable('getSelections');
-                var ids = selections.map(x => x.id);
-
-                if (ids.length > 0) {
-                    var options = {
-                        'type': 'post',
-                        'url': '/payment/bulkdelete',
-                        'data': { ids: ids }
-                    };
-
-                    $.ajax(options).done((data, status, jqXHR) => {
-                        if (data == true) {
-                            $table.bootstrapTable('refresh');
-                        } else {
-                            alert("Can't delete payments!");
-                        }
-                    });
-                }
-            });
-
-            $table.on('load-success.bs.table', function () {
-                toolbarActivity();
-            });
-
-            $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
-                toolbarActivity();
-            });
-        })
-
-        function toolbarActivity() {
-            var selections = $table.bootstrapTable('getSelections');
-
-            if (!selections.length) {
-                $bulkDeleteBtn.hide();
-            } else {
-                $bulkDeleteBtn.show();
             }
-        }
+        });
 
-        function queryParams(params) {
-            if (!params.search) {
-                params.search = $('div.search input').val();
-            }
-            var filterForm = $('#filterForm').serializeJSON({ parseNumbers: true });
+        $table.on('load-success.bs.table', function () {
+            toolbarActivity();
+        });
 
-            return $.extend({}, params, filterForm);
-        }
-
-        function dateFormat(value, row, index) {
-            return moment(value).format('MMM/DD/YYYY');
-        }
-
-        function actionFormatter(value, row) {
-            return `<a href='/payment/edit/${row.id}' class='btn btn-secondary mr-1'>Edit</a>`;
-        }
-
-        //function nameFormatter(value, row) {
-        //    return `${value} <p class='text-muted'>${row.companyName}</p>`;
-        //}
-
-        function invoiceFormatter(value, row) {
-            return `<a href='/invoice/details/${row.invoiceId}'>${value}</a> <p class='text-muted'>${row.companyName}</p>`
-        }
+        $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
+            toolbarActivity();
+        });
+    })
     </script>
 }

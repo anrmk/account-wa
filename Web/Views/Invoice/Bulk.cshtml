@@ -1,19 +1,19 @@
 ﻿@model Web.ViewModels.CustomerFilterViewModel
 @{
     ViewData["Title"] = "Create Bulk Invoicing";
-   
+
     var customersUrl = Url.RouteUrl("GetCustomers");
+    var filterFormId = Guid.NewGuid();
+    var tableId = Guid.NewGuid();
 }
 
 
 @section Toolbar {
-<div class="btn-toolbar" role="toolbar">
-    <div class="btn-group text-nowrap">
-        <button id="saveSearchCriteriaBtn" class="btn btn-secondary">
-            <i class="far fa-save mr-2"></i> Save
-        </button>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group text-nowrap">
+            <a asp-route="CreateReportSearchCriteriaView" data-target="modal" class="btn btn-secondary"><i class="far fa-save mr-2"></i> Save filter</a>
+        </div>
     </div>
-</div>
 }
 
 
@@ -26,7 +26,7 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <form class="need-validation" id="submitForm" action="/api/invoice/bulk" method="post">
+        <form id="@(filterFormId)" asp-action="GenerateBulkInvoices" beforeSend="generateBulkInvoicesBeforeSubmit" data-request="ajax" method="post">
             <fieldset>
                 <div class="form-row mb-3">
                     <div class="col-md-3">
@@ -110,7 +110,7 @@
                 <button type="button" class="btn btn-secondary" id="filterApplyBtn">Filter</button>
             </div>
 
-            <table id="datatable" class="table" data-toggle="table" data-url="@customersUrl"
+            <table id="@(tableId)" class="table" data-toggle="table" data-url="@customersUrl"
                    data-query-params="queryParams"
                    data-total-field="totalItems"
                    data-data-field="items"
@@ -118,8 +118,7 @@
                    data-select-item-name="Customers[]"
                    data-filter-control="true"
                    data-filter-control-container="true"
-                   data-ajax-options="ajaxOptions"
-                   >
+                   data-ajax-options="ajaxOptions">
                 <thead>
                     <tr>
                         <th data-field="state" data-checkbox="true"></th>
@@ -138,7 +137,7 @@
         </form>
     </div>
     <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
-        <button type="button" class="btn btn-primary" id="generateBtn">Generate</button>
+        <button type="submit" class="btn btn-primary" form="@(filterFormId)">Generate</button>
         <a asp-action="index" class="btn btn-link">Cancel</a>
     </div>
 </div>
@@ -153,7 +152,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <div id="content"></div>
+                <div id="@(filterFormId)content"></div>
             </div>
         </div>
     </div>
@@ -161,7 +160,7 @@
         <div class="card">
             <div class="card-header"><h5>Invoices prepared for saving</h5></div>
             <div class="card-body">
-                <div id="savedContent"></div>
+                <div id="@(filterFormId)savedContent"></div>
             </div>
             <div class="card-footer" role="toolbar" aria-label="Toolbar with button groups">
                 <button id="saveBtn" type="button" class="btn btn-primary">Save</button>
@@ -189,15 +188,6 @@
             }
         }
 
-        function queryParams(params) {
-            if (!params.search) {
-                params.search = $('div.search input').val();
-            }
-            var filterForm = $('#submitForm').serializeJSON({ parseNumbers: true });
-
-            return $.extend({}, params, filterForm);
-        }
-
         function tagsFormatter(value, row) {
             return value.map((t) => `<span class='badge badge-info'>${t.name}</span>`).join(' ');
         }
@@ -207,25 +197,43 @@
             return unpaid == 0 || unpaid == null ? value : `${value} <span class='font-weight-bold'>(${unpaid})<span>`;
         }
 
-        function selectTopRecords() {
-            var $table = $('#datatable');
-            var $selectTopInput = $('#selectTopInput');
+        function queryParams(params) {
+            if (!params.search) {
+                params.search = $('div.search input').val();
+            }
+            var filterData = $('#@(filterFormId)').serializeJSON();
 
-            var data = $table.bootstrapTable('getData');
-            var check = $selectTopInput.val();
+            return $.extend({}, params, filterData);
+        }
 
-            var ids = $.map(data, function (n) {
-                return n['id'];
-            })
+        function xLinkBeforeSend(jqXHR, settings) {
+            var filterForm = $('#@(filterFormId)')
+            filterForm.find('fieldset').enabled();
+            var filterData = filterForm.serializeJSON();
+            filterForm.find('fieldset').disabled();
 
-            if (ids.length > 0 && check > 0) {
-                $table.bootstrapTable('uncheckAll');
-                $table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
+            return filterData;
+        }
+
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                $('#@(filterFormId)content').html(jqXHR.responseText);
+                $('#@(tableId)').bootstrapTable('refresh');
             }
         }
 
+        function createReportSearchCriteriaSubmit(e, jqXHR, status) {
+            if (status === 'success') {
+                window.dialog.modal('hide');
+            }
+        }
+
+        function generateBulkInvoicesBeforeSubmit(jqXHR, settings) {
+            $('#@(filterFormId)content').empty();
+        }
+
         $(document).ready(e => {
-            var $table = $('#datatable').on('load-success.bs.table', function (data) {
+            var $table = $('#@(tableId)').on('load-success.bs.table', function (data) {
                 selectTopRecords();
             });
 
@@ -234,6 +242,23 @@
                 selectTopRecords();
             })
 
+            function selectTopRecords() {
+                var $table = $('#@(tableId)');
+                var $selectTopInput = $('#selectTopInput');
+
+                var data = $table.bootstrapTable('getData');
+                var check = $selectTopInput.val();
+
+                var ids = $.map(data, function (n) {
+                    return n['id'];
+                })
+
+                if (ids.length > 0 && check > 0) {
+                    $table.bootstrapTable('uncheckAll');
+                    $table.bootstrapTable('checkBy', { field: 'id', values: ids.slice(0, check) });
+                }
+            }
+
             $('#filterApplyBtn').on('click', e => {
                 e.preventDefault();
                 //reset filter
@@ -241,24 +266,12 @@
                     sortName: '',
                     sortOrder: "asc"
                 });
-                //$table.bootstrapTable('refresh');
-            });
-
-            $('#generateBtn').on('click', e => {
-                e.preventDefault();
-                $(e.currentTarget).disabled();
-
-                var submitForm = $('#submitForm');
-                submitForm.ajaxSubmit({}, (target, data, status) => {
-                    status === 'success' ? $('#content').html(data) : $('#content').empty();
-                    $(e.currentTarget).enabled();
-                });
             });
 
             $('#applyBtn').on('click', e => {
                 e.preventDefault();
-                $('#content form').clone().appendTo('#savedContent');
-                $('#content form').remove();
+                $('#@(filterFormId)content form').clone().appendTo('#@(filterFormId)savedContent');
+                $('#@(filterFormId)content form').remove();
             })
 
             //on criteria change
@@ -277,7 +290,7 @@
             $('#saveBtn').on('click', e => {
                 e.preventDefault();
 
-                var forms = $('#savedContent form');
+                var forms = $('#@(filterFormId)savedContent form');
                 if (forms.length > 0) {
                     $(e.currentTarget).disabled();
                     forms.each(function (index, value) {
@@ -294,27 +307,6 @@
                     });
                 }
             });
-
-            //on save search criteria btn click
-            $('#saveSearchCriteriaBtn').click(e => {
-                e.preventDefault();
-                var formData = $('#submitForm').ajaxSubmit({ 'url': '/invoiceConstructorSearch/createfilter', 'type': 'get'}, function ($form, data, status, jqXHR) {
-                    $(data).dialog('Save constructor search', (eventName, _, target) => {
-                        if (eventName === 'shown.bs.modal') {
-                            target.on('submit', e => {
-                                e.preventDefault();
-
-                                $(e.target).ajaxSubmit({}, (form, data, status, jqXHR) => {
-                                    if (status === 'success') {
-                                        window.dialog.modal('hide');
-                                    }
-                                });
-                            })
-                        }
-                    });
-                });
-            });
         });
-
     </script>
 }

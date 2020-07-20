@@ -85,6 +85,10 @@
             }
         }
 
+        function xModalHidden(e) {
+            checkTheAbilityToSaveCredits($form);
+        }
+
         function checkTheAbilityToSaveCredits(form) {
             var formData = form.serializeJSON();
 
@@ -118,7 +122,7 @@
                 };
 
                 $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog('Export data');
+                    $(data).dialog({ 'title': 'Export data' });
                 });
             });
 
@@ -136,11 +140,7 @@
                 }
 
                 $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog('Save report', (status, e, target) => {
-                        if (status === 'hidden.bs.modal') {
-                            checkTheAbilityToSaveCredits($form);
-                        }
-                    });
+                    $(data).dialog({ 'title': 'Save report' });
                 });
             });
 
@@ -157,7 +157,7 @@
 
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (status === 'success') {
-                        $(`<div>${data}</div>`).dialog('Customer Credits Utilized');
+                        $(`<div>${data}</div>`).dialog({ 'title': 'Customer Credits Utilized' });
                     }
                 });
             });
@@ -176,7 +176,7 @@
 
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (status === 'success') {
-                        $(`<div>${data}</div>`).dialog('Check Report');
+                        $(`<div>${data}</div>`).dialog({ 'title': 'Check Report' });
                     }
                 });
             });
@@ -195,7 +195,7 @@
 
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (status === 'success') {
-                        $(`<div>${data}</div>`).dialog('Checking Customer Account Number');
+                        $(`<div>${data}</div>`).dialog({ 'title': 'Checking Customer Account Number' });
                     }
                 });
             });

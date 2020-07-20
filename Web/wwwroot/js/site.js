@@ -6,9 +6,6 @@
     $('a[data-target=modal]').xLink();
 
     $('input[type=file]').xUpload();
-
-  //  $.fn.initModalLink('body');
-
 }).ajaxStart(() => {
     $('form fieldset').disabled();
     $('div[role=toolbar]').find('a, button').disabled()
@@ -19,28 +16,6 @@
     window.console.log('Error', jqxhr.responseText);
     alert(jqxhr.responseText);
 });
-
-$.fn.initModalLink = function (target, callback = {}) {
-    $(target).find('a[data-target=modal]').on('click', e => {
-        e.preventDefault();
-        var link = $(e.target);
-        var opt = {
-            'url': link.attr('href'),
-            'beforeSend': function (xhr) {
-                xhr.overrideMimeType("text/plain; charset=x-user-defined");
-
-                var func = link.attr('beforesend') || 'xLinkBeforeSend';
-                if (typeof window[func] === 'function') {
-                    window[func](xhr);
-                }
-            }
-        }
-
-        $.ajax(opt).done((data, status, jqXHR) => {
-            $(data).dialog({ 'title': link.attr('tile') || 'Your action is required' });
-        })
-    });
-};
 
 $.extend($.fn.bootstrapTable.defaults, {
     classes: 'table table-hover',

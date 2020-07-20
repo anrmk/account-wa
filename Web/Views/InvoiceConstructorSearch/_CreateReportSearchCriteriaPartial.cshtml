@@ -1,13 +1,14 @@
 ﻿@model Web.ViewModels.InvoiceConstructorSearchViewModel
 @{
+    Layout = null;
     var formId = Guid.NewGuid();
 }
 
-<form id="@formId" asp-route="CreateApi">
+<form id="@formId" asp-route="CreateReportSearchCriteria" data-request="ajax" rel="createReportSearchCriteriaSubmit">
     <fieldset>
         <div class="form-group">
             <label asp-for="Name"></label>
-            <input asp-for="Name" class="form-control" required>
+            <input asp-for="Name" class="form-control" required data-val="text">
             <span asp-validation-for="Name" class="text-danger"></span>
         </div>
         <div class="form-row mb-3">

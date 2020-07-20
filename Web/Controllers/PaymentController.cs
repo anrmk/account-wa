@@ -11,7 +11,9 @@ using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 
 using Web.Extension;
@@ -57,13 +59,6 @@ namespace Web.Controllers.Mvc {
             return View(paymentModel);
         }
 
-        // GET: Filter Partial
-        public async Task<ActionResult> Filter([FromQuery] PaymentFilterViewModel model) {
-            var companies = await _companyBusinessManager.GetCompanies();
-            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
-            return View("_FilterPaymentPartial", model);
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -209,11 +204,15 @@ namespace Web.Controllers.Api {
     public class PaymentController: ControllerBase {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public PaymentController(IMapper mapper, IViewRenderService viewRenderService, ICrudBusinessManager businessManager) {
+        public PaymentController(IMapper mapper, IViewRenderService viewRenderService, 
+            ICrudBusinessManager businessManager,
+            ICompanyBusinessManager companyBusinessManager) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
+            _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
         }
 
@@ -223,6 +222,18 @@ namespace Web.Controllers.Api {
             var list = _mapper.Map<List<PaymentListViewModel>>(result.Items);
 
             return new Pager<PaymentListViewModel>(list, result.TotalItems, result.CurrentPage, result.PageSize, result.Params);
+        }
+
+        [HttpGet("PaymentFilterView", Name = "PaymentFilterView")]
+        public async Task<IActionResult> PaymentFilterView([FromQuery] PaymentFilterViewModel model) {
+            var companies = await _companyBusinessManager.GetCompanies();
+
+            var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                { "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
+            };
+
+            string html = await _viewRenderService.RenderToStringAsync("_FilterPaymentPartial", model, viewDataDictionary);
+            return Ok(html);
         }
 
         /// <summary>

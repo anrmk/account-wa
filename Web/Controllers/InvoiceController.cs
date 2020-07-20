@@ -292,9 +292,8 @@ namespace Web.Controllers.Api {
             return _mapper.Map<List<CustomerListViewModel>>(result);
         }
 
-        [HttpPost]
-        [Route("bulk")]
-        public async Task<IActionResult> GenerateBulkInvoice(InvoiceBulkViewModel model) {
+        [HttpPost("GenerateBulkInvoices", Name = "GenerateBulkInvoices")]
+        public async Task<IActionResult> GenerateBulkInvoices(InvoiceBulkViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var customers = await _businessManager.GetCustomers(model.Customers.ToArray());

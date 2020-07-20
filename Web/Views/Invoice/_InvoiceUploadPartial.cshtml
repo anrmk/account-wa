@@ -32,7 +32,7 @@
                             <th>
                                 <input type="hidden" name="HeadRow[]" value="@column" />
                                 <input type="hidden" name="Columns[][Index]" value="@i" />
-                                <select asp-items="@ViewBag.Fields" class="form-control" name="Columns[][Name]">
+                                <select name="Columns[][Name]" asp-items="@ViewBag.Fields" class="form-control" >
                                     <option value="">Nothing selected</option>
                                 </select>
                             </th>

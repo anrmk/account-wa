@@ -103,27 +103,6 @@
         }
 
         $(document).ready(e => {
-
-            @*var $form = $(`#@(formId)`).on('submit', e => {
-                e.preventDefault();
-
-                $saveInvoiceDraftBtn.disabled();
-
-                $form.ajaxSubmit({}, (form, data, status, jqXHR) => {
-                    if (status === 'success') {
-                        $content.html(data).trigger('change').find('form').on('submit', e => updateDraftInvoices(e));
-
-                        $.fn.initModalLink($content, (action, evt, content) => {
-                            if (action === "hidden.bs.modal") {
-                                $form.submit();
-                            }
-                        });
-
-                        $saveInvoiceDraftBtn.enabled();
-                    }
-                })
-            });*@
-
            $('#constructorContent').on('change', e => {
                 countTotal(e);
             });

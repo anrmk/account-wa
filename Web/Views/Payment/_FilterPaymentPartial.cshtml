@@ -1,9 +1,10 @@
 ﻿@model Web.ViewModels.PaymentFilterViewModel
 @{
     Layout = null;
+    var formId = Guid.NewGuid();
 }
 
-<form id="filterInvoicePartialForm">
+<form id="@formId" data-request="ajax" action="" rel="filterSubmit">
     <fieldset>
         <div class="form-row mb-3">
             <div class="col-4">

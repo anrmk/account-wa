@@ -25,12 +25,8 @@ $.fn.xLink = function (opt = {}) {
 
         var options = $.extend({
             'url': $link.attr('href'),
-            'beforeSend': function (jqXHR, settings) {
-                var func = $link.attr('beforesend') || 'xLinkBeforeSend';
-                if (typeof window[func] === 'function') {
-                    window[func](jqXHR, settings);
-                }
-            },
+            'data': (typeof window[$link.attr('beforeSend') || 'xLinkBeforeSend'] === 'function') ? window[$link.attr('beforeSend') || 'xLinkBeforeSend'](this) : {},
+            'traditional': true,
             'complete': (jqXHR, status) => {
                 $link.trigger('xLinkComplete', [jqXHR, status]);
             }
@@ -117,6 +113,12 @@ $.fn.xSubmit = function (opt = {}) {
                 'type': $form.attr('method'),
                 'data': JSON.stringify($form.serializeJSON()),
                 'contentType': 'application/json; charset=utf-8',
+                'beforeSend': (jqXHR, settings) => {
+                    var func = $form.attr('beforeSend') || 'xSubmitBeforeSend';
+                    if (typeof window[func] === 'function') {
+                        window[func](jqXHR, settings);
+                    }
+                },
                 'complete': (jqXHR, status) => {
                     $form.trigger('xSubmitComplete', [jqXHR, status]);
                 }
@@ -203,34 +205,6 @@ $.fn.dialog = function (opt = {}) {
     window.dialog.find('.modal-body').html(options.content);
     window.dialog.modal('show');
         
-
-    //callback = callback || function () { };
-    //$.when(
-        //$('.modal .modal-title').text(header),
-        //$('.modal .modal-body').empty().html(this),
-    /*
-        window.dialog.modal('show').off('shown.bs.modal').on('shown.bs.modal', (e) => {
-            var target = $(e.currentTarget);
-            var form = target.find('form[data-request=ajax]').xSubmit();
-            var formId = form.attr('id');
-
-            var submitBtn = target.find('.modal-footer #modalSubmitBtn');
-            if (form.length == 1 && form.attr('action') !== undefined && formId !== '00000000-0000-0000-0000-000000000000') {
-                submitBtn.attr('form', formId).removeAttr('hidden');
-            } else {
-                submitBtn.attr('hidden', 'hidden');
-            }
-
-            
-            //callback('shown.bs.modal', e, this);
-        }).off('hidden.bs.modal').on('hidden.bs.modal', (e) => {
-            this.empty();
-            
-           // callback('hidden.bs.modal', e, this);
-        })*/
-    //).done((e) => {
-    //    callback('modal.on.load', e, this);
-    //});
     return window.dialog;
 };
 

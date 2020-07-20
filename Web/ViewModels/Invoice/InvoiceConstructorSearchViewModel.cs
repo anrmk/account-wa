@@ -8,7 +8,7 @@ namespace Web.ViewModels {
     public class InvoiceConstructorSearchViewModel {
         public long Id { get; set; }
 
-        [Required]
+    
         [MaxLength(256)]
         public string Name { get; set; }
 
