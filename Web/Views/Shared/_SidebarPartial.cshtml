@@ -84,6 +84,13 @@
             <a class="nav-link  @(url.Equals("/report/saved") ? "active" : "")" asp-controller="Report" asp-action="Saved">
                 <i class="fas fa-file-alt mr-3"></i> Saved Reports
             </a>
+            <ul class="list-unstyled ml-3">
+                <li class="nav-item">
+                    <a class="nav-link @(url.Contains("/savedreport/plan") ? "active" : "")" asp-controller="SavedReport" asp-action="Plan">
+                        <i class="fas fa-dot-circle mr-3"></i> Plan
+                    </a>
+                </li>
+            </ul>
         </li>
         <li class="nav-item">
             <a class="nav-link  @(url.Equals("/report/creditutilized") ? "active" : "")" asp-controller="Report" asp-action="CreditUtilized">

@@ -58,6 +58,9 @@ namespace Core.Services {
             services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
             services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
 
+            services.AddTransient<ISavedReportPlanManager, SavedReportPlanManager>();
+            services.AddTransient<ISavedReportPlanFieldManager, SavedReportPlanFieldManager>();
+
             ///Business
             services.AddTransient<ICrudBusinessManager, CrudBusinessManager>();
             services.AddTransient<IAccountBusinessService, AccountBusinessService>();

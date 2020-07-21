@@ -156,9 +156,12 @@ namespace Web {
 
             #region REPORT
             CreateMap<SavedReportViewModel, SavedReportDto>().ReverseMap();
+            CreateMap<SavedReportFieldViewModel, SavedReportFieldDto>().ReverseMap();
             CreateMap<ReportStatusViewModel, ReportStatusDto>().ReverseMap();
             CreateMap<ReportFilterViewModel, ReportFilterDto>().ReverseMap();
 
+            CreateMap<SavedReportPlanViewModel, SavedReportPlanDto>().ReverseMap();
+            CreateMap<SavedReportPlanFieldViewModel, SavedReportPlanFieldDto>().ReverseMap();
             #endregion
 
             CreateMap<InvoiceConstructorSearchViewModel, InvoiceConstructorSearchDto>().ReverseMap();

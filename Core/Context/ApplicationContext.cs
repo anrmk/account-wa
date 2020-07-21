@@ -58,6 +58,9 @@ namespace Core.Context {
         public DbSet<SavedReportFieldEntity> SavedReportFields { get; set; }
         public DbSet<SavedReportFileEntity> SavedReportFiles { get; set; }
 
+        public DbSet<SavedReportPlanEntity> SavedReportPlans { get; set; }
+        public DbSet<SavedReportPlanFieldEntity> SavedReportPlanFields { get; set; }
+
         public DbSet<InvoiceConstructorSearchEntity> ReportSearchCriterias { get; set; }
         #endregion
 

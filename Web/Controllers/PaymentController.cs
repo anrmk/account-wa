@@ -207,7 +207,7 @@ namespace Web.Controllers.Api {
         private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
 
-        public PaymentController(IMapper mapper, IViewRenderService viewRenderService, 
+        public PaymentController(IMapper mapper, IViewRenderService viewRenderService,
             ICrudBusinessManager businessManager,
             ICompanyBusinessManager companyBusinessManager) {
             _mapper = mapper;
@@ -340,7 +340,7 @@ namespace Web.Controllers.Api {
             return BadRequest("No items selected");
         }
 
-        [HttpPost("CreatePayments", Name="CreatePayments")]
+        [HttpPost("CreatePayments", Name = "CreatePayments")]
         public async Task<IActionResult> CreatePayments([FromBody] BulkPaymentViewModel model) {
             if(!ModelState.IsValid) {
                 return BadRequest(model);

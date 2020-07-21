@@ -30,5 +30,16 @@ namespace Web.ViewModels {
         public bool IsPublished { get; set; }
 
         public IList<long> ExportSettings { get; set; }
+
+        public List<SavedReportFieldViewModel> Fields { get; set; }
+    }
+
+    public class SavedReportFieldViewModel {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public string Value { get; set; }
+        public string Code { get; set; }
+
+        public long? ReportId { get; set; }
     }
 }

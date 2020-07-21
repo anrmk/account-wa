@@ -254,7 +254,7 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> FilterView([FromQuery] InvoiceFilterViewModel model) {
             var companies = await _companyBusinessManager.GetCompanies();
             var customerTypes = await _businessManager.GetCustomerTypes();
-            
+
             var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                             { "Companies", companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList()},
                             { "CustomerTypes", customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList() }

@@ -124,16 +124,7 @@ namespace Core.Services.Business {
         Task<bool> DeletePayment(long[] ids);
         #endregion
 
-        #region SAVED REPORT
-        Task<SavedReportDto> GetSavedReport(long id);
-        Task<List<SavedReportDto>> GetSavedReport(string userId);
-        Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId);
-        Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date);
-        Task<SavedReportDto> CreateSavedReport(SavedReportDto dto);
-        Task<SavedReportDto> UpdateSavedReport(long id, SavedReportDto dto);
-        Task<bool> DeleteSavedReport(long id);
-        Task<SavedReportFileDto> GetSavedFile(long id);
-        #endregion
+
 
         #region SEARCH CRITERIA
         Task<InvoiceConstructorSearchDto> GetInvoiceConstructorSearchCriteria(long id);
@@ -172,9 +163,6 @@ namespace Core.Services.Business {
         private readonly IInvoiceDraftManager _invoiceDraftManager;
         private readonly IPaymentManager _paymentManager;
         private readonly IReportManager _reportManager;
-        private readonly ISavedReportManager _savedReportManager;
-        private readonly ISavedReportFieldManager _savedReportFieldManager;
-        private readonly ISavedReportFileManager _savedReportFileManager;
         private readonly IInvoiceConstructorSearchManager _invoiceConstructorSearchManager;
 
 
@@ -186,7 +174,8 @@ namespace Core.Services.Business {
             ICompanyExportSettingsFieldManager companyExportSettingsFieldManager,
             ICustomerManager customerManager, ICustomerActivityManager customerActivityManager, ICustomerCreditLimitManager customerCreditLimitManager, ICustomerCreditUtilizedManager customerCreditUtilizedManager, ICustomerCreditUtilizedSettingsManager customerCreditUtilizedSettingsManager, ICustomerTagManager customerTagManager, ICustomerTagLinkManager customerTagLinkManager, ICustomerTypeManager customerTypeManager, ICustomerRecheckManager customerRecheckManager,
             IInvoiceManager invoiceManager, IInvoiceConstructorManager invoiceConstructorManager, IInvoiceDraftManager invoiceDraftManager, IPaymentManager paymentManager,
-            IReportManager reportManager, ISavedReportManager savedReportManager, ISavedReportFieldManager savedReportFieldManager, ISavedReportFileManager savedReportFileManager, IInvoiceConstructorSearchManager invoiceConstructorSearchManager) {
+            IReportManager reportManager,
+            IInvoiceConstructorSearchManager invoiceConstructorSearchManager) {
             _mapper = mapper;
             _companyManager = companyManager;
             _companyAddressManager = companyAddressManager;
@@ -211,9 +200,7 @@ namespace Core.Services.Business {
             _paymentManager = paymentManager;
 
             _reportManager = reportManager;
-            _savedReportManager = savedReportManager;
-            _savedReportFieldManager = savedReportFieldManager;
-            _savedReportFileManager = savedReportFileManager;
+
             _invoiceConstructorSearchManager = invoiceConstructorSearchManager;
         }
 
@@ -1428,77 +1415,7 @@ namespace Core.Services.Business {
         }
         #endregion
 
-        #region SAVED REPORT
-        public async Task<SavedReportDto> GetSavedReport(long id) {
-            var entity = await _savedReportManager.Find(id);
-            return _mapper.Map<SavedReportDto>(entity);
-        }
 
-        public async Task<List<SavedReportDto>> GetSavedReport(string userId) {
-            var entity = await _savedReportManager.FindAllByUserId(userId);
-            return _mapper.Map<List<SavedReportDto>>(entity);
-        }
-
-        public async Task<List<SavedReportDto>> GetSavedReport(string userId, long companyId) {
-            var entity = await _savedReportManager.FindAllByUserAndCompanyId(userId, companyId);
-            return _mapper.Map<List<SavedReportDto>>(entity);
-        }
-
-        public async Task<SavedReportDto> GetSavedReport(string userId, long companyId, DateTime date) {
-            var entity = await _savedReportManager.FindInclude(new Guid(userId), companyId, date);
-            return _mapper.Map<SavedReportDto>(entity);
-        }
-
-        public async Task<SavedReportDto> CreateSavedReport(SavedReportDto dto) {
-            var item = _mapper.Map<SavedReportEntity>(dto);
-            var entity = await _savedReportManager.FindInclude(dto.ApplicationUserId, dto.CompanyId ?? 0, dto.Date);
-            if(entity != null) {
-                //REMOVE ALL FIELDS
-                await _savedReportFieldManager.Delete(entity.Fields.AsEnumerable());
-
-                //REMOVE ALL FILES
-                await _savedReportFileManager.Delete(entity.Files.AsEnumerable());
-            } else {
-                entity = await _savedReportManager.Create(item);
-            }
-
-            var fieldEntity = _mapper.Map<List<SavedReportFieldEntity>>(dto.Fields);
-            fieldEntity.ForEach(x => x.ReportId = entity.Id);
-            var savedFieldEntity = await _savedReportFieldManager.Create(fieldEntity.AsEnumerable());
-
-            var fileEntity = _mapper.Map<List<SavedReportFileEntity>>(dto.Files);
-            fileEntity.ForEach(x => x.ReportId = entity.Id);
-            var savedFileEntity = await _savedReportFileManager.Create(fileEntity.AsEnumerable());
-
-            return _mapper.Map<SavedReportDto>(entity);
-        }
-
-        public async Task<SavedReportDto> UpdateSavedReport(long id, SavedReportDto dto) {
-            var entity = await _savedReportManager.Find(id);
-            if(entity == null) {
-                return null;
-            }
-            //var mapentity = _mapper.Map(dto, entity);
-            entity.IsPublished = dto.IsPublished;
-
-            entity = await _savedReportManager.Update(entity);
-            return _mapper.Map<SavedReportDto>(entity);
-        }
-
-        public async Task<bool> DeleteSavedReport(long id) {
-            var entity = await _savedReportManager.FindInclude(id);
-            if(entity == null) {
-                return false;
-            }
-            int result = await _savedReportManager.Delete(entity);
-            return result != 0;
-        }
-
-        public async Task<SavedReportFileDto> GetSavedFile(long id) {
-            var entity = await _savedReportFileManager.Find(id);
-            return _mapper.Map<SavedReportFileDto>(entity);
-        }
-        #endregion
 
         #region CONSTRUCTOR SEARCH CRITERIA
         public async Task<InvoiceConstructorSearchDto> GetInvoiceConstructorSearchCriteria(long id) {

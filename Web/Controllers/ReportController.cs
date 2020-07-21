@@ -61,7 +61,7 @@ namespace Web.Controllers.Mvc {
         }
 
         public async Task<IActionResult> Saved() {
-            var result = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var savedReportList = result.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
                 Key = companyId ?? 0,
                 Count = names.Count(),
@@ -101,7 +101,7 @@ namespace Web.Controllers.Mvc {
             }
             ViewData["Title"] = company.Name;
 
-            var result = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
+            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
             var customerTypes = await _businessManager.GetCustomerTypes();
             var customerTypesList = customerTypes.Select(x => x.Name).ToList();
 
@@ -167,13 +167,13 @@ namespace Web.Controllers.Mvc {
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SavedDelete(long id) {
             try {
-                var item = await _businessManager.GetSavedReport(id);
+                var item = await _reportBusinessManager.GetSavedReport(id);
                 if(item == null)
                     return NotFound();
 
                 var companyId = item.CompanyId;
 
-                var result = await _businessManager.DeleteSavedReport(id);
+                var result = await _reportBusinessManager.DeleteSavedReport(id);
                 if(result == false) {
                     return NotFound();
                 }
@@ -212,7 +212,7 @@ namespace Web.Controllers.Mvc {
                         return NotFound();
                     }
 
-                    var savedItem = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                    var savedItem = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
                     if(savedItem != null && savedItem.IsPublished) {
                         return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
                     }
@@ -320,7 +320,7 @@ namespace Web.Controllers.Mvc {
 
         [Route("download/{id}")]
         public async Task<IActionResult> Download(long id) {
-            var item = await _businessManager.GetSavedFile(id);
+            var item = await _reportBusinessManager.GetSavedFile(id);
             if(item == null) {
                 return NotFound();
             }
@@ -381,7 +381,7 @@ namespace Web.Controllers.Api {
         [HttpGet("GetSavedReport", Name = "GetSavedReport")]
         public async Task<IActionResult> GetSavedReport(long companyId, DateTime date) {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _businessManager.GetSavedReport(userId, companyId, date);
+            var result = await _reportBusinessManager.GetSavedReport(userId, companyId, date);
             return Ok(result);
         }
 
@@ -394,7 +394,7 @@ namespace Web.Controllers.Api {
             var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
             if(company != null && company.Settings != null) {
-                var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+                var savedReports = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
                 if(savedReports == null || savedReports.Count == 0) {//Если у компании нет вообще сохраненных репортов, дать возможность сохранить КРЕДИТЫ
                     return Ok(true);
                 }
@@ -468,7 +468,7 @@ namespace Web.Controllers.Api {
                     var date = model.Date.LastDayOfMonth();
                     var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                    var savedReports = await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+                    var savedReports = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
                     if(savedReports != null && savedReports.Count > 0) {
                         var prevReport = savedReports.Where(x => x.Date == previousDate).FirstOrDefault();
                         if(prevReport == null || !prevReport.IsPublished) {
@@ -637,7 +637,7 @@ namespace Web.Controllers.Api {
                     dto.Fields = fields;
                     dto.Files = files;
 
-                    var result = await _businessManager.CreateSavedReport(dto);
+                    var result = await _reportBusinessManager.CreateSavedReport(dto);
                     return Ok(result);
                 }
             } catch(Exception er) {
@@ -648,7 +648,7 @@ namespace Web.Controllers.Api {
 
         [HttpPost("PublishSavedReport", Name = "PublishSavedReport")]
         public async Task<IActionResult> PublishSavedReport(long id) {
-            var result = await _businessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
+            var result = await _reportBusinessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
             return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
@@ -707,7 +707,7 @@ namespace Web.Controllers.Api {
                         { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
                     };
 
-                    var saved = await _businessManager.GetSavedReport(userId, model.CompanyId, model.Date);
+                    var saved = await _reportBusinessManager.GetSavedReport(userId, model.CompanyId, model.Date);
                     if(saved == null) {
                         return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM/dd/yyyy")}");
                     }

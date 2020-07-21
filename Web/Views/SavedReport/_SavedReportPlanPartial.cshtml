@@ -1,0 +1,33 @@
+﻿@model Web.ViewModels.SavedReportPlanViewModel
+
+@{
+    Layout = null;
+    var formId = Guid.NewGuid();
+}
+
+<div class="card">
+    <div class="card-body">
+        <form id="@(formId)" asp-route="CreateSavedReportPlan" data-request="ajax">
+            <fieldset>
+                <input type="hidden" asp-for="CompanyId" />
+                <input type="hidden" asp-for="NumberOfPeriods" />
+                <input type="hidden" asp-for="Date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+
+                @for(int i = 0; i < Model.Fields.Count; i++) {
+                    var field = Model.Fields[i];
+
+                    <div class="form-group row">
+                        <label for="@field.Name" class="col-sm-2 col-form-label">@field.Name</label>
+                        <div class="col-sm-4">
+                            <input type="hidden" name="Fields[@i][Name]" value="@field.Name" />
+                            <input type="text" class="form-control" name="Fields[@i][Value]" id="@field.Name" value="@field.Value" data-value-type="text">
+                        </div>
+                    </div>
+                }
+            </fieldset>
+        </form>
+    </div>
+    <div class="card-footer">
+
+    </div>
+</div>

@@ -22,6 +22,8 @@
     <Compile Remove="Migrations\20200617210521_update-CustomercreditUtilizedSettings-3.Designer.cs" />
     <Compile Remove="Migrations\20200617210754_update-CustomercreditUtilizedSettings-4.cs" />
     <Compile Remove="Migrations\20200617210754_update-CustomercreditUtilizedSettings-4.Designer.cs" />
+    <Compile Remove="Migrations\20200721000926_added-saved-report-plan.cs" />
+    <Compile Remove="Migrations\20200721000926_added-saved-report-plan.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

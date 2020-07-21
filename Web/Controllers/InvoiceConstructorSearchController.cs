@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
+
 using Web.Extension;
 using Web.ViewModels;
 
@@ -35,7 +36,7 @@ namespace Web.Controllers.Mvc {
         //    return await CreateFilter(new InvoiceConstructorSearchViewModel());
         //}
 
-       
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

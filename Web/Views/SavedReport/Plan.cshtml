@@ -1,0 +1,65 @@
+﻿@model Web.ViewModels.ReportFilterViewModel
+@{
+    ViewData["Title"] = "Saving report plan ";
+
+    var formId = Guid.NewGuid();
+    var tableId = Guid.NewGuid();
+}
+
+@section Toolbar {
+<div class="btn-toolbar" role="toolbar">
+    <button id="saveBtn" class="btn btn-secondary" type="submit">
+        <i class="far fa-save mr-2"></i> Save
+    </button>
+</div>
+}
+
+<div class="row">
+    <div class="col-lg-3 col-md-12 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <form id="@(formId)" asp-route="GenerateSavedReportPlan" data-request="ajax">
+                    <fieldset>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-group">
+                            <label asp-for="CompanyId"></label>
+                            <select id="companyId" asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required></select>
+                            <span asp-validation-for="CompanyId" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Date"></label>
+                            <input type="date" asp-for="Date" class="form-control" required />
+                            <span asp-validation-for="Date" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="NumberOfPeriods"></label>
+                            <input asp-for="NumberOfPeriods" type="number" class="form-control" step="1" min="1" max="10" required />
+                            <span asp-validation-for="NumberOfPeriods" class="text-danger"></span>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="card-footer" role="toolbar">
+                <button class="btn btn-primary" form="@formId">Generate</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9 col-md-12">
+        <div id="@(formId)content"></div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        function xSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                var content = $('#@(formId)content').html(jqXHR.responseText);
+                var form = content.find('form').xSubmit();
+                var formId = form.attr('id');
+                $('#saveBtn').attr('form', formId);
+                //form.xSubmit();
+            }
+        }
+    </script>
+}

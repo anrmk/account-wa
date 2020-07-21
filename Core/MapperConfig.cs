@@ -157,6 +157,8 @@ namespace Core {
             CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
             CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
 
+            CreateMap<SavedReportPlanDto, SavedReportPlanEntity>().ReverseMap();
+            CreateMap<SavedReportPlanFieldDto, SavedReportPlanFieldEntity>().ReverseMap();
 
             #endregion
         }
