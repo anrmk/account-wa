@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace Core.Data.Dto {
+    [Obsolete]
     public class SavedReportPlanDto {
         public long Id { get; set; }
         public string Name { get; set; }

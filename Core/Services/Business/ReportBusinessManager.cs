@@ -30,6 +30,15 @@ namespace Core.Services.Business {
         Task<SavedReportFileDto> GetSavedFile(long id);
         #endregion
 
+        #region SAVED PLAN REPORT
+        Task<SavedReportDto> GetSavedPlanReport(long id);
+        Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId);
+        Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId, long companyId);
+        Task<SavedReportDto> GetSavedPlanReport(Guid userId, long companyId, DateTime date);
+        Task<SavedReportDto> CreateSavedPlanReport(SavedReportDto dto);
+        Task<SavedReportDto> UpdateSavedPlanReport(long id, SavedReportDto dto);
+        Task<bool> DeleteSavedPlanReport(long id);
+        #endregion
     }
     public class ReportBusinessManager: IReportBusinessManager {
         private readonly IMapper _mapper;
@@ -444,5 +453,63 @@ namespace Core.Services.Business {
         }
         #endregion
 
+        #region SAVED REPORT PLAN
+        public async Task<SavedReportDto> GetSavedPlanReport(long id) {
+            var entity = await _savedReportPlanManager.Find(id);
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId) {
+            var entity = await _savedReportPlanManager.FindAllByUserId(userId);
+            return _mapper.Map<List<SavedReportDto>>(entity);
+        }
+
+        public async Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId, long companyId) {
+            var entity = await _savedReportPlanManager.FindAllByUserAndCompanyId(userId, companyId);
+            return _mapper.Map<List<SavedReportDto>>(entity);
+        }
+
+        public async Task<SavedReportDto> GetSavedPlanReport(Guid userId, long companyId, DateTime date) {
+            var entity = await _savedReportPlanManager.FindInclude(userId, companyId, date);
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<SavedReportDto> CreateSavedPlanReport(SavedReportDto dto) {
+            var item = _mapper.Map<SavedReportPlanEntity>(dto);
+            var entity = await _savedReportPlanManager.FindInclude(dto.ApplicationUserId, dto.CompanyId ?? 0, dto.Date);
+
+            if(entity != null) {
+                //REMOVE ALL FIELDS
+                await _savedReportPlanFieldManager.Delete(entity.Fields.AsEnumerable());
+            } else {
+                entity = await _savedReportPlanManager.Create(item);
+            }
+
+            var fieldEntity = _mapper.Map<List<SavedReportPlanFieldEntity>>(dto.Fields);
+            fieldEntity.ForEach(x => x.ReportId = entity.Id);
+            var savedFieldEntity = await _savedReportPlanFieldManager.Create(fieldEntity.AsEnumerable());
+
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<SavedReportDto> UpdateSavedPlanReport(long id, SavedReportDto dto) {
+            var entity = await _savedReportPlanManager.Find(id);
+            if(entity == null) {
+                return null;
+            }
+
+            entity = await _savedReportPlanManager.Update(entity);
+            return _mapper.Map<SavedReportDto>(entity);
+        }
+
+        public async Task<bool> DeleteSavedPlanReport(long id) {
+            var entity = await _savedReportPlanManager.FindInclude(id);
+            if(entity == null) {
+                return false;
+            }
+            int result = await _savedReportPlanManager.Delete(entity);
+            return result != 0;
+        }
+        #endregion
     }
 }

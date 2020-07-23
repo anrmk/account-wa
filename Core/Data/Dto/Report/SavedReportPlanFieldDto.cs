@@ -1,4 +1,7 @@
-﻿namespace Core.Data.Dto {
+﻿using System;
+
+namespace Core.Data.Dto {
+    [Obsolete]
     public class SavedReportPlanFieldDto {
         public long Id { get; set; }
         public string Name { get; set; }

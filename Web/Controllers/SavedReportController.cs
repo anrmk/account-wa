@@ -9,6 +9,7 @@ using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
 using Core.Services.Business;
+using Core.Services.Managers;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -52,12 +53,14 @@ namespace Web.Controllers.Api {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
         private readonly ICrudBusinessManager _businessManager;
+        private readonly IReportBusinessManager _reportBusinessManager;
 
         public SavedReportController(IMapper mapper, IViewRenderService viewRenderService,
-             ICrudBusinessManager businessManager) {
+             ICrudBusinessManager businessManager, IReportBusinessManager reportBusinessManager) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _businessManager = businessManager;
+            _reportBusinessManager = reportBusinessManager;
         }
 
         [HttpPost("GenerateSavedReportPlan", Name = "GenerateSavedReportPlan")]
@@ -71,30 +74,30 @@ namespace Web.Controllers.Api {
 
                 var fields = new List<SavedReportPlanFieldViewModel>();
                 fields.Add(new SavedReportPlanFieldViewModel() {
-                    Code = "TotalCustomers",
                     Name = "Total Customers",
-                    Value = "0"
+                    CountReadOnly = true,
+                    CountIsRequired = true,
+                    AmountDisplay = false,
                 });
 
                 //Add customer types
                 foreach(var ctype in customerTypes) {
                     fields.Add(new SavedReportPlanFieldViewModel() {
-                        Code = ctype.Name, //not CODE!!!
                         Name = ctype.Name,
-                        Value = "0"
+                        AmountDisplay = false
                     });
                 }
-
+                
                 fields.Add(new SavedReportPlanFieldViewModel() {
-                    Code = "BalanceCustomers",
                     Name = "Balance",
-                    Value = "0"
+                    CountReadOnly = true,
+                    AmountDisplay = false
                 });
 
                 fields.Add(new SavedReportPlanFieldViewModel() {
-                    Code = "NoBalanceCustomers",
-                    Name = "No balance",
-                    Value = "0"
+                    Name = "No Balance",
+                    CountReadOnly = true,
+                    AmountDisplay = false
                 });
 
                 //Add Balance
@@ -107,25 +110,30 @@ namespace Web.Controllers.Api {
 
                     fields.Add(new SavedReportPlanFieldViewModel() {
                         Name = $"{from}-{to}",
-                        Code = $"{from}-{to}",
-                        Value = "0"
+                        CountDisplay = true
                     });
                 }
 
                 fields.Add(new SavedReportPlanFieldViewModel() {
                     Name = $"{1 + model.NumberOfPeriods * daysPerPeriod}+",
-                    Code = $"{1 + model.NumberOfPeriods * daysPerPeriod}+"
+                    CountDisplay = true
                 });
 
                 fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Total Late"
-                });
+                    Name = "Total Late",
+                    CountDisplay = true,
+                    AmountReadOnly = true,
+                    CountReadOnly = true
+                }) ;
 
                 fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Total"
+                    Name = "Total",
+                    CountDisplay = true,
+                    AmountReadOnly = true,
+                    CountReadOnly = true
                 });
                 #endregion
-
+                
                 var result = new SavedReportPlanViewModel() {
                     CompanyId = model.CompanyId,
                     Date = model.Date,
@@ -152,9 +160,11 @@ namespace Web.Controllers.Api {
                     throw new Exception("Form is not valid!");
                 }
 
-                return Ok();
+                var result = await _reportBusinessManager.CreateSavedPlanReport(_mapper.Map<SavedReportDto>(model));
+                if(result == null)
+                    return NotFound();
 
-
+                return Ok(_mapper.Map<SavedReportPlanViewModel>(result));
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);
             }

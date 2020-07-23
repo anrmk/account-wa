@@ -12,10 +12,10 @@ namespace Core.Data.Dto {
 
         public Guid ApplicationUserId { get; set; }
 
-        public ICollection<SavedReportFieldDto> Fields { get; set; }
+        public virtual ICollection<SavedReportFieldDto> Fields { get; set; }
 
-        public ICollection<SavedReportFileDto> Files { get; set; }
+        public virtual  ICollection<SavedReportFileDto> Files { get; set; }
 
-        public IList<long> ExportSettings { get; set; }
+        public virtual IList<long> ExportSettings { get; set; }
     }
 }

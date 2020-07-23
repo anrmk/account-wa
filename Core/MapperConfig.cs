@@ -152,13 +152,14 @@ namespace Core {
             CreateMap<SavedReportDto, SavedReportEntity>()
                 .ForMember(d => d.Fields, o => o.Ignore())
                 .ForMember(d => d.Files, o => o.Ignore())
-                .ReverseMap()
-                ;
+                .ReverseMap();
             CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
             CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
 
-            CreateMap<SavedReportPlanDto, SavedReportPlanEntity>().ReverseMap();
-            CreateMap<SavedReportPlanFieldDto, SavedReportPlanFieldEntity>().ReverseMap();
+            CreateMap<SavedReportDto, SavedReportPlanEntity>()
+                .ForMember(d => d.Fields, o => o.Ignore())
+                .ReverseMap();
+            CreateMap<SavedReportFieldDto, SavedReportPlanFieldEntity>().ReverseMap();
 
             #endregion
         }
