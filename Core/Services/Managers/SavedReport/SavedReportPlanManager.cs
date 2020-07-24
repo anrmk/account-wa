@@ -36,6 +36,7 @@ namespace Core.Services.Managers {
 
         public async Task<List<SavedReportPlanEntity>> FindAllByUserId(Guid userId) {
             return await DbSet
+                .Include(x => x.Company)
                 .Where(x => x.ApplicationUserId == userId).ToListAsync();
         }
 

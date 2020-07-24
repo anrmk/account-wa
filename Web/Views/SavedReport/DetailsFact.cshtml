@@ -1,9 +1,14 @@
 ﻿@model Dictionary<string, List<string>>
 
+@{
+    ViewData["Title"] = "Saved Reports Fact";
+}
+
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-controller="Report" asp-action="Saved">Saved reports</a></li>
-        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+        <li class="breadcrumb-item"><a asp-controller="SavedReport" asp-action="Index" asp-fragment="fact">Saved reports</a></li>
+        <li class="breadcrumb-item" aria-current="page">Fact</li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["CompanyName"]</li>
     </ol>
 </nav>
 
@@ -58,12 +63,10 @@
                             @foreach(var col in Model[row]) {
                                 <td id="status_@col">
                                     @if(!string.IsNullOrEmpty(col)) {
-
-                                        <form asp-route="PublishSavedReport" asp-route-id="@col" data-action="publish" class="mb-1">
-                                            <button type="submit" class="btn btn-secondary btn-block">Publish</button>
+                                        <form asp-route="PublishFact" asp-route-id="@col" data-request="ajax" rel="xPublishSubmitComplete">
+                                            <button type="submit" class="btn btn-secondary btn-block mb-1">Publish</button>
                                         </form>
-
-                                        <form asp-action="SavedDelete" asp-route-id="@col" data-action="delete">
+                                        <form asp-action="DeleteFact" asp-route-id="@col" data-action="delete">
                                             <button type="submit" class="btn btn-danger btn-block" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
                                         </form>
                                     } else {
@@ -80,15 +83,12 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript">
-        $(document).ready(e => {
-            //on change report status
-            $publishReportForms = $('#savedReportTable').find('form[data-action=publish]').on('submit', e => {
-                $(e.target).ajaxSubmit({}, (target, data, status) => {
-                    status === 'success' && data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
-                });
-                e.preventDefault();
-            });
-        })
-    </script>
+<script type="text/javascript">
+    function xPublishSubmitComplete(e, jqXHR, status) {
+        if (status === 'success') {
+            var data = jqXHR.responseJSON;
+            data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+        }
+    }
+</script>
 }

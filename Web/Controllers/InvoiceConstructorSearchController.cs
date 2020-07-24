@@ -22,10 +22,12 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class InvoiceConstructorSearchController: BaseController<InvoiceConstructorSearchController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICustomerBusinessManager _customerBusinessManager;
 
         public InvoiceConstructorSearchController(ILogger<InvoiceConstructorSearchController> logger, IMapper mapper, ApplicationContext context,
-            ICrudBusinessManager businessManager) : base(logger, mapper, context) {
+            ICrudBusinessManager businessManager, ICustomerBusinessManager customerBusinessManager) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _customerBusinessManager = customerBusinessManager;
         }
 
         public IActionResult Index() {
@@ -58,7 +60,7 @@ namespace Web.Controllers.Mvc {
             var customerTags = await _businessManager.GetCustomerTags();
             ViewBag.CustomerTags = customerTags.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var customerTypes = await _businessManager.GetCustomerTypes();
+            var customerTypes = await _customerBusinessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var rechecks = model.Recheck;

@@ -10,8 +10,10 @@ namespace Core.Data.Entities {
         [Column("ApplicationUser_Id")]
         public Guid ApplicationUserId { get; set; }
 
+        [ForeignKey("Company")]
         [Column("Company_Id")]
         public long? CompanyId { get; set; }
+        public virtual CompanyEntity Company { get; set; }
 
         public int NumberOfPeriods { get; set; }
 

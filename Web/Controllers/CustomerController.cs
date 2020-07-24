@@ -29,6 +29,7 @@ using Web.ViewModels;
 namespace Web.Controllers.Mvc {
     public class CustomerController: BaseController<ReportController> {
         private readonly ICrudBusinessManager _businessManager;
+        private readonly ICustomerBusinessManager _customerBusinessManager;
         private readonly ICompanyBusinessManager _companyBusinessManager;
 
         private readonly ISettingsBusinessService _customerBusinessService;
@@ -36,8 +37,11 @@ namespace Web.Controllers.Mvc {
         private readonly IMemoryCache _memoryCache;
 
         public CustomerController(ILogger<ReportController> logger, IMapper mapper, IMemoryCache memoryCache, ApplicationContext context,
-             ICrudBusinessManager businessManager, ICompanyBusinessManager companyBusinessManager, ISettingsBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
+             ICrudBusinessManager businessManager,
+             ICustomerBusinessManager customerBusinessManager,
+             ICompanyBusinessManager companyBusinessManager, ISettingsBusinessService customerBusinessService, IViewRenderService viewRenderService) : base(logger, mapper, context) {
             _businessManager = businessManager;
+            _customerBusinessManager = customerBusinessManager;
             _companyBusinessManager = companyBusinessManager;
             _customerBusinessService = customerBusinessService;
             _viewRenderService = viewRenderService;
@@ -58,7 +62,7 @@ namespace Web.Controllers.Mvc {
             var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            var customerTypes = await _businessManager.GetCustomerTypes();
+            var customerTypes = await _customerBusinessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             return View(item);
@@ -97,7 +101,7 @@ namespace Web.Controllers.Mvc {
             var rechecks = await _businessManager.GetCustomerRechecks(id);
             ViewBag.Rechecks = _mapper.Map<List<CustomerRecheckViewModel>>(rechecks);
 
-            var customerTypes = await _businessManager.GetCustomerTypes();
+            var customerTypes = await _customerBusinessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
@@ -134,7 +138,7 @@ namespace Web.Controllers.Mvc {
             var activities = await _businessManager.GetCustomerAllActivity(id);
             ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);
 
-            var customerTypes = await _businessManager.GetCustomerTypes();
+            var customerTypes = await _customerBusinessManager.GetCustomerTypes();
             ViewBag.CustomerTypes = customerTypes.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var customerCreditLimit = await _businessManager.GetCustomerCreditLimits(id);
@@ -596,7 +600,7 @@ namespace Web.Controllers.Api {
                     var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
                     model.Rows = cacheModel?.Rows;
 
-                    var customerTypes = await _businessManager.GetCustomerTypes();
+                    var customerTypes = await _customerBusinessManager.GetCustomerTypes();
                     var customerTags = await _businessManager.GetCustomerTags();
 
                     var customerList = new List<CustomerViewModel>();

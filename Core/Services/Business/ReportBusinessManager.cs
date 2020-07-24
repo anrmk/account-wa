@@ -35,7 +35,7 @@ namespace Core.Services.Business {
         Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId);
         Task<List<SavedReportDto>> GetSavedPlanReport(Guid userId, long companyId);
         Task<SavedReportDto> GetSavedPlanReport(Guid userId, long companyId, DateTime date);
-        Task<SavedReportDto> CreateSavedPlanReport(SavedReportDto dto);
+        Task<SavedReportDto> CreateSavedPlanReport(Guid userId, SavedReportDto dto);
         Task<SavedReportDto> UpdateSavedPlanReport(long id, SavedReportDto dto);
         Task<bool> DeleteSavedPlanReport(long id);
         #endregion
@@ -474,9 +474,11 @@ namespace Core.Services.Business {
             return _mapper.Map<SavedReportDto>(entity);
         }
 
-        public async Task<SavedReportDto> CreateSavedPlanReport(SavedReportDto dto) {
+        public async Task<SavedReportDto> CreateSavedPlanReport(Guid userId, SavedReportDto dto) {
             var item = _mapper.Map<SavedReportPlanEntity>(dto);
-            var entity = await _savedReportPlanManager.FindInclude(dto.ApplicationUserId, dto.CompanyId ?? 0, dto.Date);
+            item.ApplicationUserId = userId;
+
+            var entity = await _savedReportPlanManager.FindInclude(userId, dto.CompanyId ?? 0, dto.Date);
 
             if(entity != null) {
                 //REMOVE ALL FIELDS

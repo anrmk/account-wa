@@ -9,7 +9,7 @@ namespace Core.Data.Entities {
         [DataType(DataType.Currency)]
         [Column(TypeName = "decimal(18, 2)")]
         public decimal? Amount { get; set; }
-        
+
         public int Count { get; set; }
 
         [ForeignKey("Report")]

@@ -4,8 +4,11 @@
     $('[data-toggle=popover]').popover();
     $('form[data-request=ajax]').xSubmit();
     $('a[data-target=modal]').xLink();
-
     $('input[type=file]').xUpload();
+
+    //window.onbeforeunload = function () {
+    //    return "Do you really want to leave our brilliant application?";
+    //};
 }).ajaxStart(() => {
     $('form fieldset').disabled();
     $('div[role=toolbar]').find('a, button').disabled()

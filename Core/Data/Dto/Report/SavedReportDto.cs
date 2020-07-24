@@ -14,7 +14,7 @@ namespace Core.Data.Dto {
 
         public virtual ICollection<SavedReportFieldDto> Fields { get; set; }
 
-        public virtual  ICollection<SavedReportFileDto> Files { get; set; }
+        public virtual ICollection<SavedReportFileDto> Files { get; set; }
 
         public virtual IList<long> ExportSettings { get; set; }
     }

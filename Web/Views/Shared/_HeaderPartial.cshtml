@@ -6,6 +6,8 @@
 
 @{
     var url = Context.Request.Path.ToString().ToLower();
+    var userName = UserManager.GetUserName(User);
+    ViewData["UserName"] = userName;
 }
 
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
@@ -13,11 +15,14 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mr-2" role="img" viewBox="0 0 24 24" focusable="false"><title>Platform</title><circle cx="12" cy="12" r="10"></circle><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83m13.79-4l-5.74 9.94"></path></svg>
         <strong>Platform</strong>
     </a>
-    <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-    <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
+    @*<input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">*@
+    <ul class="navbar nav px-3">
+        <li class="nav-item">
+            <span class="nav-link navbar-text">@userName</span>
+        </li>
+        <li class="nav-item">
             <form method="post" role="form" asp-controller="Account" asp-action="Logout">
-                <a class="nav-link" href="javascript:void(0);" onclick="$(this).closest('form').submit();">Sign out</a>
+                <a class="nav-link btn btn-outline-secondary" href="javascript:void(0);" onclick="$(this).closest('form').submit();">Sign out</a>
             </form>
         </li>
     </ul>

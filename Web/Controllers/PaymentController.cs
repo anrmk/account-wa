@@ -59,7 +59,6 @@ namespace Web.Controllers.Mvc {
             return View(paymentModel);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(PaymentViewModel model) {

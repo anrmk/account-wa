@@ -21,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
@@ -52,37 +51,9 @@ namespace Web.Controllers.Mvc {
             var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            //var searchCriteria = await _businessManager.GetInvoiceConstructorSearchCriterias();
-            //ViewBag.SearchCriteria = searchCriteria.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
-
             return View(new ReportFilterViewModel() {
                 Date = DateTime.Now.LastDayOfMonth()
             });
-        }
-
-        public async Task<IActionResult> Saved() {
-            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var savedReportList = result.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
-                Key = companyId ?? 0,
-                Count = names.Count(),
-                Name = names.First()
-            }).Select(x => new SavedReportListViewModel() {
-                Name = x.Name,
-                CompanyId = x.Key,
-                Count = x.Count
-            }).ToList();
-
-            var comanies = await _companyBusinessManager.GetCompanies();
-            comanies = comanies.Where(x => !savedReportList.Any(y => y.CompanyId == x.Id)).ToList();
-
-            if(comanies.Count > 0)
-                savedReportList.AddRange(comanies.Select(x => new SavedReportListViewModel() {
-                    Name = x.Name,
-                    CompanyId = x.Id,
-                    Count = 0
-                }));
-
-            return View(savedReportList);
         }
 
         public async Task<IActionResult> CreditUtilized() {
@@ -92,97 +63,6 @@ namespace Web.Controllers.Mvc {
             return View(new ReportFilterViewModel() {
                 Date = DateTime.Now.LastDayOfMonth()
             });
-        }
-
-        public async Task<IActionResult> SavedDatails(long companyId) {
-            var company = await _companyBusinessManager.GetCompany(companyId);
-            if(company == null) {
-                return BadRequest();
-            }
-            ViewData["Title"] = company.Name;
-
-            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
-            var customerTypes = await _businessManager.GetCustomerTypes();
-            var customerTypesList = customerTypes.Select(x => x.Name).ToList();
-
-            Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
-            rows.Add("Id", new List<string>());
-            rows.Add("Name", new List<string>());
-
-            //Add Customers Type fields
-            rows.Add("Total Customers", new List<string>());
-            foreach(var ctype in customerTypes) {
-                rows.Add(ctype.Name, new List<string>());
-            }
-
-            foreach(var report in result) {
-                foreach(var ctype in customerTypes) {
-                    var containField = report.Fields.Any(x => x.Name.Equals(ctype.Name));
-                    if(!containField) {
-                        report.Fields.Add(new SavedReportFieldDto() {
-                            Name = ctype.Name,
-                            Value = ""
-                        });
-                    }
-                }
-
-                if(rows.ContainsKey("Id")) {
-                    rows["Id"].Add(report.IsPublished ? "" : report.Id.ToString());
-                }
-
-                if(rows.ContainsKey("Name")) {
-                    rows["Name"].Add(report.Date.ToString("MMM/dd/yyyy"));
-                }
-
-                foreach(var field in report.Fields) {
-                    if(rows.ContainsKey(field.Name)) {
-                        rows[field.Name].Add(field.Value);
-                    } else {
-                        rows.Add(field.Name, new List<string>() {
-                            field.Value
-                        });
-                    }
-                }
-
-                var files = report.Files.Select(x => string.Format("{0}|{1}", x.Id, x.Name));
-                if(rows.ContainsKey("Files")) {
-                    rows["Files"].Add(string.Join(";", files));
-                } else {
-                    rows.Add("Files", new List<string>() {
-                         string.Join(";", files)
-                     });
-                }
-            }
-
-            var columns = result.Select(x => x.Date.ToString("MMM/dd/yyyy"));
-            return View(rows);
-        }
-
-        /// <summary>
-        /// Delete Saved Report
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SavedDelete(long id) {
-            try {
-                var item = await _reportBusinessManager.GetSavedReport(id);
-                if(item == null)
-                    return NotFound();
-
-                var companyId = item.CompanyId;
-
-                var result = await _reportBusinessManager.DeleteSavedReport(id);
-                if(result == false) {
-                    return NotFound();
-                }
-                return RedirectToAction(nameof(SavedDatails), new { companyId = companyId });
-
-            } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-                return BadRequest(er);
-            }
         }
 
         [HttpPost]
@@ -349,17 +229,20 @@ namespace Web.Controllers.Api {
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
         private readonly ICompanyBusinessManager _companyBusinessManager;
+        private readonly ICustomerBusinessManager _customerBusinessManager;
 
         public ReportController(IMemoryCache memoryCache,
             IMapper mapper, IViewRenderService viewRenderService,
             ICrudBusinessManager businessManager,
             ICompanyBusinessManager companyBusinessManager,
+            ICustomerBusinessManager customerBusinessManager,
             IReportBusinessManager reportbusinessManager) {
             _memoryCache = memoryCache;
             _mapper = mapper;
             _viewRenderService = viewRenderService;
             _reportBusinessManager = reportbusinessManager;
             _businessManager = businessManager;
+            _customerBusinessManager = customerBusinessManager;
             _companyBusinessManager = companyBusinessManager;
         }
 
@@ -560,7 +443,7 @@ namespace Web.Controllers.Api {
             try {
                 if(ModelState.IsValid) {
                     var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    var customerTypes = await _businessManager.GetCustomerTypes();
+                    var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
                     #region Fields
                     var fields = new List<SavedReportFieldDto>();
@@ -644,12 +527,6 @@ namespace Web.Controllers.Api {
                 return BadRequest(er.Message);
             }
             return Ok();
-        }
-
-        [HttpPost("PublishSavedReport", Name = "PublishSavedReport")]
-        public async Task<IActionResult> PublishSavedReport(long id) {
-            var result = await _reportBusinessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
-            return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
         private async Task<byte[]> GetExportData(long companyId, DateTime date, int numberOfPeriods, CompanyExportSettingsDto settings) {
@@ -743,7 +620,7 @@ namespace Web.Controllers.Api {
                     #endregion
 
                     #region CUSTOMER TYPES
-                    var customerTypesField = await _businessManager.GetCustomerTypes();
+                    var customerTypesField = await _customerBusinessManager.GetCustomerTypes();
                     foreach(var field in customerTypesField) {
                         var savedValue = saved.Fields.Where(x => x.Name.Equals(field.Name)).FirstOrDefault();
                         var reportValue = report.CustomerTypes.ContainsKey(field.Name) ? report.CustomerTypes[field.Name].ToString() : null;

@@ -41,7 +41,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fa fa-dollar-sign"></i></span>
                             </div>
-                            <input type="number" class="form-control" name="Fields[][Amount]" id="@(fieldValueId)" value="@field.Amount" min="0" step="1" @(field.AmountReadOnly ? "readonly" : "")>
+                            <input type="number" class="form-control" name="Fields[][Amount]" id="@(fieldValueId)" value="@field.Amount" min="0" step="0.01" @(field.AmountReadOnly ? "readonly" : "")>
                         </div>
                     </div>
                         }
@@ -50,11 +50,6 @@
                 }
             </fieldset>
         </form>
-    </div>
-    <div class="card-footer">
-        <div class="" role="toolbar" aria-label="Toolbar with button groups">
-            <button type="submit" class="btn btn-primary" form="@(formId)">Save</button>
-        </div>
     </div>
 </div>
 

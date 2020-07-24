@@ -158,7 +158,9 @@ namespace Core {
 
             CreateMap<SavedReportDto, SavedReportPlanEntity>()
                 .ForMember(d => d.Fields, o => o.Ignore())
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(d => d.Name, o => o.MapFrom(s => s.Company != null ? s.Company.Name : ""));
+            ;
             CreateMap<SavedReportFieldDto, SavedReportPlanFieldEntity>().ReverseMap();
 
             #endregion

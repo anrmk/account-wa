@@ -16,18 +16,23 @@ namespace Core.Services.Business {
 
 
         Task<List<CustomerCreditUtilizedDto>> UpdateOrCreateCreditUtilized(List<CustomerCreditUtilizedDto> credits);
+
+        Task<List<CustomerTypeDto>> GetCustomerTypes();
     }
 
     public class CustomerBusinessManager: BaseBusinessManager, ICustomerBusinessManager {
         private readonly IMapper _mapper;
         private readonly ICustomerManager _customerManager;
+        private readonly ICustomerTypeManager _customerTypeManager;
         private readonly ICustomerCreditUtilizedManager _customerCreditUtilizedManager;
 
         public CustomerBusinessManager(IMapper mapper, ICustomerManager customerManager,
+            ICustomerTypeManager customerTypeManager,
             ICustomerCreditUtilizedManager customerCreditUtilizedManager
             ) {
             _mapper = mapper;
             _customerManager = customerManager;
+            _customerTypeManager = customerTypeManager;
             _customerCreditUtilizedManager = customerCreditUtilizedManager;
         }
 
@@ -65,6 +70,11 @@ namespace Core.Services.Business {
                 list.Add(_mapper.Map<CustomerCreditUtilizedDto>(entity));
             }
             return list;
+        }
+
+        public async Task<List<CustomerTypeDto>> GetCustomerTypes() {
+            var result = await _customerTypeManager.All();
+            return _mapper.Map<List<CustomerTypeDto>>(result);
         }
     }
 }

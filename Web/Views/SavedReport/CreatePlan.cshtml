@@ -14,11 +14,18 @@
 </div>
 }
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="SavedReport" asp-action="Index">Saved reports</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Create Report Plan</li>
+    </ol>
+</nav>
+
 <div class="row">
     <div class="col-lg-3 col-md-12 mb-3">
         <div class="card">
             <div class="card-body">
-                <form id="@(formId)" asp-route="GenerateSavedReportPlan" data-request="ajax">
+                <form id="@(formId)" asp-route="GenerateSavedReportPlan" data-request="ajax" rel="xGenerateSubmitComplete">
                     <fieldset>
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
@@ -54,11 +61,15 @@
     <script type="text/javascript">
         function xSubmitComplete(e, jqXHR, status) {
             if (status === 'success') {
+                alert('Plan was created');
+            }
+        }
+        function xGenerateSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
                 var content = $('#@(formId)content').html(jqXHR.responseText);
                 var form = content.find('form').xSubmit();
                 var formId = form.attr('id');
                 $('#saveBtn').attr('form', formId);
-                //form.xSubmit();
             }
         }
     </script>

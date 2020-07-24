@@ -5,10 +5,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Web.ViewModels {
     public class SavedReportListViewModel {
         public long Id { get; set; }
-
         public string Name { get; set; }
         public long CompanyId { get; set; }
-
         public int Count { get; set; }
     }
 
@@ -37,7 +35,13 @@ namespace Web.ViewModels {
     public class SavedReportFieldViewModel {
         public long Id { get; set; }
         public string Name { get; set; }
+        public int Count { get; set; }
+        public decimal? Amount { get; set; }
+
+        [Obsolete]
         public string Value { get; set; }
+
+        [Obsolete]
         public string Code { get; set; }
 
         public long? ReportId { get; set; }
