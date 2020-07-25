@@ -9,6 +9,8 @@
 
     var compareWithSavedUrl = Url.RouteUrl("CompareWithSaved");
     var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingCustomerAccountNumber");
+
+    var saveAgingReportUrl = Url.RouteUrl("SaveAgingReport");
 }
 
 @section Toolbar {
@@ -28,9 +30,11 @@
                     <a id="checkingCustomerAccountNumberBtn" class="dropdown-item" href="#">Checking customer account number</a>
                 </div>
             </div>
-            <button id="saveBtn" class="btn btn-secondary">
-                <i class="far fa-save mr-2"></i> Save
-            </button>
+            <a class="btn btn-secondary" asp-route="CreateSavedReportView" data-target="modal"><i class="far fa-save mr-2"></i> Save</a>
+            @*<button id="saveBtn" class="btn btn-secondary">
+
+                    <i class="far fa-save mr-2"></i> Save
+                </button>*@
         </div>
         <div class="btn-group">
             <button id="exportBtn" class="btn btn-secondary">
@@ -42,9 +46,9 @@
 
 <div class="row">
     <div class="col-lg-3 col-md-12 mb-3">
-        <div class="card">
+        <div class="card mb-3">
             <div class="card-body">
-                <form id="@(formId)" asp-route="RunAgingReport">
+                <form id="@(formId)" asp-route="GenerateAgingReport" data-request="ajax" rel="xGenerateSubmitComplete">
                     <fieldset>
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-group">
@@ -71,17 +75,37 @@
                 <button class="btn btn-primary" form="@formId">Generate</button>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="plannedReportSwitch">
+                    <label class="custom-control-label" for="plannedReportSwitch">Toggle this to show planned indicators</label>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="col-lg-9 col-md-12">
-        <div id="content"></div>
+        <div id="@(formId)content"></div>
     </div>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
-        function xSubmitComplete(jqXHR, status) {
+        function xLinkBeforeSend(jqXHR, settings) {
+            var filterData = $('#@(formId)').serializeJSON();
+            return filterData;
+        }
+        function xSubmitComplete(e, jqXHR, status) {
             if (status === 'success') {
+                window.dialog.modal('hide');
+            }
+        }
 
+        function xGenerateSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                var content = $('#@(formId)content').html(jqXHR.responseText);
+                content.find('span.plan').toggle($("#plannedReportSwitch").is(':checked'));
             }
         }
 
@@ -109,6 +133,11 @@
 
         $(document).ready(e => {
             var $form = $('#@formId');
+
+            $('#plannedReportSwitch').on('change', (e) => {
+                $('#@(formId)content span.plan').toggle(e.target.checked);
+            });
+
             //on export button click
             $exportBtn = $('#exportBtn').click(e => {
                 e.preventDefault();
@@ -127,14 +156,13 @@
                 });
             });
 
-            //on save btn click
-            $saveBtn = $('#saveBtn').click(e => {
+            //on save report btn click
+            @*$saveBtn = $('#saveBtn').click(e => {
                 e.preventDefault();
                 var formData = $form.serializeJSON();
 
                 var options = {
-                    'url': '/savedReport',
-                    'type': 'post',
+                    'url': '@(saveAgingReportUrl)',
                     'data': JSON.stringify(formData),
                     'processData': false,
                     'contentType': 'application/json; charset=utf-8'
@@ -143,7 +171,7 @@
                 $.ajax(options).done((data, status, jqXHR) => {
                     $(data).dialog({ 'title': 'Save report' });
                 });
-            });
+            });*@
 
             //create/update customer credit limits/utilized
             $customerCreditsBtn = $('#customerCreditsBtn').click(e => {
@@ -198,16 +226,6 @@
                     if (status === 'success') {
                         $(`<div>${data}</div>`).dialog({ 'title': 'Checking Customer Account Number' });
                     }
-                });
-            });
-
-            //on generate report
-            $form.on('submit', e => {
-                e.preventDefault();
-                $.when(checkTheAbilityToSaveCredits($form)).then(result => {
-                    $form.ajaxSubmit({}, (target, data, status) => {
-                        status === 'success' ? $('#content').html(data) : $('#content').empty();
-                    })
                 });
             });
         });

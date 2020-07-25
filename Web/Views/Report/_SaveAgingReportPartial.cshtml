@@ -4,7 +4,7 @@
     Layout = null;
     var checkCustomerAccountNumber = (Web.ViewModels.ReportStatusViewModel)ViewData["CheckingCustomerAccountNumber"];
 
-    var tableId = checkCustomerAccountNumber.Status == Core.Data.Enum.ReportCheckStatus.Success ? Guid.NewGuid() : Guid.Empty;
+    var formId = checkCustomerAccountNumber.Status == Core.Data.Enum.ReportCheckStatus.Success ? Guid.NewGuid() : Guid.Empty;
 
     var getSavedReportUrl = Url.RouteUrl("GetSavedReport");
 }
@@ -14,7 +14,13 @@
         This report is published and you cannot change the parameters.
     </div>
 } else {
-    <form id="@(tableId)" asp-route="CreateSavedReport">
+    if(Model.Id != 0) {
+    <div class="alert alert-warning d-flex justify-content-between" >
+        This report exists in the database. Are you sure to overwrite it?
+        <a asp-controller="SavedReport" asp-action="DetailsFact" asp-route-id="@Model.CompanyId">View</a>
+    </div>
+    }
+    <form id="@(formId)" asp-route="CreateSavedReport" method="post" data-request="ajax">
         <fieldset>
             <input type="hidden" asp-for="Name" />
             <input type="hidden" asp-for="CompanyId" />
@@ -56,7 +62,8 @@
 
 <script type="text/javascript">
     $(document).ready(e => {
-        var $savedReportPartialForm = $('#@(tableId)').on('submit', e => {
+
+        @*var $savedReportPartialForm = $('#@(formId)').on('submit', e => {
             e.preventDefault();
 
             var formData = $(e.target).serializeJSON();
@@ -77,6 +84,6 @@
                 });
             });
 
-        });
+        });*@
     });
 </script>

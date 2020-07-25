@@ -83,42 +83,6 @@ namespace Web.Controllers.Mvc {
         }
 
         [HttpPost]
-        [Route("savedReport")]
-        public async Task<IActionResult> SavedReport([FromBody] ReportFilterViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
-                    if(company == null) {
-                        return NotFound();
-                    }
-
-                    var savedItem = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
-                    if(savedItem != null && savedItem.IsPublished) {
-                        return View("_SavedReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
-                    }
-
-                    var result = new SavedReportViewModel() {
-                        CompanyId = model.CompanyId,
-                        Name = company.Name,
-                        Date = model.Date,
-                        NumberOfPeriods = model.NumberOfPeriods
-                    };
-
-                    var settings = await _companyBusinessManager.GetAllExportSettings(model.CompanyId);
-                    ViewBag.Settings = _mapper.Map<List<CompanyExportSettingsViewModel>>(settings);
-
-                    var checkingCustomerAccountNumber = await _reportBusinessManager.CheckingCustomerAccountNumber(model.CompanyId, model.Date, model.NumberOfPeriods);
-                    ViewBag.CheckingCustomerAccountNumber = _mapper.Map<ReportStatusViewModel>(checkingCustomerAccountNumber);
-
-                    return View("_SavedReportPartial", result);
-                }
-            } catch(Exception er) {
-                Console.WriteLine(er.Message);
-            }
-            return BadRequest();
-        }
-
-        [HttpPost]
         [Route("export/{id}")]
         public async Task<IActionResult> Export(long id, ReportFilterViewModel model) {
             try {
@@ -246,17 +210,156 @@ namespace Web.Controllers.Api {
             _companyBusinessManager = companyBusinessManager;
         }
 
-        [HttpPost("RunAgingReport", Name = "RunAgingReport")]
-        public async Task<IActionResult> PostRunAgingReport(ReportFilterViewModel model) {
+        [HttpPost("GenerateAgingReport", Name = "GenerateAgingReport")]
+        public async Task<IActionResult> GenerateAgingReport(ReportFilterViewModel model) {
             try {
                 if(ModelState.IsValid) {
-                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    string html = await _viewRenderService.RenderToStringAsync("_AgingReportPartial", result);
+                    var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
+                    var result = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+
+                    var plan = await _reportBusinessManager.GetSavedPlanReport(userId, model.CompanyId, model.Date);
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                          { "Plan", _mapper.Map<SavedReportPlanViewModel>(plan)}
+                    };
+
+                    string html = await _viewRenderService.RenderToStringAsync("_AgingReportPartial", result, viewDataDictionary);
                     return Ok(html);
                 }
             } catch(Exception er) {
                 BadRequest(er.Message ?? er.StackTrace);
+            }
+            return Ok();
+        }
+
+        [HttpGet("CreateSavedReportView", Name = "CreateSavedReportView")]
+        public async Task<IActionResult> CreateSavedReportView([FromQuery] ReportFilterViewModel model) {
+            try {
+                if(!ModelState.IsValid) {
+                    return BadRequest();
+                }
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId);
+                if(company == null) {
+                    return NotFound();
+                }
+
+                var savedItem = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                if(savedItem != null && savedItem.IsPublished) {
+                    string html = await _viewRenderService.RenderToStringAsync("_SaveAgingReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
+                    return Ok(html);
+                } else {
+                    var result = _mapper.Map<SavedReportViewModel>(savedItem) ?? new SavedReportViewModel() {
+                        CompanyId = model.CompanyId,
+                        Name = company.Name,
+                        Date = model.Date,
+                        NumberOfPeriods = model.NumberOfPeriods
+                    };
+
+                    var settings = await _companyBusinessManager.GetAllExportSettings(model.CompanyId);
+                    var checkingCustomerAccountNumber = await _reportBusinessManager.CheckingCustomerAccountNumber(model.CompanyId, model.Date, model.NumberOfPeriods);
+
+                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+
+                            { "Settings",  _mapper.Map<List<CompanyExportSettingsViewModel>>(settings)},
+                            { "CheckingCustomerAccountNumber", _mapper.Map<ReportStatusViewModel>(checkingCustomerAccountNumber)}
+                        };
+
+                    string html = await _viewRenderService.RenderToStringAsync("_SaveAgingReportPartial", result, viewDataDictionary);
+                    return Ok(html);
+                }
+
+            } catch(Exception er) {
+                return BadRequest(er.Message);
+            }
+        }
+
+        [HttpPost("CreateSavedReport", Name = "CreateSavedReport")]
+        public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
+            try {
+                if(ModelState.IsValid) {
+                    var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
+                    var customerTypes = await _customerBusinessManager.GetCustomerTypes();
+
+                    #region Fields
+                    var fields = new List<SavedReportFieldDto>();
+                    fields.Add(new SavedReportFieldDto() {
+                        Code = "TotalCustomers",
+                        Name = "Total Customers",
+                        Value = report.TotalCustomers.ToString()
+                    });
+
+                    //Add customer types
+                    foreach(var ctype in customerTypes) {
+                        fields.Add(new SavedReportFieldDto() {
+                            Code = ctype.Name, //not CODE!!!
+                            Name = ctype.Name,
+                            Value = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name].ToString() : "0"
+                        });
+                    }
+
+                    fields.Add(new SavedReportFieldDto() {
+                        Code = "BalanceCustomers",
+                        Name = "Balance",
+                        Value = report.BalanceCustomers.ToString()
+                    });
+
+                    fields.Add(new SavedReportFieldDto() {
+                        Code = "NoBalanceCustomers",
+                        Name = "No balance",
+                        Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
+                    });
+
+                    //Add Balance
+                    foreach(var column in report.Cols) {
+                        fields.Add(new SavedReportFieldDto() {
+                            Code = column.Name,
+                            Name = column.Name,
+                            Value = $"{report.Balance[column.Name].Count}|{report.Balance[column.Name].Sum}"
+                        });
+                    }
+                    #endregion
+
+                    #region Files
+                    var files = new List<SavedReportFileDto>();
+
+                    if(model.ExportSettings != null) {
+                        foreach(var settingId in model.ExportSettings) {
+                            var settings = await _companyBusinessManager.GetExportSettings(settingId);
+                            if(settings != null) {
+                                var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
+                                if(file != null) {
+                                    var fileName = settings.Title;
+                                    var match = Regex.Match(fileName, @"(?:\$)?\{.*?\}", RegexOptions.IgnoreCase);
+
+                                    if(match.Success) {
+                                        string template = match.Value.Trim(new char[] { '{', '}', '$' });
+                                        var date = model.Date.ToString(template, DateTimeFormatInfo.InvariantInfo);
+
+                                        fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
+                                    }
+
+                                    //  var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
+                                    files.Add(new SavedReportFileDto() {
+                                        Name = fileName,
+                                        File = file
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    #endregion
+
+                    var dto = _mapper.Map<SavedReportDto>(model);
+                    dto.ApplicationUserId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                    dto.Fields = fields;
+                    dto.Files = files;
+
+                    var result = await _reportBusinessManager.CreateSavedReport(dto);
+                    return Ok(result);
+                }
+            } catch(Exception er) {
+                return BadRequest(er.Message);
             }
             return Ok();
         }
@@ -431,97 +534,6 @@ namespace Web.Controllers.Api {
                         }
                     }
                     return Ok(new { Updated = updateCreditUtilized, Created = createCreditUtilized, Ignored = ignoreCreditUtilized });
-                }
-            } catch(Exception er) {
-                return BadRequest(er.Message);
-            }
-            return Ok();
-        }
-
-        [HttpPost("CreateSavedReport", Name = "CreateSavedReport")]
-        public async Task<IActionResult> CreateSavedReport([FromBody] SavedReportViewModel model) {
-            try {
-                if(ModelState.IsValid) {
-                    var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
-                    var customerTypes = await _customerBusinessManager.GetCustomerTypes();
-
-                    #region Fields
-                    var fields = new List<SavedReportFieldDto>();
-                    fields.Add(new SavedReportFieldDto() {
-                        Code = "TotalCustomers",
-                        Name = "Total Customers",
-                        Value = report.TotalCustomers.ToString()
-                    });
-
-                    //Add customer types
-                    foreach(var ctype in customerTypes) {
-                        fields.Add(new SavedReportFieldDto() {
-                            Code = ctype.Name, //not CODE!!!
-                            Name = ctype.Name,
-                            Value = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name].ToString() : "0"
-                        });
-                    }
-
-                    fields.Add(new SavedReportFieldDto() {
-                        Code = "BalanceCustomers",
-                        Name = "Balance",
-                        Value = report.BalanceCustomers.ToString()
-                    });
-
-                    fields.Add(new SavedReportFieldDto() {
-                        Code = "NoBalanceCustomers",
-                        Name = "No balance",
-                        Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
-                    });
-
-                    //Add Balance
-                    foreach(var column in report.Cols) {
-                        fields.Add(new SavedReportFieldDto() {
-                            Code = column.Name,
-                            Name = column.Name,
-                            Value = $"{report.Balance[column.Name].Count}|{report.Balance[column.Name].Sum}"
-                        });
-                    }
-                    #endregion
-
-                    #region Files
-                    var files = new List<SavedReportFileDto>();
-
-                    if(model.ExportSettings != null) {
-                        foreach(var settingId in model.ExportSettings) {
-                            var settings = await _companyBusinessManager.GetExportSettings(settingId);
-                            if(settings != null) {
-                                var file = await GetExportData(model.CompanyId, model.Date, model.NumberOfPeriods, settings);
-                                if(file != null) {
-                                    var fileName = settings.Title;
-                                    var match = Regex.Match(fileName, @"(?:\$)?\{.*?\}", RegexOptions.IgnoreCase);
-
-                                    if(match.Success) {
-                                        string template = match.Value.Trim(new char[] { '{', '}', '$' });
-                                        var date = model.Date.ToString(template, DateTimeFormatInfo.InvariantInfo);
-
-                                        fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
-                                    }
-
-                                    //  var fileDate = Regex.Replace(model.Date.ToString("d", DateTimeFormatInfo.InvariantInfo), @"\b(?<month>\d{1,2})/(?<day>\d{1,2})/(?<year>\d{2,4})\b", settings.Title, RegexOptions.IgnoreCase);
-                                    files.Add(new SavedReportFileDto() {
-                                        Name = fileName,
-                                        File = file
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    #endregion
-
-                    var dto = _mapper.Map<SavedReportDto>(model);
-                    dto.ApplicationUserId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                    dto.Fields = fields;
-                    dto.Files = files;
-
-                    var result = await _reportBusinessManager.CreateSavedReport(dto);
-                    return Ok(result);
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message);

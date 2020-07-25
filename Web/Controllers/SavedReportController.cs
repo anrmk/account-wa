@@ -84,14 +84,14 @@ namespace Web.Controllers.Mvc {
             return View();
         }
 
-        public async Task<IActionResult> DetailsFact(long companyId) {
-            var company = await _companyBusinessManager.GetCompany(companyId);
+        public async Task<IActionResult> DetailsFact(long id) {
+            var company = await _companyBusinessManager.GetCompany(id);
             if(company == null) {
                 return BadRequest();
             }
             ViewBag.CompanyName = company.Name;
 
-            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), companyId);
+            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), id);
             var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
             Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
@@ -149,7 +149,7 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteFact(long id) {
+        public async Task<IActionResult> DeleteFact(long id) {
             try {
                 var item = await _reportBusinessManager.GetSavedReport(id);
                 if(item == null)
@@ -169,8 +169,8 @@ namespace Web.Controllers.Mvc {
             }
         }
 
-        public async Task<IActionResult> DetailsPlan(long companyId) {
-            var company = await _companyBusinessManager.GetCompany(companyId);
+        public async Task<IActionResult> DetailsPlan(long id) {
+            var company = await _companyBusinessManager.GetCompany(id);
             if(company == null) {
                 return BadRequest();
             }
@@ -178,7 +178,7 @@ namespace Web.Controllers.Mvc {
 
             var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var report = await _reportBusinessManager.GetSavedPlanReport(userId, companyId);
+            var report = await _reportBusinessManager.GetSavedPlanReport(userId, id);
             var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
             var rows = new Dictionary<string, List<SavedReportFieldViewModel>>();
@@ -219,7 +219,7 @@ namespace Web.Controllers.Mvc {
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeletePlan(long id) {
+        public async Task<IActionResult> DeletePlan(long id) {
             try {
                 var item = await _reportBusinessManager.GetSavedPlanReport(id);
                 if(item == null)
@@ -340,12 +340,7 @@ namespace Web.Controllers.Api {
                     NumberOfPeriods = model.NumberOfPeriods,
                 };
 
-                var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
-                    //  { "Company", _mapper.Map<CompanyViewModel>(company)},
-                    //         { "TotalCustomers", result.Rows.Count }
-                };
-
-                string html = await _viewRenderService.RenderToStringAsync("_SavedReportPlanPartial", result, viewDataDictionary);
+                string html = await _viewRenderService.RenderToStringAsync("_SavedReportPlanPartial", result);
                 return Ok(html);
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);

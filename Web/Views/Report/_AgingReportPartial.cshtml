@@ -3,8 +3,9 @@
 @{
     ViewData["Title"] = "A/R Aging Summary Report";
     Layout = null;
-}
 
+    var plan = (Web.ViewModels.SavedReportPlanViewModel)ViewData["Plan"];
+}
 
 <div class="card">
     <div class="card-body">
@@ -14,35 +15,61 @@
         <p class="lead text-center mb-1">A/R AGING SUMMARY</p>
         <p class="lead text-center">As of @Model.Date.ToString("MMMM dd, yyyy")</p>
         <hr />
-
+        
         <div class="row mb-3">
             <div class="col">
-                <h6>Customers</h6>
                 <table class="table table-sm">
+                    @{
+                        var factTotalCustomers = Model.TotalCustomers;
+                        var planTotalCustomers = plan?.Fields.Where(x => x.Name.Equals("Total Customers")).FirstOrDefault().Count ?? 0;
+
+                        var factBalanceCustomers = Model.BalanceCustomers;
+                        var planBalanceCustomers = plan?.Fields.Where(x => x.Name.Equals("Balance")).FirstOrDefault().Count ?? 0;
+
+                        var factNoBalanceCustomers = (Model.TotalCustomers - Model.BalanceCustomers);
+                        var planNoBalanceCustomers = plan?.Fields.Where(x => x.Name.Equals("No Balance")).FirstOrDefault().Count ?? 0;
+                    }
+                    <thead>
+                        <tr>
+                            <th>Customers</th>
+                            <th class="collapsing" colspan="2">Count</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         <tr>
                             <td scope="col">Total Customers</td>
-                            <td>@Model.TotalCustomers</td>
+                            <td class="collapsing">@factTotalCustomers</td>
+                            <td class="collapsing plan"><span class="badge @(factTotalCustomers == planTotalCustomers ? "badge-success" : "badge-warning") plan">@planTotalCustomers</span></td>
                         </tr>
                         <tr>
                             <td scope="col">Balance</td>
-                            <td>@Model.BalanceCustomers</td>
+                            <td class="collapsing">@factBalanceCustomers</td>
+                            <td class="collapsing plan"><span class="badge @(factBalanceCustomers == planBalanceCustomers ? "badge-success" : "badge-warning") plan">@planBalanceCustomers</span></td>
                         </tr>
                         <tr>
                             <td scope="col">No Balance</td>
-                            <td>@(Model.TotalCustomers - Model.BalanceCustomers)</td>
+                            <td class="collapsing">@factNoBalanceCustomers</td>
+                            <td class="collapsing plan"><span class="badge @(factNoBalanceCustomers == planNoBalanceCustomers ? "badge-success" : "badge-warning") plan">@planNoBalanceCustomers</span></td>
                         </tr>
                     </tbody>
                 </table>
 
                 @if(Model?.CustomerTypes.Count() > 0) {
-                    <h6>Customer Types</h6>
                     <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Customer Types</th>
+                                <th class="collapsing" colspan="2">Count</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach(var column in Model?.CustomerTypes) {
+                                var factCount = column.Value;
+                                var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Key)).FirstOrDefault().Count ?? 0;
                                 <tr>
                                     <td>@column.Key</td>
-                                    <td>@column.Value</td>
+                                    <td class="collapsing">@factCount</td>
+                                    <td class="collapsing "><span class="badge @(factCount == planCount ? "badge-success" : "badge-warning") plan">@planCount</span></td>
                                 </tr>
                             }
                         </tbody>
@@ -50,14 +77,20 @@
                 }
 
                 @if(Model?.DoubleDebt.Count() > 0) {
-                    <h6>Debt</h6>
                     <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Debt</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach(var column in Model?.DoubleDebt) {
+                                var factCount = column.Value;
                                 <tr>
                                     <td>@column.Key.Replace("-31-0", "Current", false, System.Globalization.CultureInfo.CurrentCulture)</td>
                                     <td>
-                                        <a href="@Url.Action("IndexFilter", "Invoice", new { companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods = @column.Key, moreThanOne = true })">@column.Value</a>
+                                        <a href="@Url.Action("IndexFilter", "Invoice", new { companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods = @column.Key, moreThanOne = true })">@factCount</a>
                                     </td>
                                 </tr>
                             }
@@ -66,29 +99,32 @@
                 }
             </div>
             <div class="col">
-                <h6>Balance</h6>
                 <table class="table table-sm">
                     <thead>
                         <tr>
-                            <th>Aging Type</th>
-                            <th>Count</th>
-                            <th>Amount</th>
+                            <th>Balance</th>
+                            <th class="collapsing" colspan="2">Count</th>
+                            <th class="collapsing" colspan="2">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach(var column in Model.Cols) {
+                            var factCount = Model.Balance[column.Name].Count;
+                            var factAmount = Model.Balance[column.Name].Sum;
+                            var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Count ?? 0;
+                            var planAmount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Amount ?? 0;
                             <tr>
-                                <td scope="col">
-                                    @if(column.Name == "-31-0") {
-                                        <span>Current</span>
-                                    } else {
-                                        @column.Name
-                                    }
+                                <td scope="col">@(column.Name.Equals("-31-0") ? "Current" : column.Name)</td>
+                                <td class="collapsing">
+                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@factCount</a>
                                 </td>
-                                <td>
-                                    <a href="@Url.Action("IndexFilter","Invoice", new {companyId = Model.CompanyId, date = Model.Date.ToString("yyyy-MM-dd"), numberOfPeriods = Model.NumberOfPeriods, periods=$"{column.Name}" })">@Model.Balance[column.Name].Count</a>
+                                <td class="collapsing"><span class="badge @(factCount == planCount ? "badge-success" : "badge-warning") plan">@planCount</span></td>
+                                <td class="collapsing">@Core.Extension.NumberExtensionMethods.ToCurrency(factAmount)</td>
+                                <td class="collapsing">
+                                    <span class="badge @(factAmount == planAmount ? "badge-success" : "badge-warning") plan">
+                                        @Core.Extension.NumberExtensionMethods.ToCurrency(planAmount)
+                                    </span>
                                 </td>
-                                <td>@Core.Extension.NumberExtensionMethods.ToCurrency(Model.Balance[column.Name].Sum)</td>
                             </tr>
                         }
                     </tbody>

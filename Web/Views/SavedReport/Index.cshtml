@@ -36,7 +36,7 @@
                                     <td>@item.Name</td>
                                     <td>@item.Count</td>
                                     <td class="text-nowrap text-right table-active">
-                                        <a asp-controller="SavedReport" asp-action="DetailsFact" asp-route-companyId="@item.CompanyId" class="btn btn-secondary">View</a>
+                                        <a asp-controller="SavedReport" asp-action="DetailsFact" asp-route-id="@item.CompanyId" class="btn btn-secondary">View</a>
                                     </td>
                                 </tr>
                             }
@@ -65,7 +65,7 @@
                                     <td>@item.Name</td>
                                     <td>@item.Count</td>
                                     <td class="text-nowrap text-right table-active">
-                                        <a asp-controller="SavedReport" asp-action="DetailsPlan" asp-route-companyId="@item.CompanyId" class="btn btn-secondary">View</a>
+                                        <a asp-controller="SavedReport" asp-action="DetailsPlan" asp-route-id="@item.CompanyId" class="btn btn-secondary">View</a>
                                     </td>
                                 </tr>
                             }
