@@ -19,34 +19,32 @@
                     var fieldCodeId = $"{fieldNameId}_count";
                     var fieldValueId = $"{fieldNameId}_amount";
 
+                    <div class="form-group row">
+                        <label for="@field.Name" class="col-2 col-form-label">@field.Name</label>
+                        <input type="hidden" name="Fields[][Name]" value="@field.Name" />
 
-                <div class="form-group row">
-                    <label for="@field.Name" class="col-2 col-form-label">@field.Name</label>
-                    <input type="hidden" name="Fields[][Name]" value="@field.Name" />
-
-                    @if(field.CountDisplay) {
-                    <div class="@(field.AmountDisplay ? "col-5" : "col-10 col-lg-5")">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="basic-addon1"><i class="fa fa-users"></i></span>
+                        @if(field.CountDisplay) {
+                            <div class="@(field.AmountDisplay ? "col-5" : "col-10 col-lg-5")">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-users"></i></span>
+                                    </div>
+                                    <input type="number" class="form-control" name="Fields[][Count]" id="@(fieldCodeId)" value="@(field.Count)" min="0" step="1" @(field.CountReadOnly ? "readonly" : "") required>
+                                </div>
                             </div>
-                            <input type="number" class="form-control" name="Fields[][Count]" id="@(fieldCodeId)" value="@field.Count" min="0" step="1" @(field.CountReadOnly ? "readonly" : "") @(field.CountIsRequired ? "required": "")>
-                        </div>
-                    </div>
                         }
 
-                    @if(field.AmountDisplay) {
-                    <div class="col-5">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fa fa-dollar-sign"></i></span>
+                        @if(field.AmountDisplay) {
+                            <div class="col-5">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fa fa-dollar-sign"></i></span>
+                                    </div>
+                                    <input type="number" class="form-control" name="Fields[][Amount]" id="@(fieldValueId)" value="@(field.Amount ?? 0)" min="0" step="0.01" required>
+                                </div>
                             </div>
-                            <input type="number" class="form-control" name="Fields[][Amount]" id="@(fieldValueId)" value="@field.Amount" min="0" step="0.01" @(field.AmountReadOnly ? "readonly" : "")>
-                        </div>
-                    </div>
                         }
-
-                </div>
+                    </div>
                 }
             </fieldset>
         </form>
@@ -58,7 +56,7 @@
         var $form = $('#@(formId)');
         var $totalCustomerCount = $('#TotalCustomers_id_count');
         var $typesCount = $form.find('input[id*=\'_count\']:not([readonly]):not([id*=\'-\']):not([id*=\'+\'])');
-      
+
         var $balanceCount = $('#Balance_id_count');
         var $noBalanceCount = $('#NoBalance_id_count');
 
@@ -69,7 +67,6 @@
         var $currentCount = $('#-31-0_id_count');
         var $totalValue = $('#Total_id_amount');
         var $totalCount = $('#Total_id_count');
-
 
         var $values = $form.find('input[id*=\'-\'][id*=\'_amount\'],input[id*=\'+\'][id*=\'_amount\']');
         var $counts = $form.find('input[id*=\'-\'][id*=\'_count\'],input[id*=\'+\'][id*=\'_count\']');

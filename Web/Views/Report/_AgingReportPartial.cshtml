@@ -65,7 +65,7 @@
                         <tbody>
                             @foreach(var column in Model?.CustomerTypes) {
                                 var factCount = column.Value;
-                                var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Key)).FirstOrDefault().Count ?? 0;
+                                var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Key)).FirstOrDefault()?.Count ?? 0;
                                 <tr>
                                     <td>@column.Key</td>
                                     <td class="collapsing">@factCount</td>

@@ -279,7 +279,6 @@ namespace Web.Controllers.Api {
                     result.Fields.ForEach(x => {
                         if(x.Name.Equals("Total Customers")) {
                             x.CountReadOnly = true;
-                            x.CountIsRequired = true;
                             x.AmountDisplay = false;
                         } else if(x.Name.Equals("Balance") || x.Name.Equals("No Balance")) {
                             x.CountReadOnly = true;
@@ -296,7 +295,6 @@ namespace Web.Controllers.Api {
                     fields.Add(new SavedReportPlanFieldViewModel() {
                         Name = "Total Customers",
                         CountReadOnly = true,
-                        CountIsRequired = true,
                         AmountDisplay = false,
                     });
 
@@ -370,9 +368,20 @@ namespace Web.Controllers.Api {
         [HttpPost("CreateSavedReportPlan", Name = "CreateSavedReportPlan")]
         public async Task<IActionResult> CreateSavedReportPlan(SavedReportPlanViewModel model) {
             try {
+                model.Fields.ForEach(x => {
+                    if(x.Name.Equals("Total Customers") && x.Count < 1) {
+                        ModelState.AddModelError("Count", "Total Customers field must be more than 0");
+                    } else if(x.Name.Equals("Total") && x.Count < 1) {
+                        ModelState.AddModelError("Count", "Total field must be more than 0");
+                    }
+                });
+
                 if(!ModelState.IsValid) {
-                    throw new Exception("Form is not valid!");
+                    var allErrors = ModelState.Values.SelectMany(v => v.Errors);
+                    var errors = allErrors.Select(x => x.ErrorMessage).ToList();
+                    throw new Exception($"Form is not valid!\n{string.Join('\n', errors)}");
                 }
+
                 var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
                 var result = await _reportBusinessManager.CreateSavedPlanReport(userId, _mapper.Map<SavedReportDto>(model));

@@ -10,8 +10,8 @@
 
         //public long? ReportId { get; set; }
 
-        public bool AmountIsRequired { get; set; }
-        public bool CountIsRequired { get; set; }
+        //public bool AmountIsRequired { get; set; }
+        //public bool CountIsRequired { get; set; }
 
         public bool AmountDisplay { get; set; } = true;
         public bool CountDisplay { get; set; } = true;
