@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Saved Reports Plan";
+    var companyId = ViewData["CompanyId"];
 }
 
 <nav aria-label="breadcrumb">
@@ -49,6 +50,7 @@
 
                             @foreach(var field in fields) {
                                 <td>
+                                    <a asp-controller="SavedReport" asp-action="CreatePlan" asp-route-id="@field.Id" class="btn btn-secondary btn-block mb-1">Edit</a>
                                     <form asp-action="DeletePlan" asp-route-id="@field.Id" data-action="delete">
                                         <button type="submit" class="btn btn-danger btn-block" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
                                     </form>

@@ -12,9 +12,7 @@ using Core.Extension;
 using Core.Services.Business;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 
 using Web.Extension;
@@ -174,6 +172,7 @@ namespace Web.Controllers.Mvc {
             if(company == null) {
                 return BadRequest();
             }
+            ViewBag.CompanyId = company.Id;
             ViewBag.CompanyName = company.Name;
 
             var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -208,13 +207,22 @@ namespace Web.Controllers.Mvc {
             return View(rows);
         }
 
-        public async Task<IActionResult> CreatePlan() {
+        public async Task<IActionResult> CreatePlan(long id) {
             var companies = await _companyBusinessManager.GetCompanies();
             ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
-            return View(new ReportFilterViewModel() {
+            var savedReportItem = await _reportBusinessManager.GetSavedPlanReport(id);
+            var model = new ReportFilterViewModel() {
                 Date = DateTime.Now.LastDayOfMonth()
-            });
+            };
+
+            if(savedReportItem != null) {
+                model.Date = savedReportItem.Date;
+                model.CompanyId = savedReportItem.CompanyId ?? 0;
+                model.NumberOfPeriods = savedReportItem.NumberOfPeriods;
+            }
+
+            return View(model);
         }
 
         [HttpPost]
