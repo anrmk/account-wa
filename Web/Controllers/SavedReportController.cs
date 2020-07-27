@@ -266,79 +266,99 @@ namespace Web.Controllers.Api {
         public async Task<IActionResult> GenerateSavedReportPlan(ReportFilterViewModel model) {
             try {
                 if(!ModelState.IsValid) {
-                    throw new Exception("");
+                    throw new Exception("Form is not valid!");
                 }
 
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var item = await _reportBusinessManager.GetSavedPlanReport(userId, model.CompanyId, model.Date);
                 var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
-                var fields = new List<SavedReportPlanFieldViewModel>();
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Total Customers",
-                    CountReadOnly = true,
-                    CountIsRequired = true,
-                    AmountDisplay = false,
-                });
-
-                //Add customer types
-                foreach(var ctype in customerTypes) {
+                SavedReportPlanViewModel result;
+                if(item != null) {
+                    result = _mapper.Map<SavedReportPlanViewModel>(item);
+                    result.Fields.ForEach(x => {
+                        if(x.Name.Equals("Total Customers")) {
+                            x.CountReadOnly = true;
+                            x.CountIsRequired = true;
+                            x.AmountDisplay = false;
+                        } else if(x.Name.Equals("Balance") || x.Name.Equals("No Balance")) {
+                            x.CountReadOnly = true;
+                            x.AmountDisplay = false;
+                        } else if(x.Name.Equals("Total Late") || x.Name.Equals("Total")) {
+                            x.AmountReadOnly = true;
+                            x.CountReadOnly = true;
+                        } else if(customerTypes.Any(y => y.Name.Equals(x.Name))) {
+                            x.AmountDisplay = false;
+                        }
+                    });
+                } else {
+                    var fields = new List<SavedReportPlanFieldViewModel>();
                     fields.Add(new SavedReportPlanFieldViewModel() {
-                        Name = ctype.Name,
+                        Name = "Total Customers",
+                        CountReadOnly = true,
+                        CountIsRequired = true,
+                        AmountDisplay = false,
+                    });
+
+                    //Add customer types
+                    foreach(var ctype in customerTypes) {
+                        fields.Add(new SavedReportPlanFieldViewModel() {
+                            Name = ctype.Name,
+                            AmountDisplay = false
+                        });
+                    }
+
+                    fields.Add(new SavedReportPlanFieldViewModel() {
+                        Name = "Balance",
+                        CountReadOnly = true,
                         AmountDisplay = false
                     });
-                }
-
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Balance",
-                    CountReadOnly = true,
-                    AmountDisplay = false
-                });
-
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "No Balance",
-                    CountReadOnly = true,
-                    AmountDisplay = false
-                });
-
-                //Add Balance
-                #region CREATE HEADERS
-                var daysPerPeriod = 30;
-
-                for(int i = -1; i < model.NumberOfPeriods; i++) {
-                    var from = (i < 0 ? -1 : 1) + i * daysPerPeriod;
-                    var to = (i + 1) * daysPerPeriod;
 
                     fields.Add(new SavedReportPlanFieldViewModel() {
-                        Name = $"{from}-{to}",
-                        CountDisplay = true
+                        Name = "No Balance",
+                        CountReadOnly = true,
+                        AmountDisplay = false
                     });
+
+                    //Add Balance
+                    #region CREATE HEADERS
+                    var daysPerPeriod = 30;
+
+                    for(int i = -1; i < model.NumberOfPeriods; i++) {
+                        var from = (i < 0 ? -1 : 1) + i * daysPerPeriod;
+                        var to = (i + 1) * daysPerPeriod;
+
+                        fields.Add(new SavedReportPlanFieldViewModel() {
+                            Name = $"{from}-{to}"
+                        });
+                    }
+
+                    fields.Add(new SavedReportPlanFieldViewModel() {
+                        Name = $"{1 + model.NumberOfPeriods * daysPerPeriod}+",
+                    });
+
+                    fields.Add(new SavedReportPlanFieldViewModel() {
+                        Name = "Total Late",
+                        CountDisplay = true,
+                        AmountReadOnly = true,
+                        CountReadOnly = true
+                    });
+
+                    fields.Add(new SavedReportPlanFieldViewModel() {
+                        Name = "Total",
+                        CountDisplay = true,
+                        AmountReadOnly = true,
+                        CountReadOnly = true
+                    });
+                    #endregion
+
+                    result = new SavedReportPlanViewModel() {
+                        CompanyId = model.CompanyId,
+                        Date = model.Date,
+                        Fields = fields,
+                        NumberOfPeriods = model.NumberOfPeriods,
+                    };
                 }
-
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = $"{1 + model.NumberOfPeriods * daysPerPeriod}+",
-                    CountDisplay = true
-                });
-
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Total Late",
-                    CountDisplay = true,
-                    AmountReadOnly = true,
-                    CountReadOnly = true
-                });
-
-                fields.Add(new SavedReportPlanFieldViewModel() {
-                    Name = "Total",
-                    CountDisplay = true,
-                    AmountReadOnly = true,
-                    CountReadOnly = true
-                });
-                #endregion
-
-                var result = new SavedReportPlanViewModel() {
-                    CompanyId = model.CompanyId,
-                    Date = model.Date,
-                    Fields = fields,
-                    NumberOfPeriods = model.NumberOfPeriods,
-                };
 
                 string html = await _viewRenderService.RenderToStringAsync("_SavedReportPlanPartial", result);
                 return Ok(html);
