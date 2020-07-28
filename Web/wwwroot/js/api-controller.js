@@ -113,6 +113,7 @@ $.fn.xSubmit = function (opt = {}) {
                 'type': $form.attr('method'),
                 'data': JSON.stringify($form.serializeJSON()),
                 'contentType': 'application/json; charset=utf-8',
+                'traditional': true,
                 'beforeSend': (jqXHR, settings) => {
                     var func = $form.attr('beforeSend') || 'xSubmitBeforeSend';
                     if (typeof window[func] === 'function') {

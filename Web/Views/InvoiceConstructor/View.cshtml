@@ -1,6 +1,7 @@
 ﻿@model Web.ViewModels.InvoiceConstructorViewModel
 @{
     var tableId = Guid.NewGuid();
+    var formId = Guid.Empty;
     var searchCriteria = ViewBag.SearchCriteria;
 
     var customersUrl = Url.RouteUrl("GetDraftCustomers");
@@ -45,7 +46,7 @@
 
     <div class="tab-content">
         <div class="tab-pane fade active show" id="customers" role="tabpanel" aria-labelledby="customers-tab">
-            <form id="submitForm" asp-route="CreateConstructorInvoices">
+            <form id="@(formId)" asp-route="CreateConstructorInvoices" rel="constructorOnSubmitComplete" data-request="ajax">
                 <input asp-for="Id" type="hidden" />
                 <input asp-for="Date" type="hidden" value="@(Model.Date.ToString("yyyy-MM-dd"))" />
                 <input asp-for="CompanyId" type="hidden" />
@@ -72,6 +73,7 @@
                            data-toolbar="#customerToolbar"
                            data-query-params="queryParams"
                            data-total-field="totalItems"
+                           data-page-size="100"
                            data-data-field="items"
                            data-unique-id="id"
                            data-select-item-name="Customers[]">
@@ -120,7 +122,7 @@
 
 <script type="text/javascript">
     function queryParams(params) {
-        var filterForm = $('#submitForm').serializeJSON();
+        var filterForm = $('#@(formId)').serializeJSON();
         return $.extend({}, params, filterForm);
     }
 
@@ -145,6 +147,13 @@
         }
     }
 
+    function constructorOnSubmitComplete(e, jqXHR, status) {
+        if (status === 'success') {
+            $('#@(tableId)-invoices').bootstrapTable('refresh');
+            $('#@(tableId)-customers').bootstrapTable('refresh');
+        }
+    }
+
     $(document).ready(e => {
         var $invoiceTable = $('#@(tableId)-invoices').bootstrapTable();
         var $customerTable = $('#@(tableId)-customers').bootstrapTable().on('load-success.bs.table', function (data) {
@@ -157,7 +166,6 @@
 
         $invoiceTable.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
             var selections = $(this).bootstrapTable('getSelections');
-
             $deleteInvoiceBtn.prop('disabled', !selections.length);
         });;
 
@@ -183,17 +191,6 @@
                     }
                 });
             }
-        });
-
-        var $form = $('#submitForm').on('submit', e => {
-            e.preventDefault();
-
-            $(e.target).ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                if (status === 'success') {
-                    $invoiceTable.bootstrapTable('refresh');
-                    $customerTable.bootstrapTable('refresh');
-                }
-            });
         });
     });
 </script>

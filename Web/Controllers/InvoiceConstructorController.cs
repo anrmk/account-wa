@@ -217,7 +217,7 @@ namespace Web.Controllers.Api {
         }
 
         [HttpPost("CreateConstructorInvoices", Name = "CreateConstructorInvoices")]
-        public async Task<IActionResult> CreateConstructorInvoices(InvoiceConstructorViewModel model) {
+        public async Task<IActionResult> CreateConstructorInvoices([FromBody] InvoiceConstructorViewModel model) {
             try {
                 if(ModelState.IsValid) {
                     var result = await _businessManager.CreateInvoiceDraft(_mapper.Map<InvoiceConstructorDto>(model));

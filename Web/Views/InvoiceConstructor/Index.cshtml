@@ -45,87 +45,109 @@
                 Apply filter to view generated invoices in database
             </div>
             <div class="card-footer">
-                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary" disabled>Save</button>
+                <button id="saveInvoiceDraftBtn" type="submit" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script type="text/javascript">
-        function filterOnSubmit(e, jqXHR, status) {
-            if (status === 'success') {
-                var $content = $('#constructorContent').html(jqXHR.responseText)
-                    .trigger('change');
-                $content.find('form[data-request=ajax]').xSubmit({});
-                $content.find('a[data-target=modal]').xLink();
-            }
+<script type="text/javascript">
+    function filterOnSubmit(e, jqXHR, status) {
+        if (status === 'success') {
+            var $content = $('#constructorContent').html(jqXHR.responseText).trigger('change');
+            $content.find('form[data-request=ajax]').xSubmit({});
+            $content.find('a[data-target=modal]').xLink();
         }
+    }
 
-        function xSubmitComplete(e, jqXHR, status) {
-            var $form = $(e.currentTarget);
-            if (status === 'success') {
-                var data = jqXHR.responseJSON;
-                $form.css('disabled', data.count == 0 ? "none" : "block");
-                $form.find('input.count').val(data.count);
-                $form.find('input[name=TotalAmount]').val(data.totalAmount);
-                $form.find('input.totalAmount').val($.fn.bootstrapTable.formatCurrency(data.totalAmount)).trigger('change');
-            }
+    //Global function 
+    function constructorOnUpdateDraftComplete(e, jqXHR, status) {
+        var $form = $(e.currentTarget);
+        if (status === 'success') {
+            var data = jqXHR.responseJSON;
+            $form.css('disabled', data.count == 0 ? "none" : "block");
+
+            $form.find('label[data-name=totalCount]').html(data.count);
+            $form.find('label[data-name=totalAmount]').html($.fn.bootstrapTable.formatCurrency(data.totalAmount));
+
+            $form.find('input[name=TotalCount]').val(data.count);
+            $form.find('input[name=TotalAmount]').val(data.totalAmount).trigger('change');
         }
+    }
 
-        function xModalHidden(e) {
-            $('#constructorContent').trigger('change');
-        }
+    function xModalHidden(e) {
+        $('#@(formId)').submit();
+    }
 
-        function countTotal(e) {
-            var content = $(e.currentTarget);
-            //Sem by column
-            content.find('tbody tr:eq(0) td').each((index) => {
-                var colSum = 0;
-                content.find('tbody tr td:eq(' + index + ') input[name=TotalAmount]').each((_i, tde) => {
-                    var value = $(tde).val();
-                    colSum += parseFloat(value || 0);
-                });
-                var totalTd = content.find('tfoot tr td:eq(' + index + ')');
-                totalTd.find('label').html($.fn.bootstrapTable.formatCurrency(colSum));
-                totalTd.find('input[name=TotalAmount]').val(colSum);
+    function countTotal(e) {
+        var content = $(e.currentTarget);
+        //Sum by column
+        content.find('tbody tr:eq(0) td').each((index, target) => {
+            var cellTotalCount = 0, cellTotalAmount = 0;
+            content.find('tbody tr').find('td:eq(' + index + ') input[name=TotalCount]').each((_i, tde) => {
+                var value = $(tde).val();
+                cellTotalCount += parseFloat(value || 0);
             });
 
-            //Sum by row
-            content.find('tbody tr, tfoot tr').each((index, tre) => {
-                var rowSum = 0;
-                $(tre).find('td input[name=TotalAmount]').each((_i, tde) => {
-                    var value = $(tde).val();
-                    rowSum += parseFloat(value || 0);
-                });
-                $(tre).find('td:last').html($.fn.bootstrapTable.formatCurrency(rowSum));
-            });
-        }
-
-        $(document).ready(e => {
-           $('#constructorContent').on('change', e => {
-                countTotal(e);
+            content.find('tbody tr').find('td:eq(' + index + ') input[name=TotalAmount]').each((_i, tde) => {
+                var value = $(tde).val();
+                cellTotalAmount += parseFloat(value || 0);
             });
 
-            $('#saveInvoiceDraftBtn').on('click', e => {
-                e.preventDefault();
+            var totalTd = content.find('tfoot tr').find('td:eq(' + index + ')');
+            totalTd.find('label[data-name=totalCount]').html(cellTotalCount);
+            totalTd.find('label[data-name=totalAmount]').html($.fn.bootstrapTable.formatCurrency(cellTotalAmount));
 
-                var ids = $('#constructorContent form').find('input[name=Id]:not([value=0])').map(function (index, element) {
-                    return $(element).val()
-                });
-                if (ids.length > 0) {
-                    var options = {
-                        'type': 'post',
-                        'url': '@copyInvoiceFromDraftUrl',
-                        'data': { ids: ids.toArray() }
-                    };
-
-                    $.when($.ajax(options)).then((data) => {
-                        alert(data);
-                        $('#@(formId)').submit();
-                    });
-                }
-            });
+            totalTd.find('input[name=TotalCount]').val(cellTotalCount );
+            totalTd.find('input[name=TotalAmount]').val(cellTotalAmount );
         });
-    </script>
+
+        //Sum by row
+        content.find('tbody tr, tfoot tr').each((index, tre) => {
+            var rowTotalCount = 0, rowTotalAmount = 0;
+            $(tre).find('td.collapsing input[name=TotalCount]').each((_i, tde) => {
+                var value = $(tde).val();
+                rowTotalCount += parseFloat(value || 0);
+            });
+
+            $(tre).find('td.collapsing input[name=TotalAmount]').each((_i, tde) => {
+                var value = $(tde).val();
+                rowTotalAmount += parseFloat(value || 0);
+            });
+
+            $(tre).find('td:last label[data-name=totalCount]').html(rowTotalCount);
+            $(tre).find('td:last label[data-name=totalAmount]').html($.fn.bootstrapTable.formatCurrency(rowTotalAmount));
+
+            $(tre).find('td:last input[name=TotalCount]').val(rowTotalCount);
+            $(tre).find('td:last input[name=TotalAmount]').val(rowTotalAmount);
+        });
+    }
+
+    $(document).ready(e => {
+        $('#constructorContent').on('change', e => {
+            countTotal(e);
+        });
+
+        $('#saveInvoiceDraftBtn').on('click', e => {
+            e.preventDefault();
+
+            var ids = $('#constructorContent form').find('input[name=Id]:not([value=0])').map(function (index, element) {
+                return $(element).val()
+            });
+            if (ids.length > 0) {
+                var options = {
+                    'type': 'post',
+                    'url': '@copyInvoiceFromDraftUrl',
+                    'data': { ids: ids.toArray() }
+                };
+
+                $.when($.ajax(options)).then((data) => {
+                    alert(data);
+                    $('#@(formId)').submit();
+                });
+            }
+        });
+    });
+</script>
 }
