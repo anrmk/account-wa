@@ -293,7 +293,7 @@ namespace Core.Services.Business {
                     )
                     && ((filter.CompanyId == null) || filter.CompanyId == x.CompanyId);
 
-                string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "CreditLimits", "CreditUtilizeds" };
+                string[] include = new string[] { "Company", "Address", "Activities", "TagLinks", "TagLinks.Tag", "Type", "CreditLimits", "CreditUtilizeds" };
 
                 tuple = await _customerManager.Pager<CustomerEntity>(wherePredicate, sortby, filter.Order.Equals("desc"), filter.Offset, filter.Limit, include);
             }
