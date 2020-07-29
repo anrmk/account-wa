@@ -379,7 +379,7 @@ namespace Web.Controllers.Api {
 
             var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
-            if(company != null && company.Settings != null) {
+            if(company != null && company.Settings != null && company.Settings.SaveCreditValues) {
                 var savedReports = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
                 if(savedReports == null || savedReports.Count == 0) {//Если у компании нет вообще сохраненных репортов, дать возможность сохранить КРЕДИТЫ
                     return Ok(true);
@@ -389,9 +389,7 @@ namespace Web.Controllers.Api {
                 var date = model.Date.AddMonths(-1).LastDayOfMonth();
 
                 var prevReport = savedReports.Where(x => x.Date == date).FirstOrDefault();
-                //await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, date); //Найти отчет за предыдущий месяц
                 var currentReport = savedReports.Where(x => x.Date == model.Date).FirstOrDefault();
-                //await _businessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date); //Найти отчет за текущий месяц
 
                 if(settings != null && settings.SaveCreditValues && prevReport != null && prevReport.IsPublished && currentReport == null)
                     return Ok(true);

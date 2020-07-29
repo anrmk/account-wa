@@ -92,8 +92,13 @@ namespace Web.Controllers.Mvc {
                 return NotFound();
             }
 
-            var companies = await _companyBusinessManager.GetCompanies();
-            ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
+            ViewBag.CompanyName = customer.Company.Name;
+
+            var settings = await _companyBusinessManager.GetSettings(customer.Company.SettingsId ?? 0);
+            ViewBag.Settings = _mapper.Map<CompanySettingsViewModel>(settings);
+
+            //var companies = await _companyBusinessManager.GetCompanies();
+            //ViewBag.Companies = companies.Select(x => new SelectListItem() { Text = x.Name, Value = x.Id.ToString() }).ToList();
 
             var activities = await _businessManager.GetCustomerAllActivity(id);
             ViewBag.Activities = _mapper.Map<List<CustomerActivityViewModel>>(activities);

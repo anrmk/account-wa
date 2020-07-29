@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit Customer";
+    var settings = (Web.ViewModels.CompanySettingsViewModel)ViewBag.Settings;
 }
 
 @section Toolbar  {
@@ -28,9 +29,6 @@
             <li class="nav-item">
                 <a class="nav-link active" data-toggle="tab" id="general-tab" href="#general">General</a>
             </li>
-            @*<li class="nav-item">
-                    <a class="nav-link" data-toggle="tab" id="address-tab" href="#address">Address</a>
-                </li>*@
             <li class="nav-item">
                 <a class="nav-link" data-toggle="tab" id="credits-tab" href="#credits">Credits</a>
             </li>
@@ -50,7 +48,6 @@
             <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
                 <form id="submitForm" method="POST" asp-action="Edit">
                     <input asp-for="Id" type="hidden" />
-
                     <div class="form-row mb-3">
                         <div class="col">
                             <label asp-for="No"></label>
@@ -65,7 +62,8 @@
                         <div class="col">
                             <label asp-for="CompanyId"></label>
                             <input asp-for="CompanyId" type="hidden">
-                            <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>
+                            <input type="text" class="form-control" value="@ViewData["CompanyName"]" readonly >
+                            @*<select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" disabled></select>*@
                         </div>
                     </div>
                     <div class="form-row mb-3">
@@ -164,6 +162,7 @@
                     </div>
 
                     <div class="col-lg-6 col-md-12">
+                        @if(settings.SaveCreditValues) {
                         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                             <label>Credit Utilized</label>
                             <a asp-controller="Customer" asp-action="CreateCreditUtilized" asp-route-customerId="@Model.Id" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
@@ -175,13 +174,14 @@
                                     <td>@item.CreatedDate.ToString("MMM/dd/yyyy")</td>
                                     <td class="text-right table-active">
                                         @if(item.IsIgnored) {
-                                        <span>Is Ignored <i class="fa fa-ban mr-1"></i></span>
+                                            <span>Is Ignored <i class="fa fa-ban mr-1"></i></span>
                                         }
                                         <a asp-controller="Customer" asp-action="EditCreditUtilized" asp-route-id="@item.Id" class="btn btn-secondary">Edit</a>
                                     </td>
                                 </tr>
                             }
                         </table>
+                        }
                     </div>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                 </div>
             </div>
 
-             <div class="tab-pane fade" id="recheck" role="tabpanel" aria-labelledby="recheck-tab">
+            <div class="tab-pane fade" id="recheck" role="tabpanel" aria-labelledby="recheck-tab">
                 <div class="form-group">
                     <a asp-controller="Customer" asp-action="CreateRecheck" asp-route-customerId="@Model.Id" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Change</a>
                 </div>
