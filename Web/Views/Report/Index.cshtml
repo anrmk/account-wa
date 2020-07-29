@@ -96,6 +96,7 @@
             var filterData = $('#@(formId)').serializeJSON();
             return filterData;
         }
+
         function xSubmitComplete(e, jqXHR, status) {
             if (status === 'success') {
                 window.dialog.modal('hide');
@@ -106,17 +107,40 @@
             if (status === 'success') {
                 var content = $('#@(formId)content').html(jqXHR.responseText);
                 content.find('span.plan').toggle($("#plannedReportSwitch").is(':checked'));
+
+                checkTheAbilityToSaveCredits(jqXHR.data);
+            }
+        }
+
+        //fire when customer credit utilized created
+        function xCreateCustomerCreditUtilizedComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                var $formResult = $(e.target).find('.result').empty();
+                var data = jqXHR.responseJSON;
+
+                $(`<table class='table table-sm table-bordered'>
+                    <tr>
+                        <th>Total</th>
+                        <th>Created</th>
+                        <th>Updated</th>
+                        <th>Ignored</th>
+                    </tr>
+                    <tr>
+                        <td>${data.created + data.updated}</td>
+                        <td>${data.created}</td>
+                        <td>${data.updated}</td>
+                        <td>${data.ignored}</td>
+                    </tr>
+                </table>`).appendTo($formResult);
             }
         }
 
         function xModalHidden(e) {
             var $form = $('#@formId');
-            checkTheAbilityToSaveCredits($form);
+            checkTheAbilityToSaveCredits($form.serializeJSON());
         }
 
-        function checkTheAbilityToSaveCredits(form) {
-            var formData = form.serializeJSON();
-
+        function checkTheAbilityToSaveCredits(formData) {
             var options = {
                 'url': '@(checkAbilityToSaveCreditsUrl)',
                 'type': 'post',

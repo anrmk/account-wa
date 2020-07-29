@@ -7,7 +7,7 @@
     var formId = Guid.NewGuid();
 }
 
-<form id="@(formId)" asp-route="CreateCustomerCreditUtilized" data-request="ajax">
+<form id="@(formId)" asp-route="CreateCustomerCreditUtilized" data-request="ajax" rel="xCreateCustomerCreditUtilizedComplete">
     <fieldset>
         <input asp-for="CompanyId" type="hidden" />
         <input asp-for="NumberOfPeriods" type="hidden" />
@@ -55,53 +55,6 @@
             </div>
         }
     </fieldset>
+
+    <div class="result"></div>
 </form>
-
-<div id="customerResult" class="row" style="display:none">
-    <div class="col">
-        <h6>Customer Credits Utilized</h6>
-        <table class="table table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th>Total</th>
-                    <th>Created</th>
-                    <th>Updated</th>
-                    <th>Ignored</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><label id="customerTotalCount"></label></td>
-                    <td><label id="customerCreditUtilizedCreatedCount"></label></td>
-                    <td><label id="customerCreditUtilizedUpdatedCount"></label></td>
-                    <td><label id="customerCreditUtilizedIgnoredCount"></label></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<script type="text/javascript">
-    $(document).ready(e => {
-        var $customerResult = $('#customerResult');
-        var customerTotalCount = $('#customerTotalCount');
-        var customerCreditUtilizedCreatedCount = $('#customerCreditUtilizedCreatedCount');
-        var customerCreditUtilizedUpdatedCount = $('#customerCreditUtilizedUpdatedCount');
-        var customerCreditUtilizedIgnoredCount = $('#customerCreditUtilizedIgnoredCount');
-
-        var $form = $('#@formId').on('submit', e => {
-            e.preventDefault();
-            $customerResult.hide();
-            $form.ajaxSubmit({}, (form, data, status, jqXHR, opt) => {
-                if (status === 'success') {
-                    customerTotalCount.html(data.created + data.updated);
-                    customerCreditUtilizedCreatedCount.html(data.created);
-                    customerCreditUtilizedUpdatedCount.html(data.updated);
-                    customerCreditUtilizedIgnoredCount.html(data.ignored);
-
-                    $customerResult.show();
-                }
-            });
-        });
-    });
-</script>

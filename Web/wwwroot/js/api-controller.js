@@ -108,19 +108,22 @@ $.fn.xSubmit = function (opt = {}) {
         e.preventDefault();
         var $form = $(e.currentTarget);
         if ($form.valid()) {
+            var $data = $form.serializeJSON();
             var options = $.extend({
                 'url': $form.attr('action'),
                 'type': $form.attr('method'),
-                'data': JSON.stringify($form.serializeJSON()),
+                'data': JSON.stringify($data),
                 'contentType': 'application/json; charset=utf-8',
                 'traditional': true,
                 'beforeSend': (jqXHR, settings) => {
                     var func = $form.attr('beforeSend') || 'xSubmitBeforeSend';
                     if (typeof window[func] === 'function') {
+                        jqXHR.data = $data;
                         window[func](jqXHR, settings);
                     }
                 },
                 'complete': (jqXHR, status) => {
+                    jqXHR.data = $data;
                     $form.trigger('xSubmitComplete', [jqXHR, status]);
                 }
             }, opt);
@@ -228,10 +231,12 @@ $.fn.randomDate = function (from, to) {
 
 $.fn.disabled = function () {
     $(this).attr('disabled', 'disabled').addClass('disabled');
+    return $(this);
 }
 
 $.fn.enabled = function () {
     $(this).removeAttr('disabled').removeClass('disabled');
+    return $(this);
 }
 
 $.fn.check = function () {
