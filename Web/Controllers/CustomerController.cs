@@ -212,7 +212,7 @@ namespace Web.Controllers.Mvc {
         }
         #endregion
 
-        #region CreditLimit
+        #region CREDITLIMIT
         [Route("{customerId}/creditlimit")]
         public async Task<ActionResult> CreateCreditLimit(long customerId) {
             var customer = await _businessManager.GetCustomer(customerId);
@@ -304,7 +304,7 @@ namespace Web.Controllers.Mvc {
         }
         #endregion
 
-        #region CreditUtilized
+        #region CREDITUTILIZED
         [Route("{customerId}/creditutilized")]
         public async Task<ActionResult> CreateCreditUtilized(long customerId) {
             var customer = await _businessManager.GetCustomer(customerId);
@@ -833,11 +833,11 @@ namespace Web.Controllers.Api {
                 if(ModelState.IsValid) {
                     var column = model.Columns.Find(x => x.Name.Equals("No"));
                     if(column == null)
-                        throw new Exception("Please, select \"Account Number\" column");
+                        throw new Exception("Please, select \"Account Number\" column.");
 
                     var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
                     if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
-                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined.");
                     }
 
                     var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
@@ -885,7 +885,9 @@ namespace Web.Controllers.Api {
                     }
 
                     var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows;
+                    model.Rows = cacheModel?.Rows
+                        .Select((x, i) => new { row = x, index = i })
+                        .Where(x => model.CheckedRecords.Contains(x.index)).Select(x => x.row).ToList();
 
                     if(model.Rows == null || model.Rows.Count == 0) {
                         throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
@@ -977,6 +979,80 @@ namespace Web.Controllers.Api {
             }
         }
 
+        [HttpPost("CheckUploadingCustomers", Name = "CheckUploadingCustomers")]
+        public async Task<IActionResult> CheckUploadingCustomers(CustomerBulkViewModel model) {
+            try {
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+
+                var columnNo = model.Columns.Find(x => x.Name.Equals("No"));
+                if(columnNo == null)
+                    throw new Exception("Please, select \"Account Number\" column.");
+
+                var columnName = model.Columns.Find(x => x.Name.Equals("Name"));
+                if(columnName == null)
+                    throw new Exception("Please, select \"Business Name\" column.");
+
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
+                if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                    throw new Exception("Please, check company settings! \"Account Number Template\" is not defined.");
+                }
+
+                var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                model.Rows = cacheModel?.Rows;
+
+                var rows = model.Rows
+                    .Select((x, i) => new { row = x, index = i })
+                    .Where(x => model.CheckedRecords.Contains(x.index)).ToList();
+
+                if(rows == null || rows.Count == 0) {
+                    throw new Exception("We did not find the file in the system memory or in checked records. Please refresh page and try uploading the CSV file again!");
+                }
+
+                var result = new List<CustomerCheckResultViewModel>();
+
+                #region CHECK ACCOUNT NUMBER
+                var regex = new Regex(company.Settings.AccountNumberTemplate);
+                var accountNumberCustomers = rows.Where(x => !regex.IsMatch(x.row[columnNo.Index].Value)).Select(x => x.index).ToList();
+                result.Add(new CustomerCheckResultViewModel() {
+                    Ids = accountNumberCustomers.ToArray(),
+                    Message = accountNumberCustomers.Count == 0
+                    ? $"{rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings"
+                    : $"{accountNumberCustomers.Count} out of {rows.Count} customers do not match the \"Account Number\" in the company settings template",
+                    IsError = accountNumberCustomers.Count != 0
+                });
+                #endregion
+
+                #region CHECK BUSINESS NAME
+                var customers = await _businessManager.GetCustomers(model.CompanyId ?? 0);
+                var businessNameCustomer = rows.Where(x => customers.Any(y => y.Name.Equals(x.row[columnName.Index].Value, StringComparison.OrdinalIgnoreCase))).Select(x => x.index).ToList();
+                result.Add(new CustomerCheckResultViewModel() {
+                    Ids = businessNameCustomer.ToArray(),
+                    Message = businessNameCustomer.Count == 0
+                   ? $"{rows.Count} customers are not in the Data Base of company {company.Name}"
+                   : $"{businessNameCustomer.Count} out of {rows.Count} customers are already in Data Base of company {company.Name}",
+                    IsError = businessNameCustomer.Count != 0
+                });
+                #endregion
+
+                #region RESTRICTED WORDS
+                var words = await _settingsBusinessManager.GetRestrictedWords(model.CompanyId ?? 0);
+                var restrictedWords = rows.Where(x => words.Any(y => new Regex(string.Format(@"\b{0}\b", y.Name), RegexOptions.IgnoreCase).IsMatch(x.row[columnName.Index].Value))).Select(x => x.index).ToList();
+                
+                result.Add(new CustomerCheckResultViewModel() {
+                    Ids = restrictedWords.ToArray(),
+                    Message = restrictedWords.Count == 0
+                   ? $"{rows.Count} customers has valid \"Business Name\" which do not match the restricted words of company {company.Name}"
+                   : $"{restrictedWords.Count} out of {rows.Count} customers do not match \"Business Name\" of the restricted words.  [{string.Join(',', words.Select(x => x.Name))}]",
+                    IsError = restrictedWords.Count != 0
+                });
+                #endregion
+                return Ok(result);
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
+            }
+        }
 
         //[HttpPost("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
         //public async Task<IActionResult> CreditUtilizedChangeStatus(CustomerCreditUtilizedChangeStatusViewModel model) {
@@ -986,6 +1062,22 @@ namespace Web.Controllers.Api {
         //    } else {
         //        return BadRequest("No items selected");
         //    }
+        //}
+
+        //public int CheckCustomerBusinessName(List<CustomerRowViewModel[]> rows, CustomerBulkViewModel model) {
+        //    var column = model.Columns.Find(x => x.Name.Equals("Name"));
+        //    var customers = _businessManager.GetCustomers(model.CompanyId ?? 0).Result;
+        //    var countOfCustomersInDb = 0;
+        //    for(int i = 0; i < rows.Count; i++) {
+        //        var row = rows[i];
+        //        var customerName = row[column.Index].Value;
+
+        //        var customer = customers.Where(x => x.Name.Equals(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+        //        if(customer != null) {
+        //            countOfCustomersInDb++;
+        //        }
+        //    }
+        //    return countOfCustomersInDb;
         //}
     }
 }

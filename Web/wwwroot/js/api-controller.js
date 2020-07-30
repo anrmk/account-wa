@@ -22,12 +22,15 @@ $.fn.xLink = function (opt = {}) {
     this.on('click', e => {
         e.preventDefault();
         var $link = $(e.currentTarget);
-
+        var $data = (typeof window[$link.attr('beforeSend') || 'xLinkBeforeSend'] === 'function') ? window[$link.attr('beforeSend') || 'xLinkBeforeSend'](this) : {}
         var options = $.extend({
             'url': $link.attr('href'),
-            'data': (typeof window[$link.attr('beforeSend') || 'xLinkBeforeSend'] === 'function') ? window[$link.attr('beforeSend') || 'xLinkBeforeSend'](this) : {},
+            'type': $link.attr('method') || 'GET',
+            'data': $data,
+            'contentType': 'application/json; charset=utf-8',
             'traditional': true,
             'complete': (jqXHR, status) => {
+                jqXHR.data = $data;
                 $link.trigger('xLinkComplete', [jqXHR, status]);
             }
         }, opt);
@@ -176,6 +179,7 @@ $.fn.dialog = function (opt = {}) {
         'content': this,
         'onShown': (e) => {
             var target = $(e.currentTarget);
+            var links = target.find('a[data-request=ajax]').xLink();
             var form = target.find('form[data-request=ajax]').xSubmit();
             var formId = form.attr('id');
 

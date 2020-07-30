@@ -23,6 +23,7 @@ namespace Web.ViewModels {
         //import rows
         public List<CustomerRowViewModel[]> Rows { get; set; }
 
+        [Required]
         public int[] CheckedRecords { get; set; }
     }
 

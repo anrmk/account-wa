@@ -3,7 +3,7 @@
    // window.dialog = $('#modalBackdrop');
     $('[data-toggle=popover]').popover();
     $('form[data-request=ajax]').xSubmit();
-    $('a[data-target=modal]').xLink();
+    $('a[data-target=modal], a[data-request=ajax]').xLink();
     $('input[type=file]').xUpload();
 
     //window.onbeforeunload = function () {
