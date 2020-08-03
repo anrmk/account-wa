@@ -76,6 +76,18 @@
             return $.extend({}, params, filterForm);
         }
 
+        function toolbarPanel($table) {
+            var options = $table.bootstrapTable('getOptions');
+            var selections = $table.bootstrapTable('getSelections');
+            var $bulkDeleteBtn = $('#bulkDeleteBtn');
+
+            if (!selections.length) {
+                $bulkDeleteBtn.hide();
+            } else {
+                $bulkDeleteBtn.show();
+            }
+        }
+
         $(document).ready(e => {
             var key = $.fn.guid();
             var $table = $('#@tableId');
@@ -86,30 +98,34 @@
                 var value = $(e.target).addClass('btn-primary').data('value');
                 filterForm.find('input[name=FilterDate]').val(value);
 
-                $table.bootstrapTable('refresh');
+                $table.bootstrapTable('refresh', {
+                    'query': { offset: 0 }
+                });
             });
 
             var filterForm = $('#@formId').on('submit', (e) => {
+                e.preventDefault();
+
                 key = $.fn.guid();
 
-                e.preventDefault();
                 $toolbar.find('button').removeClass('btn-primary');
                 filterForm.find('input[name=FilterDate]').val(null);
-                $table.bootstrapTable('refresh');
+                $table.bootstrapTable('refresh', {
+                    'query': { offset: 0 }
+                });
             });
 
             $table.on('load-success.bs.table', function (e, data, jqXHR) {
-                //var key = filterForm.find('input[name=Date]').val();
                 if (data != null && $toolbar.attr('data-key') !== key) {
                     var buttons = data.filter['CreatedDate'] !== undefined ? data.filter['CreatedDate'].map(x => $(`<button class='btn btn-secondary btn-sm mr-1' data-value='${x}'>${x}</>`)) : '';
                     var btnGroup = $(`<div id='filterGroup' role='group'>`).append(buttons);
                     $toolbar.attr('data-key', key).html(btnGroup);
                 }
-                statPanel();
+                toolbarPanel($table);
             });
 
             $table.on('check.bs.table uncheck.bs.table check-all.bs.table uncheck-all.bs.table', function () {
-                statPanel();
+                toolbarPanel($table);
             });
 
             $('#bulkDeleteBtn').on('click', (e) => {
@@ -132,18 +148,6 @@
                     });
                 }
             });
-
-            function statPanel(data) {
-                var options = $table.bootstrapTable('getOptions');
-                var selections = $table.bootstrapTable('getSelections');
-                var $bulkDeleteBtn = $('#bulkDeleteBtn');
-
-                if (!selections.length) {
-                    $bulkDeleteBtn.hide();
-                } else {
-                    $bulkDeleteBtn.show();
-                }
-            }
         });
     </script>
 }
