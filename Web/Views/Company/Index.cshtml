@@ -10,6 +10,7 @@
                 <a asp-controller="Company" asp-action="Create" class="btn btn-secondary"><i class="fa fa-plus mr-1"></i> Create</a>
             </div>
             <table id="datatable" data-toggle="table" data-url="/api/company"
+                   data-sort-name="no"
                    data-total-field="totalItems"
                    data-data-field="items"
                    data-page-size="100">
