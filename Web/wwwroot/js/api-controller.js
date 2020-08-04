@@ -5,11 +5,13 @@
 * Copyright 2020 Aziz Nurmukhamedov
 */
 
+//Obsolete
 //Get company summary range
 $.fn.getCompanySummaryRange = function (id) {
     return $.ajax(`/api/company/${id}/summaryrange`);
 };
 
+//Obsolete
 //Get bulk customers
 $.fn.getBulkInvoices = function (id, from, to) {
     return $.ajax({

@@ -59,31 +59,3 @@
         @checkCustomerAccountNumber.Message
     </div>
 }
-
-<script type="text/javascript">
-    $(document).ready(e => {
-
-        @*var $savedReportPartialForm = $('#@(formId)').on('submit', e => {
-            e.preventDefault();
-
-            var formData = $(e.target).serializeJSON();
-            var opt = {
-                url: '@(getSavedReportUrl)',
-                data: { 'companyId': formData.CompanyId, 'date': formData.Date }
-            };
-
-            $.when($.ajax(opt)).then((report) => {
-                if (report != null) {
-                    if (!confirm("This report exists in the database. Are you sure to overwrite it?")) {
-                        return;
-                    }
-                }
-
-                $(e.target).ajaxSubmit({}, (target, data, status) => {
-                    status === 'success' ? window.dialog.modal('hide') : alert(status);
-                });
-            });
-
-        });*@
-    });
-</script>

@@ -16,8 +16,10 @@
     $('form fieldset').enabled();
     $('div[role=toolbar]').find('a, button').enabled()
 }).ajaxError((e, jqxhr, settings, thrownError) => {
-    window.console.log('Error', jqxhr.responseText);
-    alert(jqxhr.responseText);
+    window.console.log('Error', jqxhr.responseText ?? thrownError);
+    if (thrownError != 'canceled') {
+        alert(jqxhr.responseText);
+    }
 });
 
 $.extend($.fn.bootstrapTable.defaults, {

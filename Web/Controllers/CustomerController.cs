@@ -692,7 +692,6 @@ namespace Web.Controllers.Api {
 
         [HttpPost("UploadCreditUtilized", Name = "UploadCreditUtilized")]
         public async Task<IActionResult> UploadCreditUtilized([FromForm] IFormCollection forms) {
-
             try {
                 if(forms.Files.Count == 0) {
                     throw new Exception("No file uploaded!");
@@ -1053,31 +1052,5 @@ namespace Web.Controllers.Api {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
         }
-
-        //[HttpPost("CreditUtilizedChangeStatus", Name = "CreditUtilizedChangeStatus")]
-        //public async Task<IActionResult> CreditUtilizedChangeStatus(CustomerCreditUtilizedChangeStatusViewModel model) {
-        //    if(ModelState.IsValid) {
-        //        var result = await _customerBusinessManager.UpdateOrCreateCreditUtilized(_mapper.Map<List<CustomerCreditUtilizedDto>>(model.Credits));
-        //        return Ok(_mapper.Map<List<CustomerCreditUtilizedViewModel>>(result));
-        //    } else {
-        //        return BadRequest("No items selected");
-        //    }
-        //}
-
-        //public int CheckCustomerBusinessName(List<CustomerRowViewModel[]> rows, CustomerBulkViewModel model) {
-        //    var column = model.Columns.Find(x => x.Name.Equals("Name"));
-        //    var customers = _businessManager.GetCustomers(model.CompanyId ?? 0).Result;
-        //    var countOfCustomersInDb = 0;
-        //    for(int i = 0; i < rows.Count; i++) {
-        //        var row = rows[i];
-        //        var customerName = row[column.Index].Value;
-
-        //        var customer = customers.Where(x => x.Name.Equals(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-        //        if(customer != null) {
-        //            countOfCustomersInDb++;
-        //        }
-        //    }
-        //    return countOfCustomersInDb;
-        //}
     }
 }

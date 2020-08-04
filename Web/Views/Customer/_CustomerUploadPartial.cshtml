@@ -5,14 +5,15 @@
     var formId = Guid.NewGuid();
     var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckUploadingCustomers");
     //var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingUploadCustomersAccountNumber");
-    var checkingCustomerBusinessNameUrl = Url.RouteUrl("CheckingUploadCustomersBusinessName");
-    var checkingCustomerRestrictedWordsUrl = Url.RouteUrl("CheckingUploadCustomersForRestrictedWords");
+    //var checkingCustomerBusinessNameUrl = Url.RouteUrl("CheckingUploadCustomersBusinessName");
+    //var checkingCustomerRestrictedWordsUrl = Url.RouteUrl("CheckingUploadCustomersForRestrictedWords");
 }
 
-<form id="@formId" asp-route="CreateUploadedCustomers" method="post" data-request="ajax">
+<form id="@formId" asp-route="CreateUploadedCustomers" method="post" data-request="ajax" beforeSend="createUploadedCustomersBeforeSend">
     <fieldset>
         <div class="form-row mb-3 align-items-end">
             <div class="col">
+                <input type="hidden" id="hasError" value="true" />
                 <label asp-for="CompanyId"></label>
                 <div class="input-group">
                     <select asp-for="CompanyId" asp-items="@ViewBag.Companies" class="form-control" required>
@@ -20,13 +21,6 @@
                     </select>
                     <div class="input-group-append">
                         <a id="checkingCustomerAccountNumberBtn" class="btn btn-primary" href="#">Check</a>
-                        @*<a class="btn btn-outline-secondary" asp-route="CheckUploadingCustomers" data-request="ajax" beforeSend="xCustomerUploadCustomerCheckBeforeSend" rel="xCustomerUploadCustomerCheckOnComplete" method="post">Check</a>
-                            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Check</button>
-                            <div class="dropdown-menu">
-                                <a id="checkingCustomerAccountNumberBtn" class="dropdown-item" href="#">Checking customer Account Number</a>
-                                <a id="checkingCustomerBusinessNameBtn" class="dropdown-item" href="#">Checking customer Business Name</a>
-                                <a id="checkingCustomerForRestrictedWordsBtn" class="dropdown-item" href="#">Checking for Restricted Words</a>
-                            </div>*@
                     </div>
                 </div>
             </div>
@@ -84,9 +78,19 @@
 </form>
 
 <script type="text/javascript">
+    function createUploadedCustomersBeforeSend(jqXHR, settings) {
+        var checkResult = $('input#hasError').val();
+        if (checkResult.toLowerCase() === 'true') {
+            if (!confirm("There are errors during data verification! Are you sure want to continue uploading data?")) {
+                jqXHR.abort();
+                return false;
+            }
+        }
+        return true;
+    }
+
     $(document).ready((e) => {
         var $form = $('#@(formId)');
-        var $saveBtn = $('#modalSubmitBtn').hide();
 
         $('#checkboxToggleBtn').on('change', (e) => {
             e.preventDefault();
@@ -110,7 +114,7 @@
                 $.ajax(options).done((data, status, jqXHR) => {
                     if (status === 'success') {
                         if (Array.isArray(data)) {
-                            var isError = false;
+                            var hasError = false;
                             var tbody = $form.find('table tbody');
                             tbody.find('tr').removeClass('table-warning');
 
@@ -118,71 +122,16 @@
 
                             data.map((x, i) => {
                                 if (x.isError) {
-                                    isError = true;
+                                    hasError = true;
                                     x.ids.forEach(y => tbody.find(`tr[data-id=${y}]`).attr('title', x.message).addClass('table-warning'));
                                 }
                             });
 
-                            if (!isError) {
-                                $saveBtn.show();
-                            }
+                            $('input#hasError').val(hasError);
                         }
                     }
                 });
             }
         });
-        /*
-        $('#checkingCustomerBusinessNameBtn').on('click', (e) => {
-            e.preventDefault();
-            if ($form.valid()) {
-                var formData = JSON.stringify($form.serializeJSON());
-
-                var options = {
-                    'url': '(checkingCustomerBusinessNameUrl)',
-                    'type': 'post',
-                    'data': formData,
-                    'processData': false,
-                    'contentType': 'application/json; charset=utf-8'
-                };
-
-                $.ajax(options).done((data, status, jqXHR) => {
-                    if (status === 'success') {
-                        $('#checkingCustomerBusinessNameResult').text(data.message);
-                        if (Array.isArray(data.customers)) {
-                            var tbody = $form.find('table tbody')
-                            tbody.find('tr').removeClass('table-warning');
-                            data.customers.forEach(x => tbody.find(`tr[data-id=${x}]`).addClass('table-warning'));
-                        }
-                    }
-                });
-            }
-        });
-
-        $('#checkingCustomerForRestrictedWordsBtn').on('click', (e) => {
-            e.preventDefault();
-            if ($form.valid()) {
-                var formData = JSON.stringify($form.serializeJSON());
-
-                var options = {
-                    'url': '(checkingCustomerRestrictedWordsUrl)',
-                    'type': 'post',
-                    'data': formData,
-                    'processData': false,
-                    'contentType': 'application/json; charset=utf-8'
-                };
-
-                $.ajax(options).done((data, status, jqXHR) => {
-                    if (status === 'success') {
-                        $('#checkingCustomerBusinessNameResult').text(data.message);
-                        if (Array.isArray(data.customers)) {
-                            var tbody = $form.find('table tbody')
-                            tbody.find('tr').removeClass('table-warning');
-                            data.customers.forEach(x => tbody.find(`tr[data-id=${x}]`).addClass('table-warning'));
-                        }
-                    }
-                });
-            }
-        });
-        */
     });
 </script>
