@@ -77,7 +77,10 @@
                 </div>
                 <div class="col-4">
                     <label asp-for="DefaultValueIfEmpty"></label>
-                    <input asp-for="DefaultValueIfEmpty" class="form-control" />
+                    <select asp-for="DefaultValueIfEmpty" class="form-control">
+                        <option value="">Empty</option>
+                        <option value="0">Zero (0)</option>
+                    </select>
                 </div>
             </div>
 

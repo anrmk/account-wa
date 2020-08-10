@@ -11,6 +11,7 @@
     var checkingCustomerAccountNumberUrl = Url.RouteUrl("CheckingCustomerAccountNumber");
 
     var saveAgingReportUrl = Url.RouteUrl("SaveAgingReport");
+    var exportSettingsViewUrl = Url.RouteUrl("ExportSettingsView");
 }
 
 @section Toolbar {
@@ -31,10 +32,6 @@
                 </div>
             </div>
             <a class="btn btn-secondary" asp-route="CreateSavedReportView" data-target="modal"><i class="far fa-save mr-2"></i> Save</a>
-            @*<button id="saveBtn" class="btn btn-secondary">
-
-                    <i class="far fa-save mr-2"></i> Save
-                </button>*@
         </div>
         <div class="btn-group">
             <button id="exportBtn" class="btn btn-secondary">
@@ -168,10 +165,8 @@
                 var formData = $form.serializeJSON();
 
                 var options = {
-                    'url': '/exportSettings',
-                    'type': 'post',
-                    'data': JSON.stringify(formData),
-                    'processData': false,
+                    'url': '@(exportSettingsViewUrl)',
+                    'data': formData,
                     'contentType': 'application/json; charset=utf-8'
                 };
 
@@ -179,23 +174,6 @@
                     $(data).dialog({ 'title': 'Export data' });
                 });
             });
-
-            //on save report btn click
-            @*$saveBtn = $('#saveBtn').click(e => {
-                e.preventDefault();
-                var formData = $form.serializeJSON();
-
-                var options = {
-                    'url': '@(saveAgingReportUrl)',
-                    'data': JSON.stringify(formData),
-                    'processData': false,
-                    'contentType': 'application/json; charset=utf-8'
-                }
-
-                $.ajax(options).done((data, status, jqXHR) => {
-                    $(data).dialog({ 'title': 'Save report' });
-                });
-            });*@
 
             //create/update customer credit limits/utilized
             $customerCreditsBtn = $('#customerCreditsBtn').click(e => {
