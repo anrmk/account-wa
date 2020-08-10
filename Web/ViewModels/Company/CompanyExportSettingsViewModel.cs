@@ -18,6 +18,10 @@ namespace Web.ViewModels {
         [Display(Name = "Include all customers")]
         public bool IncludeAllCustomers { get; set; }
 
+        [MaxLength(12)]
+        [Display(Name = "Default Value if Empty")]
+        public string DefaultValueIfEmpty { get; set; }
+
         [Display(Name = "Sort field")]
         public CompanyExportSettingsSortBy Sort { get; set; } = CompanyExportSettingsSortBy.BUSINESS_NAME;
 

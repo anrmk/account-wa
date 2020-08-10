@@ -17,6 +17,9 @@ namespace Core.Data.Entities {
 
         public bool IncludeAllCustomers { get; set; }
 
+        [MaxLength(12)]
+        public string DefaultValueIfEmpty { get; set; }
+
         public virtual ICollection<CompanyExportSettingsFieldEntity> Fields { get; set; }
     }
 

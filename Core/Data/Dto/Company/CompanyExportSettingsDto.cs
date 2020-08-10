@@ -14,6 +14,8 @@ namespace Core.Data.Dto {
 
         public bool IncludeAllCustomers { get; set; }
 
+        public string DefaultValueIfEmpty { get; set; }
+
         public ICollection<CompanyExportSettingsFieldDto> Fields { get; set; }
     }
 

@@ -7,6 +7,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageIconUrl />
     <Authors>Aziz Nurmukhamedov</Authors>
+    <UserSecretsId>7ed9864e-2334-4bed-b924-ced83dea5444</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
