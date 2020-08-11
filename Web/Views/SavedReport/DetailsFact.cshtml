@@ -14,19 +14,20 @@
 
 <div class="card">
     <div class="card-body">
-        <div class="table-responsive">
-            <table id="savedReportTable" class="table table-bordered">
-                @foreach(var row in Model.Keys) {
-                    @if(row != "Id") {
-                        <tr>
-                            @if(row == "Name") {
-                                <th scope="col" width="160px">@row</th>
-                                @foreach(var col in Model[row]) {
-                                    <th scope="col" width="160px">@col</th>
-                                }
-                            } else if(row == "Files") {
-                                <th scope="row">@row</th>
-                                @foreach(var col in Model[row]) {
+        <div class="scrolling outer">
+            <div class="inner">
+                <table id="savedReportTable" class="table table-striped table-hover table-condensed">
+                    @foreach(var row in Model.Keys) {
+                        @if(row != "Id") {
+                            <tr>
+                                @if(row == "Name") {
+                                    <th scope="col">@row</th>
+                                    @foreach(var col in Model[row]) {
+                                        <td scope="col" width="160px">@col</td>
+                                    }
+                                } else if(row == "Files") {
+                                    <th scope="row">@row</th>
+                                    @foreach(var col in Model[row]) {
                                     <td>
                                         @if(!string.IsNullOrEmpty(col)) {
                                             @foreach(var d in col.Split(";")) {
@@ -34,10 +35,10 @@
                                             }
                                         }
                                     </td>
-                                }
-                            } else {
-                                <th scope="row">@(row == "-31-0" ? "Current" : row )</th>
-                                @foreach(var col in Model[row]) {
+                                    }
+                                } else {
+                                    <th scope="row">@(row == "-31-0" ? "Current" : row )</th>
+                                    @foreach(var col in Model[row]) {
                                     <td>
                                         @if(col.Split("|").Length >= 2) {
                                             <span>@col.Split("|")[0]</span><br />
@@ -48,47 +49,52 @@
                                             <span>@col</span>
                                         }
                                     </td>
-                                }
-                            }
-                            <th scope="row"></th>
-                        </tr>
-                    }
-                }
-
-                @foreach(var row in Model.Keys) {
-                    if(row == "Id") {
-                        <tr class="table-active">
-                            <th scope="row">Action</th>
-
-                            @foreach(var col in Model[row]) {
-                                <td id="status_@col">
-                                    @if(!string.IsNullOrEmpty(col)) {
-                                        <form asp-route="PublishFact" asp-route-id="@col" data-request="ajax" rel="xPublishSubmitComplete">
-                                            <button type="submit" class="btn btn-secondary btn-block mb-1">Publish</button>
-                                        </form>
-                                        <form asp-action="DeleteFact" asp-route-id="@col" data-action="delete">
-                                            <button type="submit" class="btn btn-danger btn-block" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-                                        </form>
-                                    } else {
-                                        <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
                                     }
-                                </td>
-                            }
-                        </tr>
+                                }
+                                <td></td>
+                            </tr>
+                        }
                     }
-                }
-            </table>
+
+                    @foreach(var row in Model.Keys) {
+                        if(row == "Id") {
+                            <tr class="table-active">
+                                <th scope="row">Action</th>
+
+                                @foreach(var col in Model[row]) {
+                                    <td id="status_@col">
+                                        @if(!string.IsNullOrEmpty(col)) {
+                                            <form asp-route="PublishFact" asp-route-id="@col" data-request="ajax" rel="xPublishSubmitComplete">
+                                                <button type="submit" class="btn btn-secondary btn-block mb-1">Publish</button>
+                                            </form>
+                                            <form asp-action="DeleteFact" asp-route-id="@col" data-action="delete">
+                                                <button type="submit" class="btn btn-danger btn-block" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                                            </form>
+                                        } else {
+                                            <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
+                                        }
+                                    </td>
+                                }
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </div>
         </div>
+        @*<div class="table-responsive">
+
+        </div>*@
     </div>
 </div>
 
 @section Scripts {
-<script type="text/javascript">
-    function xPublishSubmitComplete(e, jqXHR, status) {
-        if (status === 'success') {
-            var data = jqXHR.responseJSON;
-            data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+    <script type="text/javascript">
+        function xPublishSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                var data = jqXHR.responseJSON;
+                data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+            }
         }
-    }
-</script>
+    </script>
 }
