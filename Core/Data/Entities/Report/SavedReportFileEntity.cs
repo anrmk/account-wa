@@ -10,6 +10,6 @@ namespace Core.Data.Entities {
         [ForeignKey("Report")]
         [Column("SavedReport_Id")]
         public long? ReportId { get; set; }
-        public SavedReportEntity Report { get; set; }
+        public SavedReportFactEntity Report { get; set; }
     }
 }

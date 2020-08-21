@@ -1,20 +1,39 @@
-﻿@model Dictionary<string, List<string>>
+﻿@model Web.ViewModels.CompanyViewModel
 
 @{
     ViewData["Title"] = "Saved Reports Fact";
+    var tableUrl = Url.RouteUrl("GetDetailsFact", new {id = Model.Id } );
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-controller="SavedReport" asp-action="Index" asp-fragment="fact">Saved reports</a></li>
         <li class="breadcrumb-item" aria-current="page">Fact</li>
-        <li class="breadcrumb-item active" aria-current="page">@ViewData["CompanyName"]</li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
     </ol>
 </nav>
 
 <div class="card">
     <div class="card-body">
-        <div class="scrolling outer">
+        <table id="datatable" data-toggle="table" data-url="@tableUrl"
+               data-sort-name="no"
+               data-total-field="totalItems"
+               data-data-field="items"
+               data-page-size="100">
+            <thead>
+                <tr>
+                    <th data-field="no" data-sortable="true" class="collapsing">No</th>
+                    @*<th data-field="name" data-sortable="true">Company</th>
+                    <th data-field="address">Address</th>
+                    <th data-formatter="actionFormatter" class="text-right table-active collapsing">Actions</th>*@
+                </tr>
+            </thead>
+        </table>
+
+
+
+
+        @*<div class="scrolling outer">
             <div class="inner">
                 <table id="savedReportTable" class="table table-striped table-hover table-condensed">
                     @foreach(var row in Model.Keys) {
@@ -28,27 +47,27 @@
                                 } else if(row == "Files") {
                                     <th scope="row">@row</th>
                                     @foreach(var col in Model[row]) {
-                                    <td>
-                                        @if(!string.IsNullOrEmpty(col)) {
-                                            @foreach(var d in col.Split(";")) {
-                                                <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                        <td>
+                                            @if(!string.IsNullOrEmpty(col)) {
+                                                @foreach(var d in col.Split(";")) {
+                                                    <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
+                                                }
                                             }
-                                        }
-                                    </td>
+                                        </td>
                                     }
                                 } else {
                                     <th scope="row">@(row == "-31-0" ? "Current" : row )</th>
                                     @foreach(var col in Model[row]) {
-                                    <td>
-                                        @if(col.Split("|").Length >= 2) {
-                                            <span>@col.Split("|")[0]</span><br />
-                                            <span>
-                                                @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
-                                            </span>
-                                        } else {
-                                            <span>@col</span>
-                                        }
-                                    </td>
+                                        <td>
+                                            @if(col.Split("|").Length >= 2) {
+                                                <span>@col.Split("|")[0]</span><br />
+                                                <span>
+                                                    @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
+                                                </span>
+                                            } else {
+                                                <span>@col</span>
+                                            }
+                                        </td>
                                     }
                                 }
                                 <td></td>
@@ -81,10 +100,8 @@
                     }
                 </table>
             </div>
-        </div>
-        @*<div class="table-responsive">
-
         </div>*@
+   
     </div>
 </div>
 
@@ -96,5 +113,11 @@
                 data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
             }
         }
+
+
+        function actionFormatter(value, row) {
+            return `<a href='/company/edit/${row.id}' class='btn btn-secondary mr-1' >Edit</a>`;
+        }
+
     </script>
 }

@@ -189,26 +189,26 @@ namespace Core.Services.Business {
             }
 
             #region BALANCE
-            var balance = new Dictionary<string, AgingReportBalanceDto>();
+            var balanceTotal = new Dictionary<string, AgingReportBalanceDto>();
             foreach(var c in _col) {
                 if(c.Name.Equals("Total")) {
-                    balance.Add("Total", new AgingReportBalanceDto {
-                        Count = balance.Values.Sum(x => x.Count),
+                    balanceTotal.Add("Total", new AgingReportBalanceDto {
+                        Count = balanceTotal.Values.Sum(x => x.Count),
                         Sum = report.Values.Sum(x => x.Data["Total"])
                     });
                 } else if(c.Name.Equals("Total Late")) {
 
                 } else {
-                    balance.Add(c.Name, new AgingReportBalanceDto {
+                    balanceTotal.Add(c.Name, new AgingReportBalanceDto {
                         Count = report.Values.Count(x => x.Data[c.Name] != 0),
                         Sum = report.Values.Sum(x => x.Data[c.Name])
                     });
                 }
             }
 
-            balance.Add("Total Late", new AgingReportBalanceDto {
-                Count = balance["Total"].Count - balance["-31-0"].Count,
-                Sum = balance["Total"].Sum - balance["-31-0"].Sum
+            balanceTotal.Add("Total Late", new AgingReportBalanceDto {
+                Count = balanceTotal["Total"].Count - balanceTotal["-31-0"].Count,
+                Sum = balanceTotal["Total"].Sum - balanceTotal["-31-0"].Sum
             });
             #endregion
 
@@ -232,6 +232,14 @@ namespace Core.Services.Business {
             var customerTypes = customers.GroupBy(x => x.Type == null ? "No types" : x.Type.Name).ToDictionary(x => x.Key, x => x.Count());
             #endregion
 
+            #region TOTAL CUSTOMERS
+            var balanceCustomer = report.Count(x => x.Value.Data["Total"] != 0);
+            var customerTotal = new Dictionary<string, int>();
+            customerTotal.Add("Total Customers",  customers.Count);
+            customerTotal.Add("Balance", balanceCustomer);
+            customerTotal.Add("No Balance",  customers.Count - balanceCustomer);
+            #endregion
+
             return new AgingReportResultDto() {
                 CompanyId = companyId,
                 CompanyName = company.Name,
@@ -239,16 +247,10 @@ namespace Core.Services.Business {
                 NumberOfPeriods = numberOfPeriods,
 
                 Cols = _col,
-                //REPORT
                 Rows = report.Select(x => x.Value).ToList(),
-                //BALANCE
-                Balance = balance,
-                //CUSTOMERS
-                TotalCustomers = customers.Count,
-                BalanceCustomers = report.Count(x => x.Value.Data["Total"] != 0),
-                //CUSTOMERS TYPE
+                CustomerTotal = customerTotal,
                 CustomerTypes = customerTypes,
-                //DEBT
+                BalanceTotal = balanceTotal,
                 DoubleDebt = doubleDebt
             };
         }
@@ -403,7 +405,7 @@ namespace Core.Services.Business {
         }
 
         public async Task<SavedReportDto> CreateSavedReport(SavedReportDto dto) {
-            var item = _mapper.Map<SavedReportEntity>(dto);
+            var item = _mapper.Map<SavedReportFactEntity>(dto);
             var entity = await _savedReportManager.FindInclude(dto.ApplicationUserId, dto.CompanyId ?? 0, dto.Date);
             if(entity != null) {
                 //REMOVE ALL FIELDS
@@ -415,7 +417,7 @@ namespace Core.Services.Business {
                 entity = await _savedReportManager.Create(item);
             }
 
-            var fieldEntity = _mapper.Map<List<SavedReportFieldEntity>>(dto.Fields);
+            var fieldEntity = _mapper.Map<List<SavedReportFactFieldEntity>>(dto.Fields);
             fieldEntity.ForEach(x => x.ReportId = entity.Id);
             var savedFieldEntity = await _savedReportFieldManager.Create(fieldEntity.AsEnumerable());
 

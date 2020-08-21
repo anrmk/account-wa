@@ -267,46 +267,38 @@ namespace Web.Controllers.Api {
                 var report = await _reportBusinessManager.GetAgingReport(model.CompanyId, model.Date, 30, model.NumberOfPeriods, false);
                 var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
-                #region Fields
                 var fields = new List<SavedReportFieldDto>();
-                fields.Add(new SavedReportFieldDto() {
-                    Code = "TotalCustomers",
-                    Name = "Total Customers",
-                    Value = report.TotalCustomers.ToString()
-                });
 
-                //Add customer types
-                foreach(var ctype in customerTypes) {
+                #region CUSTOMERS
+                foreach (var field in report.CustomerTotal.Keys) {
                     fields.Add(new SavedReportFieldDto() {
-                        Code = ctype.Name, //not CODE!!!
-                        Name = ctype.Name,
-                        Value = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name].ToString() : "0"
-                    });
-                }
-
-                fields.Add(new SavedReportFieldDto() {
-                    Code = "BalanceCustomers",
-                    Name = "Balance",
-                    Value = report.BalanceCustomers.ToString()
-                });
-
-                fields.Add(new SavedReportFieldDto() {
-                    Code = "NoBalanceCustomers",
-                    Name = "No balance",
-                    Value = (report.TotalCustomers - report.BalanceCustomers).ToString()
-                });
-
-                //Add Balance
-                foreach(var column in report.Cols) {
-                    fields.Add(new SavedReportFieldDto() {
-                        Code = column.Name,
-                        Name = column.Name,
-                        Value = $"{report.Balance[column.Name].Count}|{report.Balance[column.Name].Sum}"
+                        Name = field,
+                        Count = report.CustomerTotal[field],
                     });
                 }
                 #endregion
 
-                #region Files
+                #region CUSTOMER TYPES
+                foreach(var ctype in customerTypes) {
+                    fields.Add(new SavedReportFieldDto() {
+                        Name = ctype.Name,
+                        Count = report.CustomerTypes.ContainsKey(ctype.Name) ? report.CustomerTypes[ctype.Name] : 0
+                    });
+                }
+                #endregion
+
+                #region BALANCE TOTAL
+                foreach(var column in report.Cols) {
+                    fields.Add(new SavedReportFieldDto() {
+                        Name = column.Name,
+                        Count = report.BalanceTotal[column.Name].Count,
+                        Amount = report.BalanceTotal[column.Name].Sum
+                    });
+                }
+                #endregion
+
+
+                #region FILES
                 var files = new List<SavedReportFileDto>();
 
                 if(model.ExportSettings != null) {
@@ -609,17 +601,15 @@ namespace Web.Controllers.Api {
 
                 #region CUSTOMERS
                 foreach(var field in saved.Fields) {
-                    if(field.Code != null) {
-                        var reportValue = report.GetPropValue(field.Code)?.ToString() ?? null;
-                        if(reportValue != null) {
-                            var citem = new CompareReportFieldViewModel() {
-                                Name = field.Name,
-                                SavedValue = field.Value,
-                                ReportValue = reportValue,
-                                Status = field.Value.Equals(reportValue)
-                            };
-                            compareReport.Customers.Add(citem);
-                        }
+                    if(report.CustomerTotal.ContainsKey(field.Name)) {
+                        var reportValue = report.CustomerTotal[field.Name];
+                        var citem = new CompareReportFieldViewModel() {
+                            Name = field.Name,
+                            SavedValue = field?.Count.ToString(),
+                            ReportValue = reportValue.ToString(),
+                            Status = field.Count == reportValue
+                        };
+                        compareReport.Customers.Add(citem);
                     }
                 }
                 #endregion
@@ -628,33 +618,36 @@ namespace Web.Controllers.Api {
                 var customerTypesField = await _customerBusinessManager.GetCustomerTypes();
                 foreach(var field in customerTypesField) {
                     var savedValue = saved.Fields.Where(x => x.Name.Equals(field.Name)).FirstOrDefault();
-                    var reportValue = report.CustomerTypes.ContainsKey(field.Name) ? report.CustomerTypes[field.Name].ToString() : null;
-                    if(reportValue != null) {
+                    if(report.CustomerTypes.ContainsKey(field.Name)) {
+                        var reportValue = report.CustomerTypes[field.Name];
                         var citem = new CompareReportFieldViewModel() {
                             Name = field.Name,
-                            SavedValue = savedValue?.Value ?? "",
-                            ReportValue = reportValue,
-                            Status = reportValue.Equals(savedValue?.Value ?? "")
+                            SavedValue = savedValue?.Count.ToString() ?? "",
+                            ReportValue = reportValue.ToString(),
+                            Status = reportValue == savedValue.Count
                         };
                         compareReport.CustomerTypes.Add(citem);
                     }
                 }
                 #endregion
 
-                #region BALANCE
-                var balanceField = saved.Fields.Where(x => x.Value.Contains('|')).Select(x => x.Name).ToList(); //Select only BALANCE fields
-                var columns = balanceField.Count > report.Cols.Count ? balanceField : report.Cols.Select(x => x.Name).ToList();
+                #region BALANCE TOTAL
+                var savedColumns = saved.Fields.Where(x => x.Name.Contains('-') || x.Name.Contains('+') || x.Name.Equals("Total Late") || x.Name.Equals("Total")).Select(x => x.Name).ToList(); //Select only BALANCE fields
+                var balanceColumns = savedColumns.Count > report.Cols.Count ? savedColumns : report.Cols.Select(x => x.Name).ToList();
 
-                foreach(var field in columns) {
-                    var savedValue = saved.Fields.Where(x => x.Name.Equals(field)).FirstOrDefault()?.Value ?? "0|0";
-                    var reportValue = report.Balance.ContainsKey(field) ? report.Balance[field].Count + "|" + report.Balance[field].Sum : "0|0";
+                foreach(var column in balanceColumns) {
+                    var savedField = saved.Fields.Where(x => x.Name.Equals(column)).FirstOrDefault();
+
+                    var savedValue = savedField != null ? savedField.Count + "|" + savedField.Amount?.ToCurrency() : "0|0";
+                    var reportValue = report.BalanceTotal.ContainsKey(column) ?
+                            report.BalanceTotal[column].Count + "|" + report.BalanceTotal[column].Sum.ToCurrency() : "0|0";
 
                     var citem = new CompareReportFieldViewModel() {
-                        Name = field,
-                        SavedValue = savedValue,
-                        ReportValue = reportValue,
-                        Status = savedValue.Equals(reportValue)
-                    };
+                            Name = column,
+                            SavedValue = savedValue,
+                            ReportValue = reportValue,
+                            Status = savedValue.Equals(reportValue)
+                        };
                     compareReport.Balance.Add(citem);
                 }
                 #endregion
@@ -700,37 +693,6 @@ namespace Web.Controllers.Api {
                                 updateCreditUtilized++;
                             }
                         }
-
-                        //if(creditUtilized == null || (creditUtilized.CreatedDate != model.Date && creditUtilized.Value < value)) {
-
-                        //    if(creditUtilized == null)
-                        //        createCreditUtilized++;
-                        //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                        //    Id = customer.Id,
-                        //    CustomerNo = customer.No,
-                        //    CustomerName = customer.Name,
-                        //    OldValue = creditUtilized?.Value ?? 0,
-                        //    OldDate = creditUtilized?.CreatedDate,
-                        //    NewValue = value,
-                        //    Status = true
-                        //});
-                        //} else if(creditUtilized.Value < value) {
-                        //    if(creditUtilized.IsIgnored) {
-                        //        ignoreCreditUtilized++;
-                        //    } else {
-                        //        updateCreditUtilized++;
-                        //    }
-                        //compareReport.CreditUtilizedList.Add(new CompareReportCreditUtilizedViewModel() {
-                        //    Id = customer.Id,
-                        //    CustomerNo = customer.No,
-                        //    CustomerName = customer.Name,
-                        //    OldValue = creditUtilized?.Value ?? 0,
-                        //    OldDate = creditUtilized?.CreatedDate,
-                        //    IsIgnored = creditUtilized.IsIgnored,
-                        //    NewValue = value,
-                        //    Status = false
-                        //});
-                        //}
                     }
 
                     compareReport.CreditUtilized.Add(new CompareCreditsFieldViewModel() {

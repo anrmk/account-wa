@@ -32,7 +32,7 @@ table td.collapsing, table th.collapsing {
   white-space: nowrap;
 }
 
-.scrolling table {
+/*.scrolling table {
   table-layout: inherit;
   margin-left: -140px;
 }
@@ -58,7 +58,7 @@ table td.collapsing, table th.collapsing {
   overflow-x: auto;
   overflow-y: visible;
   margin-left: 140px;
-}
+}*/
 
 
 /* Form SignIn and Register

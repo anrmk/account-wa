@@ -4,7 +4,7 @@
     Layout = null;
     var checkCustomerAccountNumber = (Web.ViewModels.ReportStatusViewModel)ViewData["CheckingCustomerAccountNumber"];
 
-    var formId = checkCustomerAccountNumber.Status == Core.Data.Enum.ReportCheckStatus.Success ? Guid.NewGuid() : Guid.Empty;
+    var formId = checkCustomerAccountNumber != null && checkCustomerAccountNumber.Status == Core.Data.Enum.ReportCheckStatus.Success ? Guid.NewGuid() : Guid.Empty;
 
     var getSavedReportUrl = Url.RouteUrl("GetSavedReport");
 }

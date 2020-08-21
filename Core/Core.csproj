@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Dto\Report\SavedReportPlanDto.cs" />
+    <Compile Remove="Data\Dto\Report\SavedReportPlanFieldDto.cs" />
     <Compile Remove="Migrations\20200520172801_customer-recheck.cs" />
     <Compile Remove="Migrations\20200520172801_customer-recheck.Designer.cs" />
     <Compile Remove="Migrations\20200526194903_update-customer-type-table.cs" />

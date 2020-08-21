@@ -8,13 +8,10 @@ namespace Core.Data.Dto {
         public string CompanyName { get; set; }
         public int NumberOfPeriods { get; set; } //Количество периодово
 
-        public int TotalCustomers { get; set; }
-        public int BalanceCustomers { get; set; }
-        public int NoBalanceCustomers => TotalCustomers - BalanceCustomers;
-
-        public Dictionary<string, AgingReportBalanceDto> Balance { get; set; }
-        public Dictionary<string, decimal> DoubleDebt { get; set; }
+        public Dictionary<string, int> CustomerTotal { get; set; }
         public Dictionary<string, int> CustomerTypes { get; set; }
+        public Dictionary<string, AgingReportBalanceDto> BalanceTotal { get; set; }
+        public Dictionary<string, decimal> DoubleDebt { get; set; }
     }
 
     //  Rows

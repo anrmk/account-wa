@@ -110,22 +110,20 @@
                     <tbody>
                         @foreach(var item in Model.Balance) {
                             var countSaved = item.SavedValue.Split('|')[0];
-                            var amountSaved = decimal.Parse(item.SavedValue.Split('|')[1]);
-                            var amountSavedStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountSaved);
+                            var amountSaved = item.SavedValue.Split('|')[1];
 
                             var countReport = item.ReportValue.Split('|')[0];
-                            var amountReport = decimal.Parse(item.ReportValue.Split('|')[1]);
-                            var amountReportStr = @Core.Extension.NumberExtensionMethods.ToCurrency(amountReport);
+                            var amountReport = item.ReportValue.Split('|')[1];
 
                             <tr class="@(item.Status ? "" : "table-danger")">
                                 <td>@(item.Name.Equals("-31-0") ? "Current" : item.Name)</td>
                                 <td>
                                     <span class="text-nowrap d-block">@countSaved</span>
-                                    <span class="text-nowrap d-block">@amountSavedStr</span>
+                                    <span class="text-nowrap d-block">@amountSaved</span>
                                 </td>
                                 <td>
                                     <span class="text-nowrap d-block">@countReport</span>
-                                    <span class="text-nowrap d-block">@amountReportStr</span>
+                                    <span class="text-nowrap d-block">@amountReport</span>
                                 </td>
                             </tr>
                         }

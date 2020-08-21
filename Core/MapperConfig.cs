@@ -149,11 +149,12 @@ namespace Core {
             #endregion
 
             #region REPORT
-            CreateMap<SavedReportDto, SavedReportEntity>()
+            CreateMap<SavedReportDto, SavedReportFactEntity>()
                 .ForMember(d => d.Fields, o => o.Ignore())
                 .ForMember(d => d.Files, o => o.Ignore())
-                .ReverseMap();
-            CreateMap<SavedReportFieldDto, SavedReportFieldEntity>().ReverseMap();
+                .ReverseMap()
+                .ForMember(d => d.Name, o => o.MapFrom(s => s.Company != null ? s.Company.Name : ""));
+            CreateMap<SavedReportFieldDto, SavedReportFactFieldEntity>().ReverseMap();
             CreateMap<SavedReportFileDto, SavedReportFileEntity>().ReverseMap();
 
             CreateMap<SavedReportDto, SavedReportPlanEntity>()

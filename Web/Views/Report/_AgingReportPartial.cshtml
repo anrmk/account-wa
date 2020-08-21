@@ -20,13 +20,13 @@
             <div class="col">
                 <table class="table table-sm">
                     @{
-                        var factTotalCustomers = Model.TotalCustomers;
+                        var factTotalCustomers = Model.CustomerTotal["Total Customers"];
                         var planTotalCustomers = plan?.Fields.Where(x => x.Name.Equals("Total Customers")).FirstOrDefault().Count ?? 0;
 
-                        var factBalanceCustomers = Model.BalanceCustomers;
+                        var factBalanceCustomers = Model.CustomerTotal["Balance"];
                         var planBalanceCustomers = plan?.Fields.Where(x => x.Name.Equals("Balance")).FirstOrDefault().Count ?? 0;
 
-                        var factNoBalanceCustomers = (Model.TotalCustomers - Model.BalanceCustomers);
+                        var factNoBalanceCustomers = Model.CustomerTotal["No Balance"];
                         var planNoBalanceCustomers = plan?.Fields.Where(x => x.Name.Equals("No Balance")).FirstOrDefault().Count ?? 0;
                     }
                     <thead>
@@ -109,8 +109,8 @@
                     </thead>
                     <tbody>
                         @foreach(var column in Model.Cols) {
-                            var factCount = Model.Balance[column.Name].Count;
-                            var factAmount = Model.Balance[column.Name].Sum;
+                            var factCount = Model.BalanceTotal[column.Name].Count;
+                            var factAmount = Model.BalanceTotal[column.Name].Sum;
                             var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Count ?? 0;
                             var planAmount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Amount ?? 0;
                             <tr>
