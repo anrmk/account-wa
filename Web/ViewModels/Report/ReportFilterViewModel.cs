@@ -6,6 +6,8 @@ using Core.Data.Enum;
 
 namespace Web.ViewModels {
     public class ReportFilterViewModel: PagerFilterViewModel {
+        public Guid? ApplicationUserId { get; set; }
+
         [Required]
         [Display(Name = "Company")]
         public long CompanyId { get; set; }

@@ -149,7 +149,7 @@ namespace Web.Controllers.Mvc {
 
         [Route("download/{id}")]
         public async Task<IActionResult> Download(long id) {
-            var item = await _reportBusinessManager.GetSavedFile(id);
+            var item = await _reportBusinessManager.GetSavedFactFile(id);
             if(item == null) {
                 return NotFound();
             }
@@ -229,7 +229,9 @@ namespace Web.Controllers.Api {
                     return NotFound();
                 }
 
-                var savedItem = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId, model.Date);
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                var savedItem = await _reportBusinessManager.GetSavedFactReport(userId, model.CompanyId, model.Date);
                 if(savedItem != null && savedItem.IsPublished) {
                     string html = await _viewRenderService.RenderToStringAsync("_SaveAgingReportPartial", _mapper.Map<SavedReportViewModel>(savedItem));
                     return Ok(html);
@@ -334,7 +336,7 @@ namespace Web.Controllers.Api {
                 dto.Fields = fields;
                 dto.Files = files;
 
-                var result = await _reportBusinessManager.CreateSavedReport(dto);
+                var result = await _reportBusinessManager.CreateSavedFactReport(dto);
                 return Ok(result);
 
             } catch(Exception er) {
@@ -344,8 +346,8 @@ namespace Web.Controllers.Api {
 
         [HttpGet("GetSavedReport", Name = "GetSavedReport")]
         public async Task<IActionResult> GetSavedReport(long companyId, DateTime date) {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var result = await _reportBusinessManager.GetSavedReport(userId, companyId, date);
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await _reportBusinessManager.GetSavedFactReport(userId, companyId, date);
             return Ok(result);
         }
 
@@ -358,7 +360,8 @@ namespace Web.Controllers.Api {
             var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
             if(company != null && company.Settings != null && company.Settings.SaveCreditValues) {
-                var savedReports = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var savedReports = await _reportBusinessManager.GetSavedFactReport(userId, model.CompanyId);
                 if(savedReports == null || savedReports.Count == 0) {//Если у компании нет вообще сохраненных репортов, дать возможность сохранить КРЕДИТЫ
                     return Ok(true);
                 }
@@ -429,6 +432,7 @@ namespace Web.Controllers.Api {
                 if(!ModelState.IsValid) {
                     throw new Exception("Form is not valid!");
                 }
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var company = await _companyBusinessManager.GetCompany(model.CompanyId);
                 if(company == null || company.Settings == null || !company.Settings.SaveCreditValues) {//возможно ли сохранение лимитов
                     throw new Exception("Please, check company settings!");
@@ -437,7 +441,8 @@ namespace Web.Controllers.Api {
                 var date = model.Date.LastDayOfMonth();
                 var previousDate = model.Date.AddMonths(-1).LastDayOfMonth();
 
-                var savedReports = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), model.CompanyId);
+
+                var savedReports = await _reportBusinessManager.GetSavedFactReport(userId, model.CompanyId);
                 if(savedReports != null && savedReports.Count > 0) {
                     var prevReport = savedReports.Where(x => x.Date == previousDate).FirstOrDefault();
                     if(prevReport == null || !prevReport.IsPublished) {
@@ -574,14 +579,14 @@ namespace Web.Controllers.Api {
                     throw new Exception("Form is not valid!");
                 }
 
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 var company = await _companyBusinessManager.GetCompany(model.CompanyId);
 
                 var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "CompanySettings", _mapper.Map<CompanySettingsViewModel>(company.Settings) }
                     };
 
-                var saved = await _reportBusinessManager.GetSavedReport(userId, model.CompanyId, model.Date);
+                var saved = await _reportBusinessManager.GetSavedFactReport(userId, model.CompanyId, model.Date);
                 if(saved == null) {
                     return Ok($"{company.Name} company has no saved report for {model.Date.ToString("MM/dd/yyyy")}");
                 }

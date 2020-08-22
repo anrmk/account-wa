@@ -54,7 +54,7 @@ namespace Core.Services {
             services.AddTransient<IPaymentManager, PaymentManager>();
 
             services.AddTransient<IReportManager, ReportManager>();
-            services.AddTransient<ISavedReportManager, SavedReportManager>();
+            services.AddTransient<ISavedReportFactManager, SavedReportFactManager>();
             services.AddTransient<ISavedReportFieldManager, SavedReportFieldManager>();
             services.AddTransient<ISavedReportFileManager, SavedReportFileManager>();
 

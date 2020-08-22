@@ -35,52 +35,7 @@ namespace Web.Controllers.Mvc {
             _customerBusinessManager = customerBusinessManager;
         }
 
-        public async Task<IActionResult> Index() {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-            var companies = await _companyBusinessManager.GetCompanies();
-
-            var savedReportFact = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var savedReportFactList = savedReportFact.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
-                Key = companyId ?? 0,
-                Count = names.Count(),
-                Name = names.First()
-            }).Select(x => new SavedReportListViewModel() {
-                Name = x.Name,
-                CompanyId = x.Key,
-                Count = x.Count
-            }).ToList();
-
-            var factCompanies = companies.Where(x => !savedReportFactList.Any(y => y.CompanyId == x.Id)).ToList();
-            if(factCompanies.Count > 0)
-                savedReportFactList.AddRange(factCompanies.Select(x => new SavedReportListViewModel() {
-                    Name = x.Name,
-                    CompanyId = x.Id,
-                    Count = 0
-                }));
-
-            var savedReportPlan = await _reportBusinessManager.GetSavedPlanReport(userId);
-            var savedReportPlanList = savedReportPlan.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
-                Key = companyId ?? 0,
-                Count = names.Count(),
-                Name = names.First()
-            }).Select(x => new SavedReportListViewModel() {
-                Name = x.Name,
-                CompanyId = x.Key,
-                Count = x.Count
-            }).ToList();
-
-            var planCompanies = companies.Where(x => !savedReportPlanList.Any(y => y.CompanyId == x.Id)).ToList();
-            if(planCompanies.Count > 0)
-                savedReportPlanList.AddRange(planCompanies.Select(x => new SavedReportListViewModel() {
-                    Name = x.Name,
-                    CompanyId = x.Id,
-                    Count = 0
-                }));
-
-            ViewBag.SavedReportFact = savedReportFactList;
-            ViewBag.SavedReportPlan = savedReportPlanList;
-
+        public IActionResult Index() {
             return View();
         }
 
@@ -152,13 +107,13 @@ namespace Web.Controllers.Mvc {
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFact(long id) {
             try {
-                var item = await _reportBusinessManager.GetSavedReport(id);
+                var item = await _reportBusinessManager.GetSavedFactReport(id);
                 if(item == null)
                     return NotFound();
 
                 var companyId = item.CompanyId;
 
-                var result = await _reportBusinessManager.DeleteSavedReport(id);
+                var result = await _reportBusinessManager.DeleteSavedFactReport(id);
                 if(result == false) {
                     return NotFound();
                 }
@@ -258,19 +213,76 @@ namespace Web.Controllers.Api {
     public class SavedReportController: ControllerBase {
         private readonly IMapper _mapper;
         private readonly IViewRenderService _viewRenderService;
+        private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly ICrudBusinessManager _businessManager;
         private readonly ICustomerBusinessManager _customerBusinessManager;
         private readonly IReportBusinessManager _reportBusinessManager;
 
         public SavedReportController(IMapper mapper, IViewRenderService viewRenderService,
+             ICompanyBusinessManager companyBusinessManager,
              ICrudBusinessManager businessManager,
              ICustomerBusinessManager customerBusinessManager,
              IReportBusinessManager reportBusinessManager) {
             _mapper = mapper;
             _viewRenderService = viewRenderService;
+            _companyBusinessManager = companyBusinessManager;
             _businessManager = businessManager;
             _customerBusinessManager = customerBusinessManager;
             _reportBusinessManager = reportBusinessManager;
+        }
+
+        [HttpGet("GetSavedReportFactList", Name = "GetSavedReportFactList")]
+        public async Task<List<SavedReportListViewModel>> GetSavedReportFactList([FromQuery] ReportFilterViewModel model) {
+            var companies = await _companyBusinessManager.GetCompanies();
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var list = await _reportBusinessManager.GetSavedFactReport(userId);
+            var result = list.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
+                Name = names.First(),
+                Key = companyId ?? 0,
+                Count = names.Count()
+            }).Select(x => new SavedReportListViewModel() {
+                Name = x.Name,
+                CompanyId = x.Key,
+                Count = x.Count
+            }).ToList();
+
+            var factCompanies = companies.Where(x => !result.Any(y => y.CompanyId == x.Id)).ToList();
+            if(factCompanies.Count > 0)
+                result.AddRange(factCompanies.Select(x => new SavedReportListViewModel() {
+                    Name = x.Name,
+                    CompanyId = x.Id,
+                    Count = 0
+                }));
+
+            return result;
+        }
+
+        [HttpGet("GetSavedReportPlanList", Name = "GetSavedReportPlanList")]
+        public async Task<List<SavedReportListViewModel>> GetSavedReportPlanList([FromQuery] ReportFilterViewModel model) {
+            var companies = await _companyBusinessManager.GetCompanies();
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var list = await _reportBusinessManager.GetSavedPlanReport(userId);
+            var result = list.GroupBy(x => x.CompanyId, x => x.Name, (companyId, names) => new {
+                Key = companyId ?? 0,
+                Count = names.Count(),
+                Name = names.First()
+            }).Select(x => new SavedReportListViewModel() {
+                Name = x.Name,
+                CompanyId = x.Key,
+                Count = x.Count
+            }).ToList();
+
+            var planCompanies = companies.Where(x => !result.Any(y => y.CompanyId == x.Id)).ToList();
+            if(planCompanies.Count > 0)
+                result.AddRange(planCompanies.Select(x => new SavedReportListViewModel() {
+                    Name = x.Name,
+                    CompanyId = x.Id,
+                    Count = 0
+                }));
+
+            return result;
         }
 
         [HttpPost("GenerateSavedReportPlan", Name = "GenerateSavedReportPlan")]
@@ -407,14 +419,15 @@ namespace Web.Controllers.Api {
 
         [HttpPost("PublishFact", Name = "PublishFact")]
         public async Task<IActionResult> PublishFact(long id) {
-            var result = await _reportBusinessManager.UpdateSavedReport(id, new SavedReportDto() { IsPublished = true });
+            var result = await _reportBusinessManager.UpdateSavedFactReport(id, new SavedReportDto() { IsPublished = true });
             return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
-        [HttpGet("GetDetailsFact", Name = "GetDetailsFact")]
-        public async Task<IActionResult> DetailsFact(long id) {
+        [HttpGet("GetSavedReportFact", Name = "GetSavedReportFact")]
+        public async Task<IActionResult> GetSavedReportFact(long id) {
+            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), id);
+            var result = await _reportBusinessManager.GetSavedFactReport(userId, id);
             var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
             var columns = result.Select(x => x.Date.ToString("MM/dd/yyyy")).Prepend("Name").Prepend("Id").ToList();
