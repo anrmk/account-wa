@@ -7,11 +7,5 @@ namespace Core.Data.Dto {
         public int Count { get; set; }
         public decimal? Amount { get; set; }
         public long? ReportId { get; set; }
-
-        [Obsolete]
-        public string Value { get; set; }
-
-        [Obsolete]
-        public string Code { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
@@ -44,85 +45,7 @@ namespace Web.Controllers.Mvc {
             if(company == null) {
                 return BadRequest();
             }
-            //ViewBag.CompanyName = company.Name;
-
-            //var result = await _reportBusinessManager.GetSavedReport(User.FindFirstValue(ClaimTypes.NameIdentifier), id);
-            //var customerTypes = await _customerBusinessManager.GetCustomerTypes();
-
-            //Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
-            //rows.Add("Id", new List<string>());
-            //rows.Add("Name", new List<string>());
-
-            ////Add Customers Type fields
-            //rows.Add("Total Customers", new List<string>());
-            //foreach(var ctype in customerTypes) {
-            //    rows.Add(ctype.Name, new List<string>());
-            //}
-
-            //foreach(var report in result) {
-            //    foreach(var ctype in customerTypes) {
-            //        var containField = report.Fields.Any(x => x.Name.Equals(ctype.Name));
-            //        if(!containField) {
-            //            report.Fields.Add(new SavedReportFieldDto() {
-            //                Name = ctype.Name,
-            //                Value = ""
-            //            });
-            //        }
-            //    }
-
-            //    if(rows.ContainsKey("Id")) {
-            //        rows["Id"].Add(report.IsPublished ? "" : report.Id.ToString());
-            //    }
-
-            //    if(rows.ContainsKey("Name")) {
-            //        rows["Name"].Add(report.Date.ToString("MMM/dd/yyyy"));
-            //    }
-
-            //    foreach(var field in report.Fields) {
-            //        if(rows.ContainsKey(field.Name)) {
-            //            rows[field.Name].Add(field.Value);
-            //        } else {
-            //            rows.Add(field.Name, new List<string>() {
-            //                field.Value
-            //            });
-            //        }
-            //    }
-
-            //    var files = report.Files.Select(x => string.Format("{0}|{1}", x.Id, x.Name));
-            //    if(rows.ContainsKey("Files")) {
-            //        rows["Files"].Add(string.Join(";", files));
-            //    } else {
-            //        rows.Add("Files", new List<string>() {
-            //             string.Join(";", files)
-            //         });
-            //    }
-            //}
-
-            ////var columns = result.Select(x => x.Date.ToString("MMM/dd/yyyy"));
-            //return View(rows);
             return View(_mapper.Map<CompanyViewModel>(company));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteFact(long id) {
-            try {
-                var item = await _reportBusinessManager.GetSavedFactReport(id);
-                if(item == null)
-                    return NotFound();
-
-                var companyId = item.CompanyId;
-
-                var result = await _reportBusinessManager.DeleteSavedFactReport(id);
-                if(result == false) {
-                    return NotFound();
-                }
-                return RedirectToAction(nameof(DetailsFact), new { companyId = companyId });
-
-            } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-                return BadRequest(er);
-            }
         }
 
         public async Task<IActionResult> DetailsPlan(long id) {
@@ -417,12 +340,7 @@ namespace Web.Controllers.Api {
             }
         }
 
-        [HttpPost("PublishFact", Name = "PublishFact")]
-        public async Task<IActionResult> PublishFact(long id) {
-            var result = await _reportBusinessManager.UpdateSavedFactReport(id, new SavedReportDto() { IsPublished = true });
-            return Ok(_mapper.Map<SavedReportDto>(result));
-        }
-
+        #region FACT
         [HttpGet("GetSavedReportFact", Name = "GetSavedReportFact")]
         public async Task<IActionResult> GetSavedReportFact(long id) {
             var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -430,69 +348,68 @@ namespace Web.Controllers.Api {
             var result = await _reportBusinessManager.GetSavedFactReport(userId, id);
             var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
-            var columns = result.Select(x => x.Date.ToString("MM/dd/yyyy")).Prepend("Name").Prepend("Id").ToList();
+            var columns = result.Select(x => x.Date.ToString("MMM.dd.yyyy")).ToList();
 
-            var rows1 = new List<object>();
-
-            foreach(var column in columns) {
-                var row = result.Select(x => new {
-                    Id = x.Id,
-                    TotalCustomers = x.Fields.Where(x => x.Code == "TotalCustomers")
-                }).ToList();
-
-            }
-
-            Dictionary<string, List<string>> rows = new Dictionary<string, List<string>>();
-            //rows.Add("Id", new List<string>());
-            //rows.Add("Name", new List<string>());
-
-            ////Add Customers Type fields
-            //rows.Add("Total Customers", new List<string>());
-            //foreach(var ctype in customerTypes) {
-            //    rows.Add(ctype.Name, new List<string>());
-            //}
+            var dictRows = new Dictionary<string, List<object>>();
 
             foreach(var report in result) {
-                foreach(var ctype in customerTypes) {
-                    var containField = report.Fields.Any(x => x.Name.Equals(ctype.Name));
-                    if(!containField) {
+                //extend fields by customerTypes
+                foreach(var ctypes in customerTypes) {
+                    if(!report.Fields.Any(x => x.Name.Equals(ctypes.Name))) {
                         report.Fields.Add(new SavedReportFieldDto() {
-                            Name = ctype.Name,
-                            Count = 0,
+                            Name = ctypes.Name,
+                            ReportId = report.Id
                         });
                     }
-                }
-
-                if(rows.ContainsKey("Id")) {
-                    rows["Id"].Add(report.IsPublished ? "" : report.Id.ToString());
-                }
-
-                if(rows.ContainsKey("Name")) {
-                    rows["Name"].Add(report.Date.ToString("MMM/dd/yyyy"));
                 }
 
                 foreach(var field in report.Fields) {
-                    if(rows.ContainsKey(field.Name)) {
-                        rows[field.Name].Add(field.Value);
-                    } else {
-                        rows.Add(field.Name, new List<string>() {
-                            field.Value
-                        });
+                    if(!dictRows.ContainsKey(field.Name)) {
+                        dictRows.Add(field.Name, new List<object>());
                     }
+                    //if(field.Amount.HasValue)
+                    //    dictRows[field.Name].Add($"{field.Count}:{field.Amount?.ToCurrency()}");
+                    //else {
+                        dictRows[field.Name].Add(new { Count = field.Count, Amount = field.Amount?.ToCurrency() ?? null  });
+                    //}
                 }
 
-                var files = report.Files.Select(x => string.Format("{0}|{1}", x.Id, x.Name));
-                if(rows.ContainsKey("Files")) {
-                    rows["Files"].Add(string.Join(";", files));
-                } else {
-                    rows.Add("Files", new List<string>() {
-                         string.Join(";", files)
-                     });
+                if(!dictRows.ContainsKey("Id")) {
+                    dictRows.Add("Id", new List<object>());
                 }
+                dictRows["Id"].Add(new { Id = report.Id, IsPublished = report.IsPublished });
             }
 
-            //var columns = result.Select(x => x.Date.ToString("MMM/dd/yyyy"));
-            return Ok(rows);
+            //expand table
+            var rows = new List<object>();
+            foreach(var key in dictRows.Keys) {
+                var obj = new ExpandoObject() as IDictionary<string, Object>;
+                obj.Add("Name", key);
+
+                for(var i = 0; i < columns.Count; i++) {
+                    var columnName = columns[i];
+                    obj.Add(columnName, dictRows[key][i]);
+                }
+                rows.Add(obj);
+            }
+
+            return Ok(new { items = rows, columns = columns.Prepend("Name").Select(x => new { field = x, title = x }) });
         }
+
+        [HttpPost("PublishFact", Name = "PublishFact")]
+        public async Task<IActionResult> PublishFact(long id) {
+            var result = await _reportBusinessManager.UpdateSavedFactReport(id, new SavedReportDto() { IsPublished = true });
+            return Ok(_mapper.Map<SavedReportDto>(result));
+        }
+
+        [HttpDelete("DeleteSavedReportFact", Name = "DeleteSavedReportFact")]
+        public async Task<IActionResult> DeleteSavedReportFact([FromQuery]long id) {
+            var result = await _reportBusinessManager.DeleteSavedFactReport(id);
+            if(result)
+                return Ok(id);
+
+            return BadRequest("No items selected");
+        }
+        #endregion
     }
 }

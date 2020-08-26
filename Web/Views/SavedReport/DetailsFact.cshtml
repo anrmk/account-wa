@@ -2,118 +2,97 @@
 
 @{
     ViewData["Title"] = "Saved Reports Fact";
-    var tableUrl = Url.RouteUrl("GetDetailsFact", new {id = Model.Id } );
+    var tableId = Guid.NewGuid();
+    var tableUrl = Url.RouteUrl("GetSavedReportFact", new { id = Model.Id });
+    var publishUrl = Url.RouteUrl("PublishFact");
+    var deleteUrl = Url.RouteUrl("DeleteSavedReportFact");
 }
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-controller="SavedReport" asp-action="Index" asp-fragment="fact">Saved reports</a></li>
-        <li class="breadcrumb-item" aria-current="page">Fact</li>
         <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
     </ol>
 </nav>
 
 <div class="card">
     <div class="card-body">
-        <table id="datatable" data-toggle="table" data-url="@tableUrl">
-            <thead>
-                <tr>
-                    <th data-field="no" data-sortable="true" class="collapsing">No</th>
-                    @*<th data-field="name" data-sortable="true">Company</th>
-                    <th data-field="address">Address</th>
-                    <th data-formatter="actionFormatter" class="text-right table-active collapsing">Actions</th>*@
-                </tr>
-            </thead>
+        <table id="@tableId"
+               data-classes="table table-bordered table-condensed"
+               data-data-field="items"
+               data-search="false"
+               data-pagination="false"
+               data-show-refresh="false"
+               data-filter="false"
+               data-fixed-columns="true"
+               data-fixed-number="1"
+               data-show-columns-toggle-all="true">
         </table>
-
-
-
-
-        @*<div class="scrolling outer">
-            <div class="inner">
-                <table id="savedReportTable" class="table table-striped table-hover table-condensed">
-                    @foreach(var row in Model.Keys) {
-                        @if(row != "Id") {
-                            <tr>
-                                @if(row == "Name") {
-                                    <th scope="col">@row</th>
-                                    @foreach(var col in Model[row]) {
-                                        <td scope="col" width="160px">@col</td>
-                                    }
-                                } else if(row == "Files") {
-                                    <th scope="row">@row</th>
-                                    @foreach(var col in Model[row]) {
-                                        <td>
-                                            @if(!string.IsNullOrEmpty(col)) {
-                                                @foreach(var d in col.Split(";")) {
-                                                    <a asp-controller="Report" asp-action="Download" asp-route-id="@d.Split("|")[0]">@d.Split("|")[1]</a><br />
-                                                }
-                                            }
-                                        </td>
-                                    }
-                                } else {
-                                    <th scope="row">@(row == "-31-0" ? "Current" : row )</th>
-                                    @foreach(var col in Model[row]) {
-                                        <td>
-                                            @if(col.Split("|").Length >= 2) {
-                                                <span>@col.Split("|")[0]</span><br />
-                                                <span>
-                                                    @(Core.Extension.NumberExtensionMethods.ToCurrency(decimal.Parse(col.Split("|")[1].Trim()) ))
-                                                </span>
-                                            } else {
-                                                <span>@col</span>
-                                            }
-                                        </td>
-                                    }
-                                }
-                                <td></td>
-                            </tr>
-                        }
-                    }
-
-                    @foreach(var row in Model.Keys) {
-                        if(row == "Id") {
-                            <tr class="table-active">
-                                <th scope="row">Action</th>
-
-                                @foreach(var col in Model[row]) {
-                                    <td id="status_@col">
-                                        @if(!string.IsNullOrEmpty(col)) {
-                                            <form asp-route="PublishFact" asp-route-id="@col" data-request="ajax" rel="xPublishSubmitComplete">
-                                                <button type="submit" class="btn btn-secondary btn-block mb-1">Publish</button>
-                                            </form>
-                                            <form asp-action="DeleteFact" asp-route-id="@col" data-action="delete">
-                                                <button type="submit" class="btn btn-danger btn-block" onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-                                            </form>
-                                        } else {
-                                            <span class="text-success"><i class="far fa-check-circle"></i> Published</span>
-                                        }
-                                    </td>
-                                }
-                                <td></td>
-                            </tr>
-                        }
-                    }
-                </table>
-            </div>
-        </div>*@
-   
     </div>
 </div>
 
 @section Scripts {
     <script type="text/javascript">
-        function xPublishSubmitComplete(e, jqXHR, status) {
-            if (status === 'success') {
-                var data = jqXHR.responseJSON;
-                data.isPublished ? $(`#status_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+        $(document).ready(e => {
+            initTable();
+        })
+
+        function initTable() {
+            var $tableId = $('#@tableId');
+            $.get('@tableUrl', (data, status) => {
+                $tableId.bootstrapTable('destroy');
+                $tableId.bootstrapTable({
+                    'data': data.items,
+                    'columns': data.columns.map(x => {
+                        x.formatter = 'formatter';
+                        //x.width = '160';
+                        //x.widthUnit = 'px';
+                        return x;
+                    }),
+                    'onPostBody': function (data) {
+                        $tableId.find('[data-request=ajax]').xSubmit();
+                    },
+                });
+            })
+        }
+
+        function formatter(value, row) {
+            if (row.Name === "Id") {
+                if (value === "Id") {
+                    value = "Action";
+                } else if (value !== "Id") {
+                    if (value.isPublished) {
+                        return `<span class='text-success'><i class='far fa-check-circle'></i> Published</span>`;
+                    } else {
+                        return `<div id='action_${value.id}'>
+                                  <form data-request='ajax' rel='xPublishSubmitComplete' action='@(publishUrl)?id=${value.id}' method='post'>
+                                    <button type='submit' class='btn btn-secondary btn-block mb-1'>Publish</button>
+                                  </form>
+                                  <form data-request='ajax' rel='xDeleteSubmitComplete' action='@(deleteUrl)?id=${value.id}' method="delete">
+                                    <input type='hidden' name='Id' value='${value.id}' />
+                                    <button type='submit' class='btn btn-danger btn-block' onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                                  </form>
+                                </div>`;
+                    }
+                }
+            } else if (typeof (value) === 'object') {
+                return `<span>${value.count}</span><br/><span>${value.amount ?? ''}</span>`
+            } else {
+                return `<strong>${value}</strong>`;
             }
         }
 
-
-        function actionFormatter(value, row) {
-            return `<a href='/company/edit/${row.id}' class='btn btn-secondary mr-1' >Edit</a>`;
+        function xPublishSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                var data = jqXHR.responseJSON;
+                data.isPublished ? $(`#action_${data.id}`).html('<span class="text-success"><i class="far fa-check-circle"></i> Published</span>') : '';
+            }
         }
 
+        function xDeleteSubmitComplete(e, jqXHR, status) {
+            if (status === 'success') {
+                initTable();
+            }
+        }
     </script>
 }

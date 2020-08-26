@@ -31,7 +31,9 @@
         "bootstrap-table.min.css",
         "bootstrap-table.min.js",
         "extensions/filter-control/bootstrap-table-filter-control.min.css",
-        "extensions/filter-control/bootstrap-table-filter-control.min.js"
+        "extensions/filter-control/bootstrap-table-filter-control.min.js",
+        "extensions/fixed-columns/bootstrap-table-fixed-columns.min.css",
+        "extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"
       ]
     },
     {
