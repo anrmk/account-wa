@@ -147,6 +147,7 @@ namespace Web.Controllers.Mvc {
             }
         }
 
+        [Obsolete]
         [Route("download/{id}")]
         public async Task<IActionResult> Download(long id) {
             var item = await _reportBusinessManager.GetSavedFactFile(id);

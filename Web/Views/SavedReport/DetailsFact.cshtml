@@ -4,8 +4,9 @@
     ViewData["Title"] = "Saved Reports Fact";
     var tableId = Guid.NewGuid();
     var tableUrl = Url.RouteUrl("GetSavedReportFact", new { id = Model.Id });
-    var publishUrl = Url.RouteUrl("PublishFact");
+    var publishUrl = Url.RouteUrl("PublishSavedReportFact");
     var deleteUrl = Url.RouteUrl("DeleteSavedReportFact");
+    var downloadUrl = Url.Action("Download");
 }
 
 <nav aria-label="breadcrumb">
@@ -57,27 +58,32 @@
         }
 
         function formatter(value, row) {
-            if (row.Name === "Id") {
-                if (value === "Id") {
-                    value = "Action";
-                } else if (value !== "Id") {
+            if (typeof (value) === 'object') {
+                if (Array.isArray(value)) {
+                    return value.map(x => `<a class='badge badge-light' href='@downloadUrl/${x.id}'>${x.name}</a>`).join('');
+                } else if (row.Name === 'Id') {
                     if (value.isPublished) {
                         return `<span class='text-success'><i class='far fa-check-circle'></i> Published</span>`;
                     } else {
                         return `<div id='action_${value.id}'>
-                                  <form data-request='ajax' rel='xPublishSubmitComplete' action='@(publishUrl)?id=${value.id}' method='post'>
-                                    <button type='submit' class='btn btn-secondary btn-block mb-1'>Publish</button>
-                                  </form>
-                                  <form data-request='ajax' rel='xDeleteSubmitComplete' action='@(deleteUrl)?id=${value.id}' method="delete">
-                                    <input type='hidden' name='Id' value='${value.id}' />
-                                    <button type='submit' class='btn btn-danger btn-block' onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
-                                  </form>
-                                </div>`;
+                                <form data-request='ajax' rel='xPublishSubmitComplete' action='@(publishUrl)?id=${value.id}' method='post'>
+                                <button type='submit' class='btn btn-secondary btn-block mb-1'>Publish</button>
+                                </form>
+                                <form data-request='ajax' rel='xDeleteSubmitComplete' action='@(deleteUrl)?id=${value.id}' method="delete">
+                                <input type='hidden' name='Id' value='${value.id}' />
+                                <button type='submit' class='btn btn-danger btn-block' onclick="if (! confirm('Are you sure want to delete this?')) { return false; }"><i class="fa fa-trash-alt mr-1"></i> Remove</button>
+                                </form>
+                             </div>`;
                     }
+                } else {
+                    return `<span>${value.count}</span><br/><span>${value.amount ?? ''}</span>`
                 }
-            } else if (typeof (value) === 'object') {
-                return `<span>${value.count}</span><br/><span>${value.amount ?? ''}</span>`
-            } else {
+            }  else {
+                if (value === 'Id')
+                    value = 'Actions';
+                else if (value === '-31-0')
+                    value = 'Current';
+
                 return `<strong>${value}</strong>`;
             }
         }

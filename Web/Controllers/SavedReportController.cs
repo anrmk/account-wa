@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
@@ -126,6 +127,23 @@ namespace Web.Controllers.Mvc {
                 _logger.LogError(er, er.Message);
                 return BadRequest(er);
             }
+        }
+
+        [HttpGet("Download", Name = "Download")]
+        public async Task<IActionResult> Download(long id) {
+            var item = await _reportBusinessManager.GetSavedFactFile(id);
+            if(item == null) {
+                return NotFound();
+            }
+
+            MemoryStream ms = new MemoryStream();
+            ms.Write(item.File, 0, item.File.Length);
+            ms.Position = 0;
+
+            FileStreamResult fileStreamResult = new FileStreamResult(ms, "application/octet-stream");
+            fileStreamResult.FileDownloadName = item.Name;
+
+            return fileStreamResult;
         }
     }
 }
@@ -351,7 +369,6 @@ namespace Web.Controllers.Api {
             var columns = result.Select(x => x.Date.ToString("MMM.dd.yyyy")).ToList();
 
             var dictRows = new Dictionary<string, List<object>>();
-
             foreach(var report in result) {
                 //extend fields by customerTypes
                 foreach(var ctypes in customerTypes) {
@@ -367,20 +384,25 @@ namespace Web.Controllers.Api {
                     if(!dictRows.ContainsKey(field.Name)) {
                         dictRows.Add(field.Name, new List<object>());
                     }
-                    //if(field.Amount.HasValue)
-                    //    dictRows[field.Name].Add($"{field.Count}:{field.Amount?.ToCurrency()}");
-                    //else {
-                        dictRows[field.Name].Add(new { Count = field.Count, Amount = field.Amount?.ToCurrency() ?? null  });
-                    //}
+                    dictRows[field.Name].Add(new { Count = field.Count, Amount = field.Amount?.ToCurrency() ?? null });
                 }
 
+                #region FILES
+                if(!dictRows.ContainsKey("Files")) {
+                    dictRows.Add("Files", new List<object>());
+                }
+                dictRows["Files"].Add(report.Files.Select(x => new { Id = x.Id, Name = x.Name }).ToArray());
+                #endregion
+
+                #region ID/ACTION
                 if(!dictRows.ContainsKey("Id")) {
                     dictRows.Add("Id", new List<object>());
                 }
                 dictRows["Id"].Add(new { Id = report.Id, IsPublished = report.IsPublished });
+                #endregion
             }
 
-            //expand table
+            #region EXPAND TABLE
             var rows = new List<object>();
             foreach(var key in dictRows.Keys) {
                 var obj = new ExpandoObject() as IDictionary<string, Object>;
@@ -392,24 +414,26 @@ namespace Web.Controllers.Api {
                 }
                 rows.Add(obj);
             }
+            #endregion
 
             return Ok(new { items = rows, columns = columns.Prepend("Name").Select(x => new { field = x, title = x }) });
         }
 
-        [HttpPost("PublishFact", Name = "PublishFact")]
-        public async Task<IActionResult> PublishFact(long id) {
+        [HttpPost("PublishSavedReportFact", Name = "PublishSavedReportFact")]
+        public async Task<IActionResult> PublishSavedReportFact(long id) {
             var result = await _reportBusinessManager.UpdateSavedFactReport(id, new SavedReportDto() { IsPublished = true });
             return Ok(_mapper.Map<SavedReportDto>(result));
         }
 
         [HttpDelete("DeleteSavedReportFact", Name = "DeleteSavedReportFact")]
-        public async Task<IActionResult> DeleteSavedReportFact([FromQuery]long id) {
+        public async Task<IActionResult> DeleteSavedReportFact([FromQuery] long id) {
             var result = await _reportBusinessManager.DeleteSavedFactReport(id);
             if(result)
                 return Ok(id);
 
             return BadRequest("No items selected");
         }
+
         #endregion
     }
 }
