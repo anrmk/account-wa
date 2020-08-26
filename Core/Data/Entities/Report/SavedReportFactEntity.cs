@@ -6,8 +6,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Core.Data.Entities {
     [Table(name: "SavedReports")]
     public class SavedReportFactEntity: AuditableEntity<long> {
-       // public string Name { get; set; }
-
         [Column("ApplicationUser_Id")]
         public Guid ApplicationUserId { get; set; }
 

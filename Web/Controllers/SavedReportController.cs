@@ -361,62 +361,66 @@ namespace Web.Controllers.Api {
         #region FACT
         [HttpGet("GetSavedReportFact", Name = "GetSavedReportFact")]
         public async Task<IActionResult> GetSavedReportFact(long id) {
-            var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            try {
+                var userId = new Guid(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var result = await _reportBusinessManager.GetSavedFactReport(userId, id);
-            var customerTypes = await _customerBusinessManager.GetCustomerTypes();
+                var result = await _reportBusinessManager.GetSavedFactReport(userId, id);
+                var customerTypes = await _customerBusinessManager.GetCustomerTypes();
 
-            var columns = result.Select(x => x.Date.ToString("MMM.dd.yyyy")).ToList();
+                var columns = result.Select(x => x.Date.ToString("MMM.dd.yyyy")).ToList();
 
-            var dictRows = new Dictionary<string, List<object>>();
-            foreach(var report in result) {
-                //extend fields by customerTypes
-                foreach(var ctypes in customerTypes) {
-                    if(!report.Fields.Any(x => x.Name.Equals(ctypes.Name))) {
-                        report.Fields.Add(new SavedReportFieldDto() {
-                            Name = ctypes.Name,
-                            ReportId = report.Id
-                        });
+                var dictRows = new Dictionary<string, List<object>>();
+                foreach(var report in result) {
+                    //extend fields by customerTypes
+                    foreach(var ctypes in customerTypes) {
+                        if(!report.Fields.Any(x => x.Name.Equals(ctypes.Name))) {
+                            report.Fields.Add(new SavedReportFieldDto() {
+                                Name = ctypes.Name,
+                                ReportId = report.Id
+                            });
+                        }
                     }
-                }
 
-                foreach(var field in report.Fields) {
-                    if(!dictRows.ContainsKey(field.Name)) {
-                        dictRows.Add(field.Name, new List<object>());
+                    foreach(var field in report.Fields) {
+                        if(!dictRows.ContainsKey(field.Name)) {
+                            dictRows.Add(field.Name, new List<object>());
+                        }
+                        dictRows[field.Name].Add(new { Count = field.Count, Amount = field.Amount?.ToCurrency() ?? null });
                     }
-                    dictRows[field.Name].Add(new { Count = field.Count, Amount = field.Amount?.ToCurrency() ?? null });
+
+                    #region FILES
+                    if(!dictRows.ContainsKey("Files")) {
+                        dictRows.Add("Files", new List<object>());
+                    }
+                    dictRows["Files"].Add(report.Files.Select(x => new { Id = x.Id, Name = x.Name }).ToArray());
+                    #endregion
+
+                    #region ID/ACTION
+                    if(!dictRows.ContainsKey("Id")) {
+                        dictRows.Add("Id", new List<object>());
+                    }
+                    dictRows["Id"].Add(new { Id = report.Id, IsPublished = report.IsPublished });
+                    #endregion
                 }
 
-                #region FILES
-                if(!dictRows.ContainsKey("Files")) {
-                    dictRows.Add("Files", new List<object>());
+                #region EXPAND TABLE
+                var rows = new List<object>();
+                foreach(var key in dictRows.Keys) {
+                    var obj = new Dictionary<string, object>();
+                    obj.Add("Name", key);
+
+                    for(var i = 0; i < columns.Count; i++) {
+                        var columnName = columns[i];
+                        obj.Add(columnName, dictRows[key][i]);
+                    }
+                    rows.Add(obj);
                 }
-                dictRows["Files"].Add(report.Files.Select(x => new { Id = x.Id, Name = x.Name }).ToArray());
                 #endregion
 
-                #region ID/ACTION
-                if(!dictRows.ContainsKey("Id")) {
-                    dictRows.Add("Id", new List<object>());
-                }
-                dictRows["Id"].Add(new { Id = report.Id, IsPublished = report.IsPublished });
-                #endregion
+                return Ok(new { items = rows, columns = columns.Prepend("Name").Select(x => new { field = x, title = x }) });
+            } catch(Exception er) {
+                return BadRequest(er.Message ?? er.StackTrace);
             }
-
-            #region EXPAND TABLE
-            var rows = new List<object>();
-            foreach(var key in dictRows.Keys) {
-                var obj = new ExpandoObject() as IDictionary<string, Object>;
-                obj.Add("Name", key);
-
-                for(var i = 0; i < columns.Count; i++) {
-                    var columnName = columns[i];
-                    obj.Add(columnName, dictRows[key][i]);
-                }
-                rows.Add(obj);
-            }
-            #endregion
-
-            return Ok(new { items = rows, columns = columns.Prepend("Name").Select(x => new { field = x, title = x }) });
         }
 
         [HttpPost("PublishSavedReportFact", Name = "PublishSavedReportFact")]
