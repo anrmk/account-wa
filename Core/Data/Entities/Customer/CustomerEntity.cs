@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -42,6 +43,9 @@ namespace Core.Data.Entities {
         public virtual ICollection<CustomerCreditLimitEntity> CreditLimits { get; set; }
 
         public virtual ICollection<CustomerCreditUtilizedEntity> CreditUtilizeds { get; set; }
+
+        [DataType(DataType.DateTime)]
+        public DateTime ActivityDate { get; set; }
 
         public virtual ICollection<CustomerActivityEntity> Activities { get; set; }
 

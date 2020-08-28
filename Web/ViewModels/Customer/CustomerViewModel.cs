@@ -45,7 +45,7 @@ namespace Web.ViewModels {
 
         [Display(Name = "Created Date")]
         [SpecialName()]
-        public DateTime CreatedDate { get; set; }
+        public DateTime ActivityDate { get; set; }
 
         #region Address
         public long? AddressId { get; set; }

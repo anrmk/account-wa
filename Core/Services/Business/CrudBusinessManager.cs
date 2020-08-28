@@ -16,8 +16,6 @@ using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Core.Services.Business {
     public interface ICrudBusinessManager {
-
-
         #region CUSTOMER
         Task<CustomerDto> GetCustomer(long id);
         Task<List<CustomerDto>> GetCustomers();
@@ -392,8 +390,8 @@ namespace Core.Services.Business {
 
                     updateCustomerEntityList.Add(customerEntity);
 
-                    //UPDATE ACTIVITY
-                    if(columns.Contains("CreatedDate")) {
+                    //CREATE/UPDATE ACTIVITY
+                    if(columns.Contains("ActivityDate")) {
                         var activityEntityList = await _customerActivityManager.FindByCustomerId(customerEntity.Id);
                         if(activityEntityList != null && activityEntityList.Count > 0) {
                             var activityEntity = activityEntityList.FirstOrDefault();

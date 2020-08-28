@@ -53,6 +53,7 @@ namespace Core.Data.Dto {
 
         public virtual ICollection<CustomerCreditLimitDto> CreditLimits { get; set; }
 
+        public DateTime ActivityDate { get; set; }
         public virtual ICollection<CustomerActivityDto> Activities { get; set; }
 
         public virtual ICollection<long?> TagsIds { get; set; }
