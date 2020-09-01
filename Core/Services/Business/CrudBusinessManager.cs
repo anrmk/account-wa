@@ -450,7 +450,6 @@ namespace Core.Services.Business {
             }
             #endregion
 
-
             #region CREATE CUSTOMERS
             createActivityEntityList.Clear(); // Очистить список активности
             createTagLinkList.Clear(); // Очистить список тэгов
@@ -459,13 +458,12 @@ namespace Core.Services.Business {
             foreach(var dto in exceptList) {
                 var customerEntity = await _customerManager.Create(_mapper.Map<CustomerEntity>(dto));
                 if(customerEntity != null) {
-
                     //CREATE ACTIVITY
-                    if(columns.Contains("CreatedDate")) {
+                    if(columns.Contains("ActivityDate")) {
                         createActivityEntityList.Add(new CustomerActivityEntity() {
                             CustomerId = customerEntity.Id,
                             IsActive = true,
-                            CreatedDate = dto.CreatedDate,
+                            CreatedDate = dto.ActivityDate,
                         });
                     }
 
