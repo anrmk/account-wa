@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 
 using AutoMapper;
 
+using Castle.Core.Internal;
+
 using Core.Context;
 using Core.Data.Dto;
 using Core.Extension;
@@ -562,15 +564,19 @@ namespace Web.Controllers.Api {
 
                         while(!csvParser.EndOfData) {
                             string[] fields = csvParser.ReadFields();
-                            var rows = new List<CustomerRowViewModel>();
-                            for(int i = 0; i < fields.Count(); i++) {
-                                rows.Add(new CustomerRowViewModel() {
-                                    Index = i,
-                                    Name = model.HeadRow[i],
-                                    Value = fields[i]
-                                }); ;
+                            var checkField = fields.Where(x => !x.IsNullOrEmpty());
+
+                            if(checkField.Count() != 0) {
+                                var rows = new List<CustomerRowViewModel>();
+                                for(int i = 0; i < fields.Count(); i++) {
+                                    rows.Add(new CustomerRowViewModel() {
+                                        Index = i,
+                                        Name = model.HeadRow[i],
+                                        Value = fields[i]
+                                    });
+                                }
+                                model.Rows.Add(rows.ToArray());
                             }
-                            model.Rows.Add(rows.ToArray());
                         }
 
                         var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
@@ -588,7 +594,6 @@ namespace Web.Controllers.Api {
                         return Ok(html);
                     }
                 }
-
             } catch(Exception er) {
                 return BadRequest(er.Message);
             }
@@ -597,97 +602,95 @@ namespace Web.Controllers.Api {
         [HttpPost("CreateUploadedCustomers", Name = "CreateUploadedCustomers")]
         public async Task<ActionResult> CreateUploadedCustomers(CustomerBulkViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    if(model.CheckedRecords == null || model.CheckedRecords.Length == 0)
-                        throw new Exception("No records selected!");
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
 
-                    //Получить данные из кэш
-                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows;
+                if(model.CheckedRecords == null || model.CheckedRecords.Length == 0)
+                    throw new Exception("No records selected!");
 
-                    var customerTypes = await _customerBusinessManager.GetCustomerTypes();
-                    var customerTags = await _businessManager.GetCustomerTags();
+                //Получить данные из кэш
+                var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                model.Rows = cacheModel?.Rows;
 
-                    var customerList = new List<CustomerViewModel>();
-                    for(int i = 0; i < model.Rows.Count; i++) {
-                        if(!model.CheckedRecords.Contains(i))
-                            continue;
+                var customerTypes = await _customerBusinessManager.GetCustomerTypes();
+                var customerTags = await _businessManager.GetCustomerTags();
 
-                        var row = model.Rows[i];
+                var customerList = new List<CustomerViewModel>();
+                for(int i = 0; i < model.Rows.Count; i++) {
+                    if(!model.CheckedRecords.Contains(i))
+                        continue;
 
-                        var customer = new CustomerViewModel() {
-                            CompanyId = model.CompanyId,
-                        };
+                    var row = model.Rows[i];
 
-                        for(var j = 0; j < row.Count(); j++) {
-                            var column = model.Columns[j];
-                            if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
-                                var property = customer.GetType().GetProperty(column.Name);
+                    var customer = new CustomerViewModel() {
+                        CompanyId = model.CompanyId,
+                    };
 
-                                if(property != null && property.CanWrite) {
-                                    if(property.PropertyType == typeof(double)) {
-                                        if(double.TryParse(row[j].Value, out double doubleVal)) {
-                                            property.SetValue(customer, doubleVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(decimal)) {
-                                        if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
-                                            property.SetValue(customer, decimalVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(int)) {
-                                        if(int.TryParse(row[j].Value, out int intVal)) {
-                                            property.SetValue(customer, intVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(bool)) {
-                                        if(bool.TryParse(row[j].Value, out bool boolVal)) {
-                                            property.SetValue(customer, boolVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(DateTime)) {
-                                        if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
-                                            property.SetValue(customer, dateVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(ICollection<long?>)) {
-                                        if(property.Name.Equals("TagsIds")) {
-                                            var tagsValues = row[j].Value.Split(',').Select(x => x.Trim()).ToList();
-                                            var tagsIds = customerTags.Where(x => tagsValues.Contains(x.Name)).Select(x => x?.Id).ToList();
-                                            if(tagsIds.Count() > 0)
-                                                property.SetValue(customer, tagsIds);
+                    for(var j = 0; j < row.Count(); j++) {
+                        var column = model.Columns[j];
+                        if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
+                            var property = customer.GetType().GetProperty(column.Name);
+
+                            if(property != null && property.CanWrite) {
+                                if(property.PropertyType == typeof(double)) {
+                                    if(double.TryParse(row[j].Value, out double doubleVal)) {
+                                        property.SetValue(customer, doubleVal);
+                                    }
+                                } else if(property.PropertyType == typeof(decimal)) {
+                                    if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
+                                        property.SetValue(customer, decimalVal);
+                                    }
+                                } else if(property.PropertyType == typeof(int)) {
+                                    if(int.TryParse(row[j].Value, out int intVal)) {
+                                        property.SetValue(customer, intVal);
+                                    }
+                                } else if(property.PropertyType == typeof(bool)) {
+                                    if(bool.TryParse(row[j].Value, out bool boolVal)) {
+                                        property.SetValue(customer, boolVal);
+                                    }
+                                } else if(property.PropertyType == typeof(DateTime)) {
+                                    if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                        property.SetValue(customer, dateVal);
+                                    }
+                                } else if(property.PropertyType == typeof(ICollection<long?>)) {
+                                    if(property.Name.Equals("TagsIds")) {
+                                        var tagsValues = row[j].Value.Split(',').Select(x => x.Trim()).ToList();
+                                        var tagsIds = customerTags.Where(x => tagsValues.Contains(x.Name)).Select(x => x?.Id).ToList();
+                                        if(tagsIds.Count() > 0)
+                                            property.SetValue(customer, tagsIds);
+                                    }
+                                } else {
+                                    if(property.Name.Equals("TypeId")) {
+                                        var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
+                                        if(ctype != null) {
+                                            var propertyTypeId = customer.GetType().GetProperty("TypeId");
+                                            propertyTypeId.SetValue(customer, ctype.Id);
                                         }
                                     } else {
-                                        if(property.Name.Equals("TypeId")) {
-                                            var ctype = customerTypes.Where(x => x.Name.ToLower().Equals(row[j].Value.ToLower()) || x.Code.ToLower().Equals(row[j].Value.ToLower())).FirstOrDefault();
-                                            if(ctype != null) {
-                                                var propertyTypeId = customer.GetType().GetProperty("TypeId");
-                                                propertyTypeId.SetValue(customer, ctype.Id);
-                                            }
-                                        } else {
-                                            property.SetValue(customer, row[j].Value);
-                                        }
+                                        property.SetValue(customer, row[j].Value);
                                     }
                                 }
                             }
                         }
-
-                        if(TryValidateModel(customer)) {
-                            customerList.Add(customer);
-                        }
                     }
 
-                    if(customerList.Count == 0) {
-                        throw new Exception("No records have been created! Please, fill the required fields!");
+                    if(TryValidateModel(customer)) {
+                        customerList.Add(customer);
                     }
-
-                    var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
-                    var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
-
-                    return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers are created!" });
-
-                    //return Ok(_mapper.Map<List<CustomerViewModel>>(result));
                 }
+
+                if(customerList.Count == 0) {
+                    throw new Exception("No records have been created! Please, fill the required fields!");
+                }
+
+                var customerDtoList = _mapper.Map<List<CustomerDto>>(customerList);
+                var result = await _businessManager.CreateOrUpdateCustomer(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
+
+                return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers are created!" });
             } catch(Exception er) {
-                //_memoryCache.Remove("_CustomerUpload");
                 return BadRequest(er.Message ?? er.StackTrace);
             }
-            return Ok();
         }
 
         [HttpPost("UploadCreditUtilized", Name = "UploadCreditUtilized")]
@@ -732,9 +735,6 @@ namespace Web.Controllers.Api {
                         var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromHours(1));
                         _memoryCache.Set("_CustomerCreditsUpload", model, cacheEntryOptions);
 
-                        //var resultHtml = _viewRenderService.RenderToStringAsync("_CustomerCreditsBulkCreatePartial", model, ViewData).Result;
-                        //return Json(resultHtml);
-
                         var companies = await _companyBusinessManager.GetCompanies();
                         var customerFields = typeof(CustomerImportCreditsViewModel).GetProperties().Where(x => !x.IsCollectible && x.IsSpecialName)
                             .Select(x => new SelectListItem() { Text = Attribute.IsDefined(x, typeof(RequiredAttribute)) ? "* " + x.Name : x.Name, Value = x.Name });
@@ -747,7 +747,6 @@ namespace Web.Controllers.Api {
                         return Ok(html);
                     }
                 }
-
             } catch(Exception er) {
                 return BadRequest(er.Message);
             }
@@ -755,59 +754,60 @@ namespace Web.Controllers.Api {
 
         [HttpPost("CreateUploadedCreditUtilized", Name = "CreateUploadedCreditUtilized")]
         public async Task<ActionResult> CreateUploadedCreditUtilized(CustomerCreditsBulkViewModel model) {
-            var creditsList = new List<CustomerImportCreditsViewModel>();
-
             try {
-                if(ModelState.IsValid) {
-                    //Получить данные из кэш
-                    var cacheModel = _memoryCache.Get<CustomerCreditsBulkViewModel>("_CustomerCreditsUpload");
-                    model.Rows = cacheModel?.Rows;
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
 
-                    for(var i = 0; i < model.Rows?.Count(); i++) {
-                        var row = model.Rows[i];
-                        var creditsModel = new CustomerImportCreditsViewModel() {
-                            CompanyId = model.CompanyId,
-                            CreatedDate = model.CreatedDate
-                        };
+                //Получить данные из кэш
+                var cacheModel = _memoryCache.Get<CustomerCreditsBulkViewModel>("_CustomerCreditsUpload");
+                model.Rows = cacheModel?.Rows;
 
-                        for(var j = 0; j < row.Count(); j++) {
-                            var column = model.Columns[j];
-                            if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
-                                var property = creditsModel.GetType().GetProperty(column.Name);
+                var creditsList = new List<CustomerImportCreditsViewModel>();
+                for(var i = 0; i < model.Rows?.Count(); i++) {
+                    var row = model.Rows[i];
+                    var creditsModel = new CustomerImportCreditsViewModel() {
+                        CompanyId = model.CompanyId,
+                        CreatedDate = model.CreatedDate
+                    };
 
-                                if(property != null && property.CanWrite) {
-                                    if(property.PropertyType == typeof(double)) {
-                                        if(double.TryParse(row[j].Value, out double doubleVal)) {
-                                            property.SetValue(creditsModel, doubleVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?)) {
-                                        if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
-                                            property.SetValue(creditsModel, decimalVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(int)) {
-                                        if(int.TryParse(row[j].Value, out int intVal)) {
-                                            property.SetValue(creditsModel, intVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(bool)) {
-                                        if(bool.TryParse(row[j].Value, out bool boolVal)) {
-                                            property.SetValue(creditsModel, boolVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(DateTime)) {
-                                        if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
-                                            property.SetValue(creditsModel, dateVal);
-                                        }
-                                    } else if(property.PropertyType == typeof(ICollection<long?>)) {
+                    for(var j = 0; j < row.Count(); j++) {
+                        var column = model.Columns[j];
+                        if(column != null && !string.IsNullOrEmpty(column.Name) && row[j].Index == column.Index) {
+                            var property = creditsModel.GetType().GetProperty(column.Name);
 
-                                    } else {
-                                        property.SetValue(creditsModel, row[j].Value);
+                            if(property != null && property.CanWrite) {
+                                if(property.PropertyType == typeof(double)) {
+                                    if(double.TryParse(row[j].Value, out double doubleVal)) {
+                                        property.SetValue(creditsModel, doubleVal);
                                     }
+                                } else if(property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?)) {
+                                    if(decimal.TryParse(row[j].Value, out decimal decimalVal)) {
+                                        property.SetValue(creditsModel, decimalVal);
+                                    }
+                                } else if(property.PropertyType == typeof(int)) {
+                                    if(int.TryParse(row[j].Value, out int intVal)) {
+                                        property.SetValue(creditsModel, intVal);
+                                    }
+                                } else if(property.PropertyType == typeof(bool)) {
+                                    if(bool.TryParse(row[j].Value, out bool boolVal)) {
+                                        property.SetValue(creditsModel, boolVal);
+                                    }
+                                } else if(property.PropertyType == typeof(DateTime)) {
+                                    if(DateTime.TryParse(row[j].Value, out DateTime dateVal)) {
+                                        property.SetValue(creditsModel, dateVal);
+                                    }
+                                } else if(property.PropertyType == typeof(ICollection<long?>)) {
+
+                                } else {
+                                    property.SetValue(creditsModel, row[j].Value);
                                 }
                             }
                         }
+                    }
 
-                        if(TryValidateModel(creditsModel)) {
-                            creditsList.Add(creditsModel);
-                        }
+                    if(TryValidateModel(creditsModel)) {
+                        creditsList.Add(creditsModel);
                     }
                 }
 
@@ -819,8 +819,6 @@ namespace Web.Controllers.Api {
                 var result = await _businessManager.CreateOrUpdateCustomerCredits(customerDtoList, model.Columns.Where(x => !string.IsNullOrEmpty(x.Name)).Select(x => x.Name).ToList());
 
                 return Ok(new { Message = $"{result.Count}/{model.Rows?.Count} customers credit utilized are created!" });
-                // return Ok(_mapper.Map<List<CustomerImportCreditsViewModel>>(result));
-
             } catch(Exception e) {
                 return BadRequest(e.Message ?? e.StackTrace);
             }
@@ -829,143 +827,143 @@ namespace Web.Controllers.Api {
         [HttpPost("CheckingUploadCustomersAccountNumber", Name = "CheckingUploadCustomersAccountNumber")]
         public async Task<IActionResult> CheckingUploadCustomersAccountNumber(CustomerBulkViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    var column = model.Columns.Find(x => x.Name.Equals("No"));
-                    if(column == null)
-                        throw new Exception("Please, select \"Account Number\" column.");
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+                var column = model.Columns.Find(x => x.Name.Equals("No"));
+                if(column == null)
+                    throw new Exception("Please, select \"Account Number\" column.");
 
-                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
-                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
-                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined.");
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
+                if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                    throw new Exception("Please, check company settings! \"Account Number Template\" is not defined.");
+                }
+
+                var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                model.Rows = cacheModel?.Rows;
+
+                if(model.Rows == null || model.Rows.Count == 0) {
+                    throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                }
+
+                var regex = new Regex(company.Settings.AccountNumberTemplate);
+
+                var customers = new List<long>();
+                for(int i = 0; i < model.Rows.Count; i++) {
+                    var row = model.Rows[i];
+
+                    var isMatch = regex.IsMatch(row[column.Index].Value);
+                    if(!isMatch) {
+                        customers.Add(i);
                     }
+                }
 
-                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows;
-
-                    if(model.Rows == null || model.Rows.Count == 0) {
-                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
-                    }
-
-                    var regex = new Regex(company.Settings.AccountNumberTemplate);
-
-                    var customers = new List<long>();
-                    for(int i = 0; i < model.Rows.Count; i++) {
-                        var row = model.Rows[i];
-
-                        var isMatch = regex.IsMatch(row[column.Index].Value);
-                        if(!isMatch) {
-                            customers.Add(i);
-                        }
-                    }
-
-                    if(customers.Count == 0) {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings" });
-                    } else {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match the \"Account Number\" in the company settings template" });
-                    }
+                if(customers.Count == 0) {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} {company.Name} customers has valid \"Account Number\" that match the template set in the company settings" });
+                } else {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match the \"Account Number\" in the company settings template" });
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
-            return Ok();
         }
 
         [HttpPost("CheckingUploadCustomersBusinessName", Name = "CheckingUploadCustomersBusinessName")]
         public async Task<IActionResult> CheckingUploadCustomersBusinessName(CustomerBulkViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    var column = model.Columns.Find(x => x.Name.Equals("Name"));
-                    if(column == null)
-                        throw new Exception("Please, select \"Business Name\" column");
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+                var column = model.Columns.Find(x => x.Name.Equals("Name"));
+                if(column == null)
+                    throw new Exception("Please, select \"Business Name\" column");
 
-                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
-                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
-                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
+                if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                    throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                }
+
+                var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                model.Rows = cacheModel?.Rows
+                    .Select((x, i) => new { row = x, index = i })
+                    .Where(x => model.CheckedRecords.Contains(x.index)).Select(x => x.row).ToList();
+
+                if(model.Rows == null || model.Rows.Count == 0) {
+                    throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                }
+
+                var ccustomer = await _businessManager.GetCustomers(model.CompanyId ?? 0);
+
+                var customers = new List<long>();
+                for(int i = 0; i < model.Rows.Count; i++) {
+                    var row = model.Rows[i];
+                    var customerName = row[column.Index].Value;
+
+                    var customer = ccustomer.Where(x => x.Name.Equals(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    if(customer != null) {
+                        customers.Add(i);
                     }
+                }
 
-                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows
-                        .Select((x, i) => new { row = x, index = i })
-                        .Where(x => model.CheckedRecords.Contains(x.index)).Select(x => x.row).ToList();
-
-                    if(model.Rows == null || model.Rows.Count == 0) {
-                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
-                    }
-
-                    var ccustomer = await _businessManager.GetCustomers(model.CompanyId ?? 0);
-
-                    var customers = new List<long>();
-                    for(int i = 0; i < model.Rows.Count; i++) {
-                        var row = model.Rows[i];
-                        var customerName = row[column.Index].Value;
-
-                        var customer = ccustomer.Where(x => x.Name.Equals(customerName, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                        if(customer != null) {
-                            customers.Add(i);
-                        }
-                    }
-
-                    if(customers.Count == 0) {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers are not in the Data Base of company {company.Name}" });
-                    } else {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers are already in Data Base of company {company.Name}" });
-                    }
+                if(customers.Count == 0) {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers are not in the Data Base of company {company.Name}" });
+                } else {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers are already in Data Base of company {company.Name}" });
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
-            return Ok();
         }
 
         [HttpPost("CheckingUploadCustomersForRestrictedWords", Name = "CheckingUploadCustomersForRestrictedWords")]
         public async Task<IActionResult> CheckingUploadCustomersForRestrictedWords(CustomerBulkViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    var column = model.Columns.Find(x => x.Name.Equals("Name"));
-                    if(column == null)
-                        throw new Exception("Please, select \"Business Name\" column");
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+                var column = model.Columns.Find(x => x.Name.Equals("Name"));
+                if(column == null)
+                    throw new Exception("Please, select \"Business Name\" column");
 
-                    var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
-                    if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
-                        throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
-                    }
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId ?? 0);
+                if(company == null || company.Settings == null || string.IsNullOrEmpty(company.Settings.AccountNumberTemplate)) {
+                    throw new Exception("Please, check company settings! \"Account Number Template\" is not defined. ");
+                }
 
-                    var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
-                    model.Rows = cacheModel?.Rows;
+                var cacheModel = _memoryCache.Get<CustomerBulkViewModel>("_CustomerUpload");
+                model.Rows = cacheModel?.Rows;
 
-                    if(model.Rows == null || model.Rows.Count == 0) {
-                        throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
-                    }
+                if(model.Rows == null || model.Rows.Count == 0) {
+                    throw new Exception("We did not find the file in the system memory. Please refresh page and try uploading the CSV file again!");
+                }
 
-                    var words = await _settingsBusinessManager.GetRestrictedWords(model.CompanyId ?? 0);
-                    var findingWords = new List<SettingsRestrictedWordDto>();
-                    var customers = new List<long>();
-                    for(int i = 0; i < model.Rows.Count; i++) {
-                        var row = model.Rows[i];
-                        var customerName = row[column.Index].Value;
-                        foreach(var word in words) {
-                            var regex = new Regex(string.Format(@"\b{0}\b", word.Name), RegexOptions.IgnoreCase);
+                var words = await _settingsBusinessManager.GetRestrictedWords(model.CompanyId ?? 0);
+                var findingWords = new List<SettingsRestrictedWordDto>();
+                var customers = new List<long>();
+                for(int i = 0; i < model.Rows.Count; i++) {
+                    var row = model.Rows[i];
+                    var customerName = row[column.Index].Value;
+                    foreach(var word in words) {
+                        var regex = new Regex(string.Format(@"\b{0}\b", word.Name), RegexOptions.IgnoreCase);
 
-                            var isMatch = regex.IsMatch(customerName);
-                            if(isMatch) {
+                        var isMatch = regex.IsMatch(customerName);
+                        if(isMatch) {
 
-                                customers.Add(i);
-                                if(!findingWords.Contains(word))
-                                    findingWords.Add(word);
-                            }
+                            customers.Add(i);
+                            if(!findingWords.Contains(word))
+                                findingWords.Add(word);
                         }
                     }
+                }
 
-                    if(customers.Count == 0) {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers has valid \"Business Name\" which do not match the restricted words" });
-                    } else {
-                        return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match \"Business Name\" of the restricted words. [{string.Join(',', findingWords.Select(x => x.Name))}]" });
-                    }
+                if(customers.Count == 0) {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{model.Rows.Count} customers has valid \"Business Name\" which do not match the restricted words" });
+                } else {
+                    return Ok(new { Customers = customers.ToArray(), Message = $"{customers.Count} out of {model.Rows.Count} customers do not match \"Business Name\" of the restricted words. [{string.Join(',', findingWords.Select(x => x.Name))}]" });
                 }
             } catch(Exception er) {
                 return BadRequest(er.Message ?? er.StackTrace);
             }
-            return Ok();
         }
 
         [HttpPost("CreateOrUpdateCreditUtilized", Name = "CreateOrUpdateCreditUtilized")]
@@ -1038,7 +1036,7 @@ namespace Web.Controllers.Api {
                 #region RESTRICTED WORDS
                 var words = await _settingsBusinessManager.GetRestrictedWords(model.CompanyId ?? 0);
                 var restrictedWords = rows.Where(x => words.Any(y => new Regex(string.Format(@"\b{0}\b", y.Name), RegexOptions.IgnoreCase).IsMatch(x.row[columnName.Index].Value))).Select(x => x.index).ToList();
-                
+
                 result.Add(new CustomerCheckResultViewModel() {
                     Ids = restrictedWords.ToArray(),
                     Message = restrictedWords.Count == 0
