@@ -26,6 +26,7 @@
             <table class="table table-sm">
                 <thead>
                     <tr>
+                        <th rowspan="2"></th>
                         @for(var i = 0; i < Model.HeadRow.Count(); i++) {
                             <th>@Model.HeadRow[i]</th>
                         }
@@ -47,7 +48,12 @@
                 <tbody>
                     @for(var i = 0; i < Model.Rows.Count; i++) {
                         var rows = Model.Rows[i];
-                        <tr>
+                        <tr id="tr_@(i)" data-id="@(i)">
+                            <td>
+                                <input type="hidden" name="CheckedRecords[]" value="@(i)" />
+                                @(i + 1)
+                            </td>
+
                             @for(var j = 0; j < rows.Count(); j++) {
                                 var row = rows[j];
                                 <td>@row.Value</td>
