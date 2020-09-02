@@ -18,7 +18,7 @@ namespace Web.ViewModels {
         public DateTime Date { get; set; }
 
         [NotMapped]
-        public DateTime DateFrom => Date.FirstDayOfMonth();
+        public DateTime DateFrom => Date.FirstDayOfMonth().AddDays(2);
 
         [NotMapped]
         public DateTime DateTo => Date.LastDayOfMonth();

@@ -1234,7 +1234,7 @@ namespace Core.Services.Business {
             var company = await _companyManager.FindInclude(constructor.CompanyId);
             var summaryRange = await _companySummaryManager.Find(constructor.SummaryRangeId);
 
-            var dateFrom = constructor.Date.FirstDayOfMonth();
+            var dateFrom = constructor.Date.FirstDayOfMonth().AddDays(2); //Start from 3rd day of the month
             var dateTo = constructor.Date.LastDayOfMonth();
             var random = new Random();
 

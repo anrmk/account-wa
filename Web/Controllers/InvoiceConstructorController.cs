@@ -77,11 +77,6 @@ namespace Web.Controllers.Mvc {
             var customers = await _businessManager.GetCustomers(constructor);
             ViewBag.Customers = customers.Count();
 
-
-
-            //ViewBag.CreatedDateFrom = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.FirstDayOfMonth() : (DateTime?)null;
-            //ViewBag.CreatedDateTo = searchCriteria.Group == CustomerGroupType.OnlyNew ? dto.Date.LastDayOfMonth() : dto.Date.AddMonths(-1).LastDayOfMonth();
-
             var model = _mapper.Map<InvoiceConstructorViewModel>(constructor);
             if(IsAjaxRequest)
                 return PartialView(model);
@@ -101,7 +96,7 @@ namespace Web.Controllers.Mvc {
         }
 
         [HttpPost("DeleteDraftInvoices", Name = "DeleteDraftInvoices")]
-        public async Task<ActionResult> DeleteDraftInvoices(long[] ids) {
+        public async Task<IActionResult> DeleteDraftInvoices(long[] ids) {
             if(ids.Length > 0) {
                 var result = await _businessManager.DeleteInvoiceDraft(ids);
                 return Ok(result);
@@ -161,44 +156,46 @@ namespace Web.Controllers.Api {
         [HttpPost("GenerateConstructor", Name = "GenerateConstructor")]
         public async Task<IActionResult> GenerateConstructor(InvoiceConstructorFilterViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    var company = await _companyBusinessManager.GetCompany(model.CompanyId);
-                    var summary = await _companyBusinessManager.GetSummaryRanges(model.CompanyId);
-                    var constructorSearches = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
-                    var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
+                }
+                var company = await _companyBusinessManager.GetCompany(model.CompanyId);
+                var summary = await _companyBusinessManager.GetSummaryRanges(model.CompanyId);
+                var constructorSearches = await _businessManager.GetInvoiceConstructorSearchCriterias(model.SearchCriterias.ToArray());
+                var constructors = await _businessManager.GetConstructorInvoices(model.CompanyId, model.Date ?? DateTime.Now);
 
-                    foreach(var constructorSearch in constructorSearches) {
-                        foreach(var summaryRange in summary) {
-                            var constructor = constructors.Where(x => x.SearchCriteriaId == constructorSearch.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
-                            if(constructor == null) {
-                                var entity = await _businessManager.CreateConstructorInvoice(new InvoiceConstructorDto() {
-                                    CompanyId = model.CompanyId,
-                                    Date = model.Date.Value,
-                                    SearchCriteriaId = constructorSearch.Id,
-                                    SummaryRangeId = summaryRange.Id
-                                });
+                foreach(var constructorSearch in constructorSearches) {
+                    foreach(var summaryRange in summary) {
+                        var constructor = constructors.Where(x => x.SearchCriteriaId == constructorSearch.Id && x.SummaryRangeId == summaryRange.Id).FirstOrDefault();
+                        if(constructor == null) {
+                            var entity = await _businessManager.CreateConstructorInvoice(new InvoiceConstructorDto() {
+                                CompanyId = model.CompanyId,
+                                Date = model.Date.Value,
+                                SearchCriteriaId = constructorSearch.Id,
+                                SummaryRangeId = summaryRange.Id
+                            });
 
-                                constructors.Add(entity);
-                            } else {
-                                //update
-                            }
+                            constructors.Add(entity);
+                        } else {
+                            //update
                         }
                     }
+                }
 
-                    var customerCounts = new Dictionary<long, int>();
-                    foreach(var searchCriteria in constructorSearches) {
-                        var constructor = new InvoiceConstructorDto() {
-                            CompanyId = model.CompanyId,
-                            Date = model.Date ?? DateTime.Now,
-                            SearchCriteriaId = searchCriteria.Id,
-                        };
+                var customerCounts = new Dictionary<long, int>();
+                foreach(var searchCriteria in constructorSearches) {
+                    var constructor = new InvoiceConstructorDto() {
+                        CompanyId = model.CompanyId,
+                        Date = model.Date ?? DateTime.Now,
+                        SearchCriteriaId = searchCriteria.Id,
+                    };
 
-                        var customers = await _businessManager.GetCustomers(constructor);
-                        if(!customerCounts.ContainsKey(searchCriteria.Id))
-                            customerCounts.Add(searchCriteria.Id, customers.Count);
-                    }
+                    var customers = await _businessManager.GetCustomers(constructor);
+                    if(!customerCounts.ContainsKey(searchCriteria.Id))
+                        customerCounts.Add(searchCriteria.Id, customers.Count);
+                }
 
-                    var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+                var viewDataDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
                         { "SummaryRanges", _mapper.Map<List<CompanySummaryRangeViewModel>>(summary) },
                         { "SearchCriterias", _mapper.Map<List<InvoiceConstructorSearchViewModel>>(constructorSearches)},
                         { "CompanyName", company.Name },
@@ -206,31 +203,27 @@ namespace Web.Controllers.Api {
                         { "CustomerCounts", customerCounts }
                     };
 
-                    string html = _viewRenderService.RenderToStringAsync("_ConstructorPartial", model, viewDataDictionary).Result;
-
-                    return Ok(html);
-                }
+                string html = _viewRenderService.RenderToStringAsync("_ConstructorPartial", model, viewDataDictionary).Result;
+                return Ok(html);
             } catch(Exception er) {
-                Console.Write(er.Message);
+                return BadRequest(er.Message ?? er.StackTrace);
             }
-            return null;
         }
 
         [HttpPost("CreateConstructorInvoices", Name = "CreateConstructorInvoices")]
         public async Task<IActionResult> CreateConstructorInvoices([FromBody] InvoiceConstructorViewModel model) {
             try {
-                if(ModelState.IsValid) {
-                    var result = await _businessManager.CreateInvoiceDraft(_mapper.Map<InvoiceConstructorDto>(model));
-                    if(result == null)
-                        NotFound();
-
-                    return Ok(_mapper.Map<InvoiceConstructorViewModel>(result));
+                if(!ModelState.IsValid) {
+                    throw new Exception("Form is not valid!");
                 }
+                var result = await _businessManager.CreateInvoiceDraft(_mapper.Map<InvoiceConstructorDto>(model));
+                if(result == null)
+                    return NotFound();
+
+                return Ok(_mapper.Map<InvoiceConstructorViewModel>(result));
             } catch(Exception er) {
-                _logger.LogError(er, er.Message);
-                BadRequest();
+                return BadRequest(er.Message ?? er.StackTrace);
             }
-            return null;
         }
 
         [HttpPost("UpdateDraftInvoices", Name = "UpdateDraftInvoices")]
@@ -243,7 +236,6 @@ namespace Web.Controllers.Api {
                 totalAmount = result.Sum(x => x.Subtotal);
             }
             return Ok(new { Count = count, TotalAmount = totalAmount });
-
         }
     }
 }
