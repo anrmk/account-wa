@@ -63,7 +63,7 @@ namespace Web.Controllers.Mvc {
 
             ViewBag.Company = _mapper.Map<CompanyViewModel>(item.Company);
             ViewBag.Customer = _mapper.Map<CustomerViewModel>(item.Customer);
-            ViewBag.Payment = _mapper.Map<List<PaymentViewModel>>(payment);
+            ViewBag.Payments = _mapper.Map<List<PaymentViewModel>>(payment);
 
             var model = _mapper.Map<InvoiceViewModel>(item);
 

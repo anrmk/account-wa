@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
 namespace Web.ViewModels {
@@ -33,8 +34,8 @@ namespace Web.ViewModels {
 
         //public List<PaymentViewModel> Payments { get; set; }
 
-        //[DisplayFormat(DataFormatString = "{0:#.##}", ApplyFormatInEditMode = true)]
-        //public decimal PaymentAmount { get; set; }
+        [NotMapped]
+        public decimal PaymentAmount { get; set; }
 
         //[DisplayFormat(DataFormatString = "{0:MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         //public DateTime? PaymentDate { get; set; }

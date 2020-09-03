@@ -110,7 +110,8 @@ namespace Web {
                 .ForMember(d => d.Customer, o => o.Ignore())
                 .ForMember(d => d.Company, o => o.Ignore())
                 .ForMember(d => d.Payments, o => o.Ignore())
-                .ReverseMap();
+                .ReverseMap()
+                .ForMember(d => d.PaymentAmount, o => o.MapFrom(s => s.Payments.Sum(x => x.Amount)));
 
             CreateMap<InvoiceListViewModel, InvoiceDto>()
                 .ReverseMap()

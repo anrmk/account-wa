@@ -1,123 +1,78 @@
 ﻿@model Web.ViewModels.InvoiceViewModel
 
 @{
-    ViewData["Title"] = "Invoice Deails";
-}
+    ViewData["Title"] = "Invoice Details";
 
-<div class="row">
-    <div class="col-8">
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-8">
-                        <table class="table table-sm table-borderless">
-                            <caption>Company:</caption>
-                            <tbody>
-                                <tr>
-                                    <td>@Model.Company?.Name</td>
-                                </tr>
-                                <tr>
-                                    <td>Address: @Model.Company?.Address</td>
-                                </tr>
-                                <tr>
-                                    <td>PN: @Model.Company?.PhoneNumber</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <hr />
-                        <table class="table table-sm table-borderless">
-                            <caption>Bill To:</caption>
-                            <tbody>
-                                <tr>
-                                    <td colspan="2">@Model.Customer.No, @Model.Customer.Name</td>
-                                </tr>
-                                <tr>
-                                    <td scope="row">Address:</td>
-                                    <td>@Model.Customer?.Address</td>
-                                </tr>
-                                <tr>
-                                    <td scope="row">PN:</td>
-                                    <td>@Model.Customer?.PhoneNumber</td>
-                                </tr>
-                                <tr>
-                                    <td scope="row">Terms:</td>
-                                    <td>@Model.Customer?.Terms</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="col-4">
-                        <div class="card mb-auto">
-                            <div class="card-body">
-                                <table class="table table-sm table-borderless">
-                                    <tbody>
-                                        <tr>
-                                            <td>Invoice No:</td>
-                                            <td>@Model.No</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Date:</td>
-                                            <td>@Model.Date.ToString()</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Due Date::</td>
-                                            <td>@Model.DueDate</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <hr />
-                <div class="row">
-                    <div class="col-4 offset-md-8">
-                        <table class="table table-sm table-borderless">
-                            <tbody>
-                                <tr>
-                                    <td scope="row"><label asp-for="Subtotal"></label></td>
-                                    <td>@Model.Subtotal</td>
-                                </tr>
-                                <tr>
-                                    <td scope="row"><label asp-for="TaxRate"></label></td>
-                                    <td>@Model.TaxRate</td>
-                                </tr>
-                                <tr>
-                                    <td scope="row"><label asp-for="Amount"></label></td>
-                                    <td>@Model.Amount</td>
-                                </tr>
-                                @*@if(Model.Payments != null && Model.Payments.Count > 0) {
-                                    <tr>
-                                        <td scope="row"><label asp-for="Payments"></label></td>
-                                        <td>@Model.PaymentAmount</td>
-                                    </tr>
-                                }*@
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    var company = ViewBag.Company;
+    var customer = ViewBag.Customer;
+    var payments = (List<Web.ViewModels.PaymentViewModel>)ViewBag.Payments;
+}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Invoices</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.No</li>
+    </ol>
+</nav>
+
+
+<div class="card bg-light">
+    <div class="card-header">
+        @company.Name
+    </div>
+    <div class="card-body bg-light">
+        <div class="row">
+            <div class="col">
+                <h5>Company</h5>
+                <div>@company.Address</div>
+                <div>@company.PhoneNumber</div>
+                <div></div>
+            </div>
+            <div class="col">
+                <h5>Customer</h5>
+                <div>@customer.No, @customer.Name</div>
+                <div>@customer.Address</div>
+                <div>@customer.PhoneNumber</div>
+                <div>@customer.Terms</div>
+            </div>
+            <div class="col text-right">
+                <div>Invoice / @Model.Date.ToString("MM/dd/yyyy")</div>
+                <div><strong>No# @Model.No</strong></div>
+                <div>Due date: @Model.DueDate.ToString("MM/dd/yyyy")</div>
+                <div>Amount: @Core.Extension.NumberExtensionMethods.ToCurrency(Model.Amount)</div>
             </div>
         </div>
     </div>
-    <div class="col-4">
-        <h4>Payments</h4>
-        @*<div class="list-group">
-            @foreach(var item in Model.Payments) {
-                <a asp-action="Details" asp-controller="Payment" asp-route-id="@item.Id" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <div><strong>Reference no:</strong> @item.No</div>
-                        <small>@item.Date.ToShortDateString()</small>
-                    </div>
-                    <div><strong>Amount:</strong> @item.Amount</div>
-                </a>
-            }
-        </div>*@
-
-        @*@if(Model.PaymentAmount == Model.Amount) {
-        <div class="alert alert-success mt-3" role="alert">
-            Paid! On @Model.PaymentDate?.ToString("MMM/dd/yyyy")
-        </div>
-        }*@
+    <div class="card-body">
+        <h5 class="card-title">Payments</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="collapsing"></th>
+                    <th>No#</th>
+                    <th class="collapsing">Date</th>
+                    <th class="collapsing text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(var i = 0; i < payments.Count; i++) {
+                    var item = payments[i];
+                    <tr>
+                        <td>@(i+1)</td>
+                        <td><a asp-action="Details" asp-controller="Payment" asp-route-id="@item.Id" class="">@item.No</a></td>
+                        <td>@item.Date.ToString("MM/dd/yyyy")</td>
+                        <td class="text-right">@Core.Extension.NumberExtensionMethods.ToCurrency(item.Amount)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"></td>
+                    <td>
+                        <small>Total</small>
+                        <h1 class="display-4">@Core.Extension.NumberExtensionMethods.ToCurrency(Model.PaymentAmount)</h1>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
 </div>
-

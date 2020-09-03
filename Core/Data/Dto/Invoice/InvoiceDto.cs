@@ -22,15 +22,10 @@ namespace Core.Data.Dto {
 
         public bool IsDraft { get; set; }
 
-        public DateTime CreatedDate { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime UpdatedDate { get; set; }
-        public string UpdatedBy { get; set; }
-
         public string Status {
             get {
                 var totalPaymentAmount = Payments.TotalAmount();
-                if(Subtotal == totalPaymentAmount) {
+                if(Subtotal <= totalPaymentAmount) {
                     return "Paid";
                 } else if(totalPaymentAmount > 0 && totalPaymentAmount < Subtotal) {
                     return "Partially paid";
@@ -43,5 +38,10 @@ namespace Core.Data.Dto {
         public decimal Balance => Payments.TotalAmount() - Subtotal;
 
         public decimal Amount => Subtotal * (1 + TaxRate / 100);
+
+        public DateTime CreatedDate { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime UpdatedDate { get; set; }
+        public string UpdatedBy { get; set; }
     }
 }
