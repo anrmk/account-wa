@@ -111,8 +111,8 @@
                         @foreach(var column in Model.Cols) {
                             var factCount = Model.BalanceTotal[column.Name].Count;
                             var factAmount = Model.BalanceTotal[column.Name].Sum;
-                            var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Count ?? 0;
-                            var planAmount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault().Amount ?? 0;
+                            var planCount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault()?.Count ?? 0;
+                            var planAmount = plan?.Fields.Where(x => x.Name.Equals(column.Name)).FirstOrDefault()?.Amount ?? 0;
                             <tr>
                                 <td scope="col">@(column.Name.Equals("-31-0") ? "Current" : column.Name)</td>
                                 <td class="collapsing">

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,9 @@ namespace Web.Controllers.Mvc {
         private readonly ICompanyBusinessManager _companyBusinessManager;
         private readonly IReportBusinessManager _reportBusinessManager;
         private readonly IReportManager _reportManager;
+
+        private readonly string matchFieldSumExpression = @"\{([^}]*)\}"; //{-30-0}+{1-30} \{(-?)(\d+)-(\d+)\}-only numbers
+        private readonly string matchFileNameExpression = @"(?:\$)?\{.*?\}";
 
         public ReportController(IMemoryCache memoryCache, ILogger<ReportController> logger, IMapper mapper, ApplicationContext context,
              ICrudBusinessManager crudBusinessManager, IReportBusinessManager businessManager, IReportManager reportManager,
@@ -109,18 +113,30 @@ namespace Web.Controllers.Mvc {
                 foreach(var row in sortedInvoices) {
                     foreach(var field in fields) {
                         if(field.IsActive) {
-                            var value = ObjectExtension.GetPropValue(row, field.Name);
-                            //TODO: Здесь нужно сделать проверку на массив и взять его значение
+                            var matchSumField = Regex.Matches(field.Name, matchFieldSumExpression, RegexOptions.IgnoreCase); //check for regex. get values between curly braces {}
+                            if(matchSumField.Count > 0) {
+                                var fieldName = field.Name;
+                                foreach(var match in matchSumField.ToList()) {
+                                    var key = match.Value.Trim(new char[] { '{', '}' });
+                                    var value = row.Data.ContainsKey(key) ? row.Data[key] : ObjectExtension.GetPropValue(row, key);
 
-                            //if(value.GetType() == typeof(Array)) {
-                            //    Console.WriteLine("Array");
-                            //}
-                            var data = row.Data.ContainsKey(field.Name) ? row.Data[field.Name].ToString() : value;
+                                    fieldName = fieldName.Replace(match.Value, (value ?? 0).ToString(), StringComparison.OrdinalIgnoreCase);
+                                }
 
-                            csvWriter.WriteField(data == null || data.Equals("0") ? settings.DefaultValueIfEmpty : data);
+                                var data = Convert.ToDecimal(new DataTable().Compute(fieldName, null));
+                                csvWriter.WriteField(data == 0 ? settings.DefaultValueIfEmpty : data.ToString());
+                            } else {
+                                var value = ObjectExtension.GetPropValue(row, field.Name);
+                                //TODO: Здесь нужно сделать проверку на массив и взять его значение
+
+                                //if(value.GetType() == typeof(Array)) {
+                                //    Console.WriteLine("Array");
+                                //}
+                                var data = row.Data.ContainsKey(field.Name) ? row.Data[field.Name].ToString() : value;
+                                csvWriter.WriteField(data == null || data.Equals("0") ? settings.DefaultValueIfEmpty : data);
+                            }
                         }
                     }
-
                     csvWriter.NextRecord();
                 }
 
@@ -128,13 +144,13 @@ namespace Web.Controllers.Mvc {
                 mem.Position = 0;
 
                 var fileName = settings.Title;
-                var match = Regex.Match(fileName, @"(?:\$)?\{.*?\}", RegexOptions.IgnoreCase);
+                var matchFileName = Regex.Match(fileName, matchFileNameExpression, RegexOptions.IgnoreCase);
 
-                if(match.Success) {
-                    string template = match.Value.Trim(new char[] { '{', '}', '$' });
+                if(matchFileName.Success) {
+                    string template = matchFileName.Value.Trim(new char[] { '{', '}', '$' });
                     var date = model.Date.ToString(template, DateTimeFormatInfo.InvariantInfo);
 
-                    fileName = Regex.Replace(fileName, @"(?:\$)?\{.*?\}", match.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
+                    fileName = Regex.Replace(fileName, matchFileNameExpression, matchFileName.Value.Contains('$') ? date.ToUpper() : date, RegexOptions.IgnoreCase);
                 }
 
                 FileStreamResult fileStreamResult = new FileStreamResult(mem, "application/octet-stream");
