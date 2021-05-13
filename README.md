@@ -1,81 +1,15 @@
-# Portal
-Simple accounting software for internal use in the company
+# Platform
 
-- Install-Package Microsoft.EntityFrameworkCore.Sqlite
-- Install-Package Microsoft.EntityFrameworkCore.Tools
+Accounting software for internal use in the company that has features for managing contractors, book management, and in-depth dashboard views for generating business insights. This app are geared mainly toward small and medium-sized businesses. You can use it for invoicing customers, paying bills, generating reports, and ~~preparing taxes~~.
 
-## Remote Desktop Connection
-89.108.99.44
+This is [ASP.NET MVC](https://dotnet.microsoft.com/learn/aspnet/what-is-aspnet) Web Application with dynamicaly render HTML (Razor), seamless integration with [Entity Framework (EF)](https://docs.microsoft.com/en-us/ef/) including SQL Server (or SQL Light as you wish). For building interactiv Web UI I used [Bootstrap](https://getbootstrap.com/) and [jQuery](https://jquery.com/)
 
-## Get Aging Invoices
-	DECLARE @DATEFROM DATETIME;
-	SET @DATEFROM = '2019-2-12';
-	DECLARE @DATETO DATETIME;
-	SET @DATETO = '2020-3-31';
-	DECLARE @COMPANYID INT;
-	SET @COMPANYID = 10007;
+All information posted on that resource is published for informational purposes only and under no circumstances is a public offer.
 
-	SELECT INV.[Id], INV.[No], INV.[Subtotal], INV.[TaxRate], INV.[Date], INV.[DueDate], INV.[IsDraft], 
-	PAY.[Id] AS PayId, PAY.[No] AS PayNo, PAY.[Amount] AS PayAmount, PAY.[Date] AS PayDate, 
-	CUS.[Id] AS CustomerId, CUS.[AccountNumber] AS CustomerAccountNumber, CUS.[Name] AS CustomerName, CUS.[PhoneNumber] AS CustomerPhoneNumber, CUS.[Terms] AS CustomerTerms,  CUS.[CustomerType_Id] AS CustomerTypeId, CUST.[Name] AS CustomerTypeName,  
-	CACT.[Id] AS ActivityId, CACT.[CreatedDate] AS ActivityDate, CACT.[IsActive] AS ActivityStatus, 
-	CLIM.[Id] AS CreditLimitId, CLIM.[Value] AS CreditLimit, CLIM.[CreatedDate] AS CreditLimitDate, 
-	CUTIL.[Id] AS CreditUtilizedId, CUTIL.[Value] AS CreditUtilized, CUTIL.[CreatedDate] AS CreditUtilizedDate, 
-	ADDR.[Id] as CustomerAddressId, ADDR.[Address] as CustomerAddress, ADDR.[Address2] as CustomerAddress2, ADDR.[City] as CustomerCity, ADDR.[State] as CustomerState, ADDR.[ZipCode] as CustomerZipCode, ADDR.[Country] as CustomerCountry, 
-	COM.[Id] AS CompanyId, COM.[No] AS CompanyNo, COM.[Name] AS CompanyName, COM.[PhoneNumber] AS CompanyPhoneNumber, 
-	DATEDIFF(DAY, INV.[DueDate], @DATEFROM ) AS DiffDate  
-	FROM [accountWa].[dbo].[Invoices] AS INV  
-	LEFT JOIN [accountWa].[dbo].[Payments] AS PAY ON PAY.[Invoice_Id] = INV.[Id] AND PAY.[Date] <= @DATETO 
-	LEFT JOIN [accountWa].[dbo].[Customers] as CUS ON CUS.[Id] = INV.[Customer_Id]  
-	LEFT JOIN [accountWa].[dbo].[nsi.CustomerType] as CUST ON CUS.[CustomerType_Id] = CUST.[Id]  
-	OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerActivities]  
-	   "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO 
-	   "ORDER BY [CreatedDate] DESC) AS CACT 
-	OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditLimit] 
-	   "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO 
-	   "ORDER BY [CreatedDate] DESC) AS CLIM 
-	OUTER APPLY (SELECT TOP 1 * FROM [accountWa].[dbo].[CustomerCreditUtilized] 
-	   "WHERE [Customer_Id] = CUS.[Id] AND [CreatedDate] <= @DATETO 
-	   "ORDER BY [CreatedDate] DESC) AS CUTIL 
-	LEFT JOIN [accountWa].[dbo].[CustomerAddresses] as ADDR ON ADDR.[Id] = CUS.[CustomerAddress_Id]  
-	LEFT JOIN [accountWa].[dbo].[Companies] as COM ON COM.[Id] = INV.[Company_Id]  
-	WHERE INV.[Company_Id] = @COMPANYID AND CACT.[Id] IS NOT NULL AND INV.[Date] <= @DATETO
-	AND CACT.[IsActive] = 'TRUE' 
-	ORDER BY CUS.[AccountNumber] ASC
+![Portal - Login Page](/Screenshots/printscreen_1.png) "An entry page to a website that requires user identification and authentication, performed by entering a username and password combination."
 
-## Synchronize Customer "CreatedDate" field with first field of customer activity date (CustomerActivity)
-	SELECT CACT.[Customer_Id], CUS.[Id], CACT.[CreatedDate], CUS.[CreatedDate], CUS.[AccountNumber], CUS.[Name]
-	FROM [accountWa].[dbo].[Customers] AS CUS 
-		LEFT JOIN (SELECT Customer_Id, Count(IsActive) AS TotalActive, MIN([CreatedDate]) AS CreatedDate 
-				   FROM [accountWa].[dbo].[CustomerActivities]
-				   GROUP BY [Customer_Id]) AS CACT 
-		ON CACT.[Customer_Id] = CUS.[Id]
-	WHERE CACT.[CreatedDate] != CUS.[CreatedDate]
+![Portal - Customers](/Screenshots/printscreen_2.png) "As your business grows, it's important to stay organized and keep track of your customers. Here you can add customer profiles so you can quickly add them to transactions or invoices."
 
-	UPDATE [accountWa].[dbo].[Customers] SET 
-		   [accountWa].[dbo].[Customers].[CreatedDate]  = CACT.[CreatedDate]
-	FROM [accountWa].[dbo].[Customers] AS CUS 
-		LEFT JOIN (SELECT Customer_Id, Count(IsActive) AS TotalActive, MIN([CreatedDate]) AS CreatedDate 
-				   FROM [accountWa].[dbo].[CustomerActivities]
-				   GROUP BY [Customer_Id]) AS CACT 
-		ON CACT.[Customer_Id] = CUS.[Id]
-	WHERE CACT.[CreatedDate] != CUS.[CreatedDate]
-	
-## Remove dublicates from "Payments"
-	WITH cte AS (
-	    SELECT [Id], [No], [Invoice_Id], [Amount],
-		ROW_NUMBER() OVER (
-		    PARTITION BY [No], [Invoice_Id], [Amount]
-		    ORDER BY [No]) [RowNum]
-	    FROM 
-		[accountWa].[dbo].[Payments]
-	) 
-	--DELETE FROM cte WHERE [RowNum] > 1
-	SELECT * FROM cte WHERE [RowNum] > 1 ORDER BY [Id];
+![Portal - Aging Summary Report](/Screenshots/printscreen_3.png) "The A/R Aging Summary only displays totals for each customer with a past due status. The report divides these into 30-day increments, so you can see how much each customer owes currently, 1-30 days overdue, 31-60 days overdue, etc."
 
-## Remove unrelated Addresses from Customers
-	--DELETE FROM [dbo].[CustomerAddresses]
-	SELECT * FROM [dbo].[CustomerAddresses]
-	WHERE [Id] NOT IN (
-		SELECT CustomerAddress_Id FROM [dbo].[Customers]  
-	)
+![Portal - Invoice Builder](/Screenshots/printscreen_4.png) "Easily creates attractive, professional invoices that you can download, print or send online in a single click."
